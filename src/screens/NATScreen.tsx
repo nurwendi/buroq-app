@@ -44,11 +44,13 @@ import {
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
 
 export default function NATScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'mikrotik' | 'nas' | 'isolir'>('mikrotik');
   
   // Tab: Mikrotik
@@ -120,7 +122,7 @@ export default function NATScreen() {
       }
     } catch (e) {
       console.error('Fetch Error:', e);
-      Alert.alert('Error', 'Gagal mengambil data sistem');
+      Alert.alert(t('common.error'), t('common.fetchError') || 'Gagal mengambil data sistem');
     } finally {
       setLoading(false);
     }
@@ -142,10 +144,10 @@ export default function NATScreen() {
       setLoading(true);
       await apiClient.post('/api/settings', { activeConnectionId: id });
       setActiveConnectionId(id);
-      Alert.alert('Sukses', 'Koneksi aktif berhasil diubah');
+      Alert.alert(t('common.success'), t('nat.connectActiveSuccess'));
       fetchData();
     } catch (e) {
-      Alert.alert('Error', 'Gagal mengubah koneksi aktif');
+      Alert.alert(t('common.error'), t('nat.connectActiveError'));
     } finally {
       setLoading(false);
     }
@@ -161,7 +163,7 @@ export default function NATScreen() {
   const handleOpenEditMikrotik = (router: any) => {
     const conn = connections.find(c => c.id === router.id);
     if (!conn) {
-      Alert.alert('Error', 'Data konfigurasi router tidak ditemukan');
+      Alert.alert(t('common.error'), t('nat.routerConfigNotFound'));
       return;
     }
     setModalType('mikrotik');
@@ -178,7 +180,7 @@ export default function NATScreen() {
 
   const handleSaveMikrotik = async () => {
     if (!mikrotikForm.host || !mikrotikForm.user || !mikrotikForm.port) {
-      Alert.alert('Error', 'Host, User, dan Port wajib diisi');
+      Alert.alert(t('common.error'), t('users.requiredFields'));
       return;
     }
     setIsSubmitting(true);
@@ -192,25 +194,25 @@ export default function NATScreen() {
         newConnections.push({ ...mikrotikForm, id: Date.now().toString() });
       }
       await apiClient.post('/api/settings', { connections: newConnections });
-      Alert.alert('Sukses', 'Router berhasil disimpan');
+      Alert.alert(t('common.success'), t('nat.routerSaved'));
       setModalVisible(false);
       fetchData();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Gagal menyimpan');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('common.saveError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteMikrotik = (router: any) => {
-    Alert.alert('Hapus Router', `Yakin hapus ${router.name}?`, [
-      { text: 'Batal', style: 'cancel' },
-      { text: 'Hapus', style: 'destructive', onPress: async () => {
+    Alert.alert(t('nat.edit'), t('nat.routerDeleteConfirm').replace('{name}', router.name), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: async () => {
         try {
           const newConnections = connections.filter(c => c.id !== router.id);
           await apiClient.post('/api/settings', { connections: newConnections });
           fetchData();
-        } catch (e) { Alert.alert('Error', 'Gagal menghapus'); }
+        } catch (e) { Alert.alert(t('common.error'), t('common.deleteError')); }
       }}
     ]);
   };
@@ -235,24 +237,24 @@ export default function NATScreen() {
       } else {
         await apiClient.post('/api/radius/nas', nasForm);
       }
-      Alert.alert('Success', 'NAS saved successfully');
+      Alert.alert(t('common.success'), t('nat.nasSaved'));
       setModalVisible(false);
       fetchData();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Failed to save NAS');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('common.saveError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteNas = (nas: any) => {
-    Alert.alert('Delete NAS', `Delete ${nas.nasname}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
+    Alert.alert(t('common.delete'), t('nat.nasDeleteConfirm').replace('{name}', nas.nasname), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: async () => {
         try {
           await apiClient.delete(`/api/radius/nas?id=${nas.id}`);
           fetchData();
-        } catch (e) { Alert.alert('Error', 'Failed to delete'); }
+        } catch (e) { Alert.alert(t('common.error'), t('common.deleteError')); }
       }}
     ]);
   };
@@ -285,24 +287,24 @@ export default function NATScreen() {
         ...currentSettings,
         isolir: isolirConfig
       });
-      Alert.alert('Sukses', 'Konfigurasi Isolir berhasil disimpan');
+      Alert.alert(t('common.success'), t('nat.isolirSaveSuccess'));
     } catch (e) {
-      Alert.alert('Error', 'Gagal menyimpan konfigurasi');
+      Alert.alert(t('common.error'), t('common.saveError'));
     } finally {
       setSavingIsolir(false);
     }
   };
 
   const handleRunAutoDrop = async () => {
-    Alert.alert('Auto Isolir', 'Jalankan pengecekan dan isolir otomatis sekarang?', [
-      { text: 'Batal', style: 'cancel' },
-      { text: 'Jalankan', onPress: async () => {
+    Alert.alert(t('nat.isolir'), t('nat.autoIsolirCheckConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), onPress: async () => {
         setSavingIsolir(true);
         try {
           const res = await apiClient.post('/api/billing/auto-drop', { action: 'check-and-drop' });
-          Alert.alert('Hasil', res.data.message);
+          Alert.alert(t('common.success'), res.data.message);
         } catch (e: any) {
-          Alert.alert('Error', e.response?.data?.error || 'Gagal menjalankan auto-drop');
+          Alert.alert(t('common.error'), e.response?.data?.error || t('common.error'));
         } finally {
           setSavingIsolir(false);
         }
@@ -329,7 +331,7 @@ export default function NATScreen() {
               {isActive && (
                 <View style={styles.activeBadge}>
                   <CheckCircle size={10} color="#059669" />
-                  <Text style={styles.activeBadgeText}>AKTIF</Text>
+                  <Text style={styles.activeBadgeText}>{t('nat.active')}</Text>
                 </View>
               )}
             </View>
@@ -402,7 +404,7 @@ export default function NATScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>Router Management</Text>
+        <Text style={styles.title}>{t('nat.title')}</Text>
         {activeTab !== 'isolir' ? (
           <TouchableOpacity onPress={activeTab === 'mikrotik' ? handleOpenAddMikrotik : handleOpenAddNas} style={styles.addButton}>
             <Plus size={24} color="#2563eb" />
@@ -416,21 +418,21 @@ export default function NATScreen() {
           onPress={() => setActiveTab('mikrotik')}
         >
           <Server size={18} color={activeTab === 'mikrotik' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'mikrotik' && styles.tabTextActive]}>MikroTik</Text>
+          <Text style={[styles.tabText, activeTab === 'mikrotik' && styles.tabTextActive]}>{t('nat.mikrotik')}</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'nas' && styles.tabActive]} 
           onPress={() => setActiveTab('nas')}
         >
           <Shield size={18} color={activeTab === 'nas' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'nas' && styles.tabTextActive]}>RADIUS</Text>
+          <Text style={[styles.tabText, activeTab === 'nas' && styles.tabTextActive]}>{t('nat.radius')}</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'isolir' && styles.tabActive]} 
           onPress={() => setActiveTab('isolir')}
         >
           <Wifi size={18} color={activeTab === 'isolir' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'isolir' && styles.tabTextActive]}>Isolir</Text>
+          <Text style={[styles.tabText, activeTab === 'isolir' && styles.tabTextActive]}>{t('nat.isolir')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -443,75 +445,75 @@ export default function NATScreen() {
           <View style={styles.isolirHeader}>
              <AlertTriangle size={48} color="#f59e0b" style={{ marginBottom: 12 }} />
              <View style={styles.isolirHeaderTexts}>
-                <Text style={styles.isolirTitle}>Konfigurasi Isolir Otomatis</Text>
-                <Text style={styles.isolirDesc}>Gunakan fitur ini untuk memutuskan koneksi pelanggan yang menunggak secara otomatis.</Text>
+                <Text style={styles.isolirTitle}>{t('nat.autoIsolirTitle')}</Text>
+                <Text style={styles.isolirDesc}>{t('nat.autoIsolirDesc')}</Text>
              </View>
           </View>
           
           <TouchableOpacity style={styles.runBtn} onPress={handleRunAutoDrop}>
              <RefreshCw size={20} color="#fff" />
-             <Text style={styles.runBtnText}>Jalankan AUTO ISOLIR Sekarang</Text>
+             <Text style={styles.runBtnText}>{t('nat.runAutoIsolir')}</Text>
           </TouchableOpacity>
 
           <View style={styles.formSection}>
             <View style={styles.sectionTitleRow}>
                <Settings size={20} color="#1e293b" />
-               <Text style={styles.sectionTitle}>Parameter Konfigurasi</Text>
+               <Text style={styles.sectionTitle}>{t('nat.configParameters')}</Text>
             </View>
 
             <View style={styles.gridForm}>
               <View style={styles.inputCol}>
-                <Text style={styles.label}>Nama IP Pool</Text>
+                <Text style={styles.label}>{t('nat.ipPoolName')}</Text>
                 <TextInput style={styles.input} value={isolirConfig.poolName} onChangeText={t => setIsolirConfig({...isolirConfig, poolName: t})} />
               </View>
               <View style={styles.inputCol}>
-                <Text style={styles.label}>Gateway IP</Text>
+                <Text style={styles.label}>{t('nat.gatewayIp')}</Text>
                 <TextInput style={styles.input} value={isolirConfig.gatewayIp} onChangeText={t => setIsolirConfig({...isolirConfig, gatewayIp: t})} />
               </View>
             </View>
             
-            <Text style={styles.label}>Rentang IP Isolir</Text>
+            <Text style={styles.label}>{t('nat.ipPoolRange')}</Text>
             <TextInput style={styles.input} value={isolirConfig.poolRange} onChangeText={t => setIsolirConfig({...isolirConfig, poolRange: t})} />
             
-            <Text style={styles.label}>Network CIDR (Target)</Text>
+            <Text style={styles.label}>{t('nat.networkCidr')}</Text>
             <TextInput style={styles.input} value={isolirConfig.networkCidr} onChangeText={t => setIsolirConfig({...isolirConfig, networkCidr: t})} placeholder="e.g. 10.100.1.0/24" />
 
             <View style={styles.gridForm}>
               <View style={styles.inputCol}>
-                <Text style={styles.label}>Billing Server IP</Text>
+                <Text style={styles.label}>{t('nat.billingServerIp')}</Text>
                 <TextInput style={styles.input} value={isolirConfig.billingIp} onChangeText={t => setIsolirConfig({...isolirConfig, billingIp: t})} />
               </View>
               <View style={styles.inputCol}>
-                <Text style={styles.label}>App Port</Text>
+                <Text style={styles.label}>{t('nat.appPort')}</Text>
                 <TextInput style={styles.input} value={isolirConfig.appPort} onChangeText={t => setIsolirConfig({...isolirConfig, appPort: t})} keyboardType="numeric" />
               </View>
             </View>
 
             <TouchableOpacity style={styles.saveBtn} onPress={handleSaveIsolir} disabled={savingIsolir}>
                {savingIsolir ? <ActivityIndicator color="#fff" /> : <Save size={20} color="#fff" />}
-               <Text style={styles.saveBtnText}>Simpan Pengaturan</Text>
+               <Text style={styles.saveBtnText}>{t('nat.saveSettings')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={[styles.formSection, { marginTop: 20, marginBottom: 40 }]}>
              <View style={styles.sectionTitleRow}>
                 <Code size={20} color="#1e293b" />
-                <Text style={styles.sectionTitle}>Generate MikroTik Script</Text>
+                <Text style={styles.sectionTitle}>{t('nat.generateScript')}</Text>
              </View>
              
              <View style={styles.scriptPreviewContainer}>
                 <View style={styles.scriptHeader}>
-                   <Text style={styles.scriptHeaderText}>Terminal Preview</Text>
+                   <Text style={styles.scriptHeaderText}>{t('nat.terminalPreview')}</Text>
                    <TouchableOpacity onPress={copyScript} style={styles.copyBtn}>
                       {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#64748b" />}
-                      <Text style={[styles.copyBtnText, copied && { color: '#10b981' }]}>{copied ? 'Disalin' : 'Salin Script'}</Text>
+                      <Text style={[styles.copyBtnText, copied && { color: '#10b981' }]}>{copied ? t('nat.scriptCopied') : t('nat.copyScript')}</Text>
                    </TouchableOpacity>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                    <Text style={styles.scriptText}>{generateScript()}</Text>
                 </ScrollView>
              </View>
-             <Text style={styles.scriptNote}>* Paste script ini di New Terminal Winbox atau SSH MikroTik Anda.</Text>
+             <Text style={styles.scriptNote}>{t('nat.scriptNote')}</Text>
           </View>
         </ScrollView>
       ) : (
@@ -524,7 +526,7 @@ export default function NATScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Layers size={64} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada data ditemukan</Text>
+              <Text style={styles.emptyText}>{t('nat.noDataFound')}</Text>
             </View>
           }
         />
@@ -535,33 +537,33 @@ export default function NATScreen() {
         <View style={styles.modalOverlay}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingItem ? 'Edit' : 'Tambah'} {modalType === 'mikrotik' ? 'Router' : 'NAS'}</Text>
+              <Text style={styles.modalTitle}>{editingItem ? t('nat.edit') : t('nat.add')} {modalType === 'mikrotik' ? t('nat.router') : t('nat.nas')}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}><CloseIcon size={24} color="#64748b" /></TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
               {modalType === 'mikrotik' ? (
                 <>
-                  <Text style={styles.label}>Nama Koneksi</Text>
+                  <Text style={styles.label}>{t('nat.connectionName')}</Text>
                   <TextInput style={styles.input} value={mikrotikForm.name} onChangeText={t => setMikrotikForm({...mikrotikForm, name: t})} placeholder="Router Pusat" />
-                  <Text style={styles.label}>IP / Host</Text>
+                  <Text style={styles.label}>{t('nat.ipHost')}</Text>
                   <TextInput style={styles.input} value={mikrotikForm.host} onChangeText={t => setMikrotikForm({...mikrotikForm, host: t})} placeholder="192.168.1.1" autoCapitalize="none" />
-                  <Text style={styles.label}>API Port</Text>
+                  <Text style={styles.label}>{t('nat.apiPort')}</Text>
                   <TextInput style={styles.input} value={mikrotikForm.port} onChangeText={t => setMikrotikForm({...mikrotikForm, port: t})} keyboardType="numeric" />
-                  <Text style={styles.label}>Username</Text>
+                  <Text style={styles.label}>{t('users.username')}</Text>
                   <TextInput style={styles.input} value={mikrotikForm.user} onChangeText={t => setMikrotikForm({...mikrotikForm, user: t})} autoCapitalize="none" />
-                  <Text style={styles.label}>Password</Text>
-                  <TextInput style={styles.input} value={mikrotikForm.password} onChangeText={t => setMikrotikForm({...mikrotikForm, password: t})} secureTextEntry placeholder={editingItem ? "Kosongkan jika tidak diubah" : ""} />
+                  <Text style={styles.label}>{t('users.password')}</Text>
+                  <TextInput style={styles.input} value={mikrotikForm.password} onChangeText={t => setMikrotikForm({...mikrotikForm, password: t})} secureTextEntry placeholder={editingItem ? t('users.passwordHint') : ""} />
                 </>
               ) : (
                 <>
-                  <Text style={styles.label}>NAS IP Address</Text>
+                  <Text style={styles.label}>{t('nat.nasIpAddress')}</Text>
                   <TextInput style={styles.input} value={nasForm.nasname} onChangeText={t => setNasForm({...nasForm, nasname: t})} placeholder="192.168.88.1" />
-                  <Text style={styles.label}>Radius Secret</Text>
+                  <Text style={styles.label}>{t('nat.radiusSecret')}</Text>
                   <TextInput style={styles.input} value={nasForm.secret} onChangeText={t => setNasForm({...nasForm, secret: t})} placeholder="secret" autoCapitalize="none" />
-                  <Text style={styles.label}>Shortname</Text>
+                  <Text style={styles.label}>{t('nat.shortname')}</Text>
                   <TextInput style={styles.input} value={nasForm.shortname} onChangeText={t => setNasForm({...nasForm, shortname: t})} placeholder="R-Pusat" />
-                  <Text style={styles.label}>Deskripsi</Text>
+                  <Text style={styles.label}>{t('nat.description')}</Text>
                   <TextInput style={[styles.input, { height: 80 }]} value={nasForm.description} onChangeText={t => setNasForm({...nasForm, description: t})} multiline />
                 </>
               )}

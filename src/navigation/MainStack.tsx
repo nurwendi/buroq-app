@@ -24,6 +24,8 @@ import AboutScreen from '../screens/AboutScreen';
 import LogsScreen from '../screens/LogsScreen';
 import PppoeProfilesScreen from '../screens/PppoeProfilesScreen';
 import NotificationScreen from '../screens/NotificationScreen';
+import BroadcastScreen from '../screens/BroadcastScreen';
+import GenieAcsScreen from '../screens/GenieAcsScreen';
 
 const Stack = createStackNavigator();
 
@@ -57,6 +59,8 @@ export default function MainStack() {
       <Stack.Screen name="ServerSettings" component={ServerSettingsScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
+      <Stack.Screen name="Broadcast" component={BroadcastScreen} />
+      <Stack.Screen name="GenieACS" component={GenieAcsScreen} />
     </Stack.Navigator>
   );
 }

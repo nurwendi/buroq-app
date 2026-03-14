@@ -27,9 +27,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SystemSettingsScreen() {
   const navigation = useNavigation();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -57,7 +59,7 @@ export default function SystemSettingsScreen() {
       setSettings(response.data);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
-      Alert.alert('Error', 'Gagal mengambil data pengaturan.');
+      Alert.alert(t('common.error'), t('systemSettings.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -67,10 +69,10 @@ export default function SystemSettingsScreen() {
     setSaving(true);
     try {
       await apiClient.post('/api/billing/settings', settings);
-      Alert.alert('Sukses', 'Pengaturan berhasil disimpan.');
+      Alert.alert(t('common.success'), t('systemSettings.saveSuccess'));
     } catch (error) {
       console.error('Failed to save settings:', error);
-      Alert.alert('Error', 'Gagal menyimpan pengaturan.');
+      Alert.alert(t('common.error'), t('systemSettings.saveError'));
     } finally {
       setSaving(false);
     }
@@ -90,7 +92,7 @@ export default function SystemSettingsScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pengaturan Sistem</Text>
+        <Text style={styles.headerTitle}>{t('systemSettings.title')}</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveButton}>
           {saving ? (
             <ActivityIndicator size="small" color="#2563eb" />
@@ -111,21 +113,21 @@ export default function SystemSettingsScreen() {
               <View style={[styles.sectionIcon, { backgroundColor: '#eff6ff' }]}>
                 <Building size={20} color="#2563eb" />
               </View>
-              <Text style={styles.sectionTitle}>Informasi Perusahaan</Text>
+              <Text style={styles.sectionTitle}>{t('systemSettings.companyInfo')}</Text>
             </View>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nama Perusahaan</Text>
+              <Text style={styles.label}>{t('systemSettings.companyName')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.companyName}
                 onChangeText={(text) => setSettings({ ...settings, companyName: text })}
-                placeholder="Contoh: Buroq Net"
+                placeholder={t('systemSettings.companyNamePlaceholder') || "Contoh: Buroq Net"}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Kontak</Text>
+              <Text style={styles.label}>{t('systemSettings.companyContact')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.companyContact}
@@ -137,12 +139,12 @@ export default function SystemSettingsScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Alamat</Text>
+              <Text style={styles.label}>{t('systemSettings.companyAddress')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={settings.companyAddress}
                 onChangeText={(text) => setSettings({ ...settings, companyAddress: text })}
-                placeholder="Alamat lengkap perusahan..."
+                placeholder={t('systemSettings.addressPlaceholder') || "Alamat lengkap perusahan..."}
                 multiline
                 numberOfLines={3}
               />
@@ -155,11 +157,11 @@ export default function SystemSettingsScreen() {
               <View style={[styles.sectionIcon, { backgroundColor: '#fdf2f8' }]}>
                 <Calendar size={20} color="#db2777" />
               </View>
-              <Text style={styles.sectionTitle}>Automasi Penagihan</Text>
+              <Text style={styles.sectionTitle}>{t('systemSettings.billingAutomation')}</Text>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Tanggal Isolir Otomatis (1-31)</Text>
+              <Text style={styles.label}>{t('systemSettings.autoDropDate')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.autoDropDate ? String(settings.autoDropDate) : ''}
@@ -167,16 +169,16 @@ export default function SystemSettingsScreen() {
                 placeholder="10"
                 keyboardType="numeric"
               />
-              <Text style={styles.helperText}>Tanggal setiap bulan di mana pelanggan belum bayar akan diisolir otomatis.</Text>
+              <Text style={styles.helperText}>{t('systemSettings.autoDropDateHelp')}</Text>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Catatan Faktur (Footer)</Text>
+              <Text style={styles.label}>{t('systemSettings.invoiceFooter')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={settings.invoiceFooter}
                 onChangeText={(text) => setSettings({ ...settings, invoiceFooter: text })}
-                placeholder="Terima kasih atas kepercayaannya..."
+                placeholder={t('systemSettings.invoiceFooterPlaceholder') || "Terima kasih atas kepercayaannya..."}
                 multiline
                 numberOfLines={3}
               />
@@ -189,11 +191,11 @@ export default function SystemSettingsScreen() {
               <View style={[styles.sectionIcon, { backgroundColor: '#fef7e6' }]}>
                 <Mail size={20} color="#d97706" />
               </View>
-              <Text style={styles.sectionTitle}>Konfigurasi SMTP Email</Text>
+              <Text style={styles.sectionTitle}>{t('systemSettings.smtpConfig')}</Text>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>SMTP Host</Text>
+              <Text style={styles.label}>{t('systemSettings.smtpHost')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.email?.host}
@@ -205,7 +207,7 @@ export default function SystemSettingsScreen() {
 
             <View style={styles.row}>
               <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                <Text style={styles.label}>Port</Text>
+                <Text style={styles.label}>{t('systemSettings.smtpPort')}</Text>
                 <TextInput
                   style={styles.input}
                   value={settings.email?.port ? String(settings.email.port) : ''}
@@ -215,7 +217,7 @@ export default function SystemSettingsScreen() {
                 />
               </View>
               <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                <Text style={styles.label}>Secure (TLS)</Text>
+                <Text style={styles.label}>{t('systemSettings.smtpSecure')}</Text>
                 <View style={styles.switchWrapper}>
                   <Switch
                     value={settings.email?.secure}
@@ -228,7 +230,7 @@ export default function SystemSettingsScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Username / Email</Text>
+              <Text style={styles.label}>{t('systemSettings.smtpUser')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.email?.user}
@@ -239,12 +241,12 @@ export default function SystemSettingsScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password / App Password</Text>
+              <Text style={styles.label}>{t('systemSettings.smtpPass')}</Text>
               <TextInput
                 style={styles.input}
                 value={settings.email?.password}
                 onChangeText={(text) => setSettings({ ...settings, email: { ...settings.email, password: text } })}
-                placeholder={settings.email?.password === '******' ? 'Tersimpan' : 'Masukkan password baru'}
+                placeholder={settings.email?.password === '******' ? t('systemSettings.smtpPassSaved') : t('systemSettings.smtpPassPlaceholder')}
                 secureTextEntry
                 autoCapitalize="none"
               />

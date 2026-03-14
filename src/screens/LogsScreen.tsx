@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { ClipboardList, Wifi, WifiOff, Clock, Search, Filter } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
 
 export default function LogsScreen() {
   const navigation = useNavigation();
+  const { t, language } = useLanguage();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,17 +64,17 @@ export default function LogsScreen() {
         </View>
         <View style={styles.logDetails}>
           <View style={styles.logHeader}>
-            <Text style={styles.username}>{item.username || 'System'}</Text>
+            <Text style={styles.username}>{item.username || t('common.system')}</Text>
             <View style={styles.timeWrapper}>
               <Clock size={10} color="#94a3b8" />
               <Text style={styles.timeText}>
-                {new Date(item.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(item.time).toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}
               </Text>
             </View>
           </View>
           <Text style={styles.message}>{item.message}</Text>
           <Text style={styles.dateText}>
-            {new Date(item.time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {new Date(item.time).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
           </Text>
         </View>
       </View>
@@ -83,8 +85,8 @@ export default function LogsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Log Sistem</Text>
-          <Text style={styles.headerSub}>Aktifitas koneksi real-time</Text>
+          <Text style={styles.headerTitle}>{t('logs.title')}</Text>
+          <Text style={styles.headerSub}>{t('logs.subtitle')}</Text>
         </View>
         <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
           <ClipboardList size={20} color="#2563eb" />
@@ -107,8 +109,8 @@ export default function LogsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <ClipboardList size={48} color="#cbd5e1" />
-              <Text style={styles.emptyTitle}>Tidak ada log</Text>
-              <Text style={styles.emptyText}>Data log akan muncul saat ada aktifitas di sistem.</Text>
+              <Text style={styles.emptyTitle}>{t('logs.noLogs')}</Text>
+              <Text style={styles.emptyText}>{t('logs.noLogsDesc')}</Text>
             </View>
           }
         />

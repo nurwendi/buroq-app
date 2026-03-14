@@ -32,10 +32,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AllUsersScreen() {
   const { user: currentUser } = useAuth();
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,7 @@ export default function AllUsersScreen() {
 
   const handleSubmit = async () => {
     if (!formData.username || (!editingUser && !formData.password)) {
-      Alert.alert('Error', 'Username dan Password wajib diisi');
+      Alert.alert(t('common.error'), t('users.requiredFields'));
       return;
     }
 
@@ -149,7 +151,7 @@ export default function AllUsersScreen() {
         if (!updateData.password) delete updateData.password;
         
         await apiClient.put(`/api/admin/users/${editingUser.id}`, updateData);
-        Alert.alert('Success', 'User berhasil diperbarui');
+        Alert.alert(t('common.success'), t('users.userUpdateSuccess'));
       } else {
         const createData = {
           ...formData,
@@ -157,12 +159,12 @@ export default function AllUsersScreen() {
           technicianRate: parseFloat(formData.technicianRate)
         };
         await apiClient.post('/api/admin/users', createData);
-        Alert.alert('Success', 'User berhasil ditambahkan');
+        Alert.alert(t('common.success'), t('users.userAddSuccess'));
       }
       setModalVisible(false);
       fetchUsers();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Gagal menyimpan user');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('users.userSaveError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -170,19 +172,19 @@ export default function AllUsersScreen() {
 
   const handleDelete = (id: number) => {
     Alert.alert(
-      'Konfirmasi Hapus',
-      'Apakah Anda yakin ingin menghapus user ini?',
+      t('users.deleteConfirmTitle'),
+      t('users.deleteConfirmMsg'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Hapus', 
+          text: t('users.deleteBtn'), 
           style: 'destructive',
           onPress: async () => {
             try {
               await apiClient.delete(`/api/admin/users/${id}`);
               fetchUsers();
             } catch (e) {
-              Alert.alert('Error', 'Gagal menghapus user');
+              Alert.alert(t('common.error'), t('users.userDeleteError'));
             }
           }
         }
@@ -263,7 +265,7 @@ export default function AllUsersScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>All System Users</Text>
+        <Text style={styles.title}>{t('users.allSystemUsers')}</Text>
         {(currentUser?.role === 'superadmin' || currentUser?.role === 'admin') ? (
           <TouchableOpacity onPress={() => handleOpenModal()} style={styles.addButton}>
             <Plus size={24} color="#ffffff" />
@@ -278,7 +280,7 @@ export default function AllUsersScreen() {
           <Search size={20} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari user (Semua Role)..."
+            placeholder={t('users.searchUsersPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#94a3b8"
@@ -300,7 +302,7 @@ export default function AllUsersScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Users size={64} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada user ditemukan</Text>
+              <Text style={styles.emptyText}>{t('users.noUsersFound')}</Text>
             </View>
           }
         />
@@ -312,7 +314,7 @@ export default function AllUsersScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingUser ? 'Edit User' : 'Tambah User'}
+                {editingUser ? t('users.editUserModal') : t('users.addUserModal')}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <CloseIcon size={24} color="#64748b" />
@@ -320,7 +322,7 @@ export default function AllUsersScreen() {
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>{t('users.username')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.username}
@@ -328,7 +330,7 @@ export default function AllUsersScreen() {
                 autoCapitalize="none"
               />
 
-              <Text style={styles.label}>{editingUser ? 'Password (Biarkan kosong jika tidak diganti)' : 'Password'}</Text>
+              <Text style={styles.label}>{editingUser ? t('users.passwordHint') : t('users.password')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.password}
@@ -336,7 +338,7 @@ export default function AllUsersScreen() {
                 secureTextEntry
               />
 
-              <Text style={styles.label}>Nama Lengkap</Text>
+              <Text style={styles.label}>{t('users.fullName')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.fullName}
@@ -345,7 +347,7 @@ export default function AllUsersScreen() {
 
               <View style={styles.row}>
                 <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.label}>Telepon</Text>
+                  <Text style={styles.label}>{t('users.phone')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.phone}
@@ -354,7 +356,7 @@ export default function AllUsersScreen() {
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: 8 }}>
-                  <Text style={styles.label}>Prefix (Company)</Text>
+                  <Text style={styles.label}>{t('users.prefix')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.prefix}
@@ -366,7 +368,7 @@ export default function AllUsersScreen() {
 
               <View style={styles.row}>
                 <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.label}>Agent ID (Manual/ID)</Text>
+                  <Text style={styles.label}>{t('users.agentId')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.agentNumber}
@@ -375,7 +377,7 @@ export default function AllUsersScreen() {
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: 8 }}>
-                  <Text style={styles.label}>Agent Rate (%)</Text>
+                  <Text style={styles.label}>{t('users.agentRate')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.agentRate}
@@ -387,7 +389,7 @@ export default function AllUsersScreen() {
 
               <View style={styles.row}>
                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text style={styles.label}>Technician Rate (%)</Text>
+                    <Text style={styles.label}>{t('users.technicianRate')}</Text>
                     <TextInput
                       style={styles.modalInput}
                       value={formData.technicianRate}
@@ -398,7 +400,7 @@ export default function AllUsersScreen() {
                  <View style={{ flex: 1, marginLeft: 8 }} />
               </View>
 
-              <Text style={styles.label}>Pool Radius</Text>
+              <Text style={styles.label}>{t('users.poolRadius')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.radiusPool}
@@ -406,7 +408,7 @@ export default function AllUsersScreen() {
                 onChangeText={(text) => setFormData({...formData, radiusPool: text})}
               />
 
-              <Text style={styles.label}>Role</Text>
+              <Text style={styles.label}>{t('users.role')}</Text>
               <View style={styles.roleGrid}>
                 {roles.map((r) => (
                   <TouchableOpacity 
@@ -435,7 +437,7 @@ export default function AllUsersScreen() {
                 ) : (
                   <>
                     <Save size={20} color="#fff" />
-                    <Text style={styles.saveButtonText}>Simpan Perubahan</Text>
+                    <Text style={styles.saveButtonText}>{t('users.saveChanges')}</Text>
                   </>
                 )}
               </TouchableOpacity>

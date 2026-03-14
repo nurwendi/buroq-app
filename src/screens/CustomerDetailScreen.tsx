@@ -38,9 +38,11 @@ import {
   Users
 } from 'lucide-react-native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CustomerDetailScreen({ route, navigation }: any) {
   const { customer } = route.params;
+  const { t } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [acsDevice, setAcsDevice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     if (customer.phone) {
       Linking.openURL(`tel:${customer.phone}`);
     } else {
-      Alert.alert('Info', 'Nomor telepon tidak tersedia');
+      Alert.alert(t('common.info'), t('users.phoneNotAvailable'));
     }
   };
 
@@ -111,7 +113,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
       const formattedPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
       Linking.openURL(`whatsapp://send?phone=${formattedPhone}`);
     } else {
-      Alert.alert('Info', 'Nomor WhatsApp tidak tersedia');
+      Alert.alert(t('common.info'), t('users.whatsappNotAvailable'));
     }
   };
 
@@ -119,20 +121,20 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     if (!acsDevice) return;
     
     Alert.alert(
-      'Reboot Perangkat',
-      'Apakah Anda yakin ingin melakukan reboot pada perangkat ini?',
+      t('users.rebootTitle'),
+      t('users.rebootConfirm'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Reboot', 
+          text: t('users.rebootConfirmBtn'), 
           style: 'destructive',
           onPress: async () => {
             try {
               setIsSubmitting(true);
               await apiClient.post('/api/genieacs/reboot', { deviceId: acsDevice.id });
-              Alert.alert('Sukses', 'Perintah reboot telah dikirim');
+              Alert.alert(t('common.success'), t('users.rebootSuccessMsg'));
             } catch (e) {
-              Alert.alert('Error', 'Gagal mengirim perintah reboot');
+              Alert.alert(t('common.error'), t('users.rebootErrorMsg'));
             } finally {
               setIsSubmitting(false);
             }
@@ -146,21 +148,21 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     if (!stats?.session?.active || !stats?.session?.id) return;
 
     Alert.alert(
-      'Putus Koneksi',
-      'Apakah Anda yakin ingin memutuskan sesi aktif pelanggan ini? Pelanggan akan mencoba menghubungkan kembali secara otomatis.',
+      t('users.kickTitle'),
+      t('users.kickConfirm'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Putuskan',
+          text: t('users.kick'),
           style: 'destructive',
           onPress: async () => {
             try {
               setIsSubmitting(true);
               await apiClient.delete(`/api/pppoe/active/${stats.session.id}`);
-              Alert.alert('Sukses', 'Sesi telah diputuskan');
+              Alert.alert(t('common.success'), t('users.kickSuccess'));
               fetchCustomerStats(); // Refresh stats
             } catch (e) {
-              Alert.alert('Error', 'Gagal memutuskan sesi');
+              Alert.alert(t('common.error'), t('users.kickError'));
             } finally {
               setIsSubmitting(false);
             }
@@ -172,7 +174,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
 
   const handleSaveWifi = async () => {
     if (!wifiForm.ssid) {
-      Alert.alert('Error', 'SSID wajib diisi');
+      Alert.alert(t('common.error'), t('users.wifiSsidRequired'));
       return;
     }
 
@@ -183,11 +185,11 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
         ssid: wifiForm.ssid,
         password: wifiForm.password
       });
-      Alert.alert('Sukses', 'Pengaturan WiFi berhasil diperbarui');
+      Alert.alert(t('common.success'), t('users.wifiUpdateSuccessDetail'));
       setWifiModalVisible(false);
       fetchAcsDevice();
     } catch (e: any) {
-      Alert.alert('Error', 'Gagal memperbarui WiFi');
+      Alert.alert(t('common.error'), t('users.wifiUpdateErrorDetail'));
     } finally {
       setIsSubmitting(false);
     }
@@ -207,7 +209,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>Profil Pelanggan</Text>
+        <Text style={styles.title}>{t('users.profileTitle')}</Text>
         <TouchableOpacity
            style={styles.editButton}
            onPress={() => navigation.navigate('CustomerForm', { 
@@ -226,7 +228,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
-            <Text style={styles.customerId}>ID: {customer.customerId || customer.username}</Text>
+            <Text style={styles.customerId}>{t('users.id')}: {customer.customerId || customer.username}</Text>
             {customer.address && (
               <View style={styles.addressRow}>
                 <MapPin size={14} color="#64748b" />
@@ -239,54 +241,54 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
              onPress={() => navigation.navigate('PaymentForm', { customer: stats })}
           >
             <CreditCard size={20} color="#fff" />
-            <Text style={styles.payButtonText}>Bayar</Text>
+            <Text style={styles.payButtonText}>{t('sidebar.pay')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity style={[styles.actionBtn, styles.callBtn]} onPress={handleCall}>
             <Phone size={20} color="#fff" />
-            <Text style={styles.actionBtnText}>Telepon</Text>
+            <Text style={styles.actionBtnText}>{t('users.call')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.waBtn]} onPress={handleWhatsApp}>
              <MessageCircle size={20} color="#fff" />
-             <Text style={styles.actionBtnText}>WhatsApp</Text>
+             <Text style={styles.actionBtnText}>{t('users.whatsapp')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status Koneksi (Mikrotik)</Text>
+          <Text style={styles.sectionTitle}>{t('users.connectionStatusMk')}</Text>
           <View style={styles.statusBox}>
             {loading ? (
               <ActivityIndicator color="#2563eb" />
             ) : (
               <View style={styles.statusRow}>
-                <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
-                   <Activity size={14} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
-                   <Text style={[styles.badgeText, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
-                     {stats?.session?.active ? 'Online' : 'Offline'}
-                   </Text>
-                </View>
-                {stats?.session?.active && (
-                  <Text style={styles.uptimeText}>Uptime: {stats.session.uptime}</Text>
-                )}
+                 <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
+                    <Activity size={14} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
+                    <Text style={[styles.badgeText, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
+                      {stats?.session?.active ? t('users.online') : t('users.offline')}
+                    </Text>
+                 </View>
+                 {stats?.session?.active && (
+                   <Text style={styles.uptimeText}>{t('users.uptime')}: {stats.session.uptime}</Text>
+                 )}
                 {stats?.session?.active && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={styles.ipText}>{stats.session.ipAddress}</Text>
-                    <TouchableOpacity 
-                      style={styles.dropSessionBtn}
-                      onPress={handleDropSession}
-                    >
-                      <Power size={14} color="#ef4444" />
-                      <Text style={styles.dropSessionText}>Kick</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.openRouterBtn}
-                      onPress={() => Linking.openURL(`http://${stats.session.ipAddress}`)}
-                    >
-                      <ExternalLink size={14} color="#2563eb" />
-                      <Text style={styles.openRouterText}>Buka</Text>
-                    </TouchableOpacity>
+                     <TouchableOpacity 
+                       style={styles.dropSessionBtn}
+                       onPress={handleDropSession}
+                     >
+                       <Power size={14} color="#ef4444" />
+                       <Text style={styles.dropSessionText}>{t('users.kick')}</Text>
+                     </TouchableOpacity>
+                     <TouchableOpacity 
+                       style={styles.openRouterBtn}
+                       onPress={() => Linking.openURL(`http://${stats.session.ipAddress}`)}
+                     >
+                       <ExternalLink size={14} color="#2563eb" />
+                       <Text style={styles.openRouterText}>{t('users.open')}</Text>
+                     </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -296,27 +298,27 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
 
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
-            <Mail size={20} color="#64748b" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Email / Paket</Text>
-              <Text style={styles.infoValue}>{customer.email || '-'} ({stats?.profile || '-'})</Text>
-            </View>
+             <Mail size={20} color="#64748b" />
+             <View style={styles.infoContent}>
+               <Text style={styles.infoLabel}>{t('users.emailPackage')}</Text>
+               <Text style={styles.infoValue}>{customer.email || '-'} ({stats?.profile || '-'})</Text>
+             </View>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-            <Users size={20} color="#64748b" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Sales / Agent</Text>
-              <Text style={styles.infoValue}>{stats?.agent?.fullName || stats?.agent?.username || '-'}</Text>
-            </View>
+             <Users size={20} color="#64748b" />
+             <View style={styles.infoContent}>
+               <Text style={styles.infoLabel}>{t('users.salesAgent')}</Text>
+               <Text style={styles.infoValue}>{stats?.agent?.fullName || stats?.agent?.username || '-'}</Text>
+             </View>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-            <Terminal size={20} color="#64748b" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Teknisi</Text>
-              <Text style={styles.infoValue}>{stats?.technician?.fullName || stats?.technician?.username || '-'}</Text>
-            </View>
+             <Terminal size={20} color="#64748b" />
+             <View style={styles.infoContent}>
+               <Text style={styles.infoLabel}>{t('users.technician')}</Text>
+               <Text style={styles.infoValue}>{stats?.technician?.fullName || stats?.technician?.username || '-'}</Text>
+             </View>
           </View>
         </View>
 
@@ -325,17 +327,17 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
            onPress={() => navigation.navigate('PaymentHistory', { username: customer.username, name: customer.name })}
         >
           <View style={styles.menuLeft}>
-            <View style={[styles.menuIcon, { backgroundColor: '#f0f9ff' }]}>
-               <CreditCard size={20} color="#0284c7" />
-            </View>
-            <Text style={styles.menuLabel}>Riwayat Pembayaran & Tagihan</Text>
-          </View>
+             <View style={[styles.menuIcon, { backgroundColor: '#f0f9ff' }]}>
+                <CreditCard size={20} color="#0284c7" />
+             </View>
+             <Text style={styles.menuLabel}>{t('users.paymentHistory')}</Text>
+           </View>
           <ChevronRight size={20} color="#cbd5e1" />
         </TouchableOpacity>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informasi Perangkat (GenieACS)</Text>
-          {loadingAcs ? (
+         <View style={styles.section}>
+           <Text style={styles.sectionTitle}>{t('users.deviceInfoAcs')}</Text>
+           {loadingAcs ? (
             <View style={styles.statusBox}>
               <ActivityIndicator color="#2563eb" />
             </View>
@@ -348,7 +350,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 </View>
                 <View style={[styles.badge, (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? styles.badgeOnline : styles.badgeOffline]}>
                   <Text style={[styles.badgeText, { color: (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? '#065f46' : '#991b1b' }]}>
-                    {(Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? 'ACS OK' : 'ACS MISSED'}
+                    {(Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? t('genieacs.acsOk') : t('genieacs.acsMissed')}
                   </Text>
                 </View>
               </View>
@@ -357,7 +359,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 <View style={styles.acsMetricItem}>
                   <Wifi size={16} color="#2563eb" />
                   <View style={styles.acsMetricContent}>
-                    <Text style={styles.acsMetricLabel}>SSID</Text>
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.ssid')}</Text>
                     <Text style={styles.acsMetricValue} numberOfLines={1}>{acsDevice.ssid || '-'}</Text>
                   </View>
                 </View>
@@ -365,7 +367,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 <View style={styles.acsMetricItem}>
                   <Activity size={16} color={parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981'} />
                   <View style={styles.acsMetricContent}>
-                    <Text style={styles.acsMetricLabel}>Signal</Text>
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.signal')}</Text>
                     <Text style={[styles.acsMetricValue, { color: parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981' }]}>
                       {acsDevice.rx_power !== '-' ? `${acsDevice.rx_power} dBm` : '-'}
                     </Text>
@@ -375,7 +377,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 <View style={styles.acsMetricItem}>
                   <Cpu size={16} color="#64748b" />
                   <View style={styles.acsMetricContent}>
-                    <Text style={styles.acsMetricLabel}>Temp</Text>
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.temp')}</Text>
                     <Text style={styles.acsMetricValue}>{acsDevice.temp !== '-' ? `${acsDevice.temp}°C` : '-'}</Text>
                   </View>
                 </View>
@@ -387,42 +389,42 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                    onPress={() => setWifiModalVisible(true)}
                 >
                   <Edit size={16} color="#2563eb" />
-                  <Text style={styles.acsActionText}>Edit WiFi</Text>
+                  <Text style={styles.acsActionText}>{t('users.wifiSettingsShort')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                    style={[styles.acsActionBtn, styles.acsRebootBtn]}
                    onPress={handleReboot}
                 >
                   <Power size={16} color="#ef4444" />
-                  <Text style={[styles.acsActionText, styles.acsRebootText]}>Reboot</Text>
+                  <Text style={[styles.acsActionText, styles.acsRebootText]}>{t('users.rebootShort')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
-            <View style={styles.emptyAcs}>
-              <Info size={20} color="#94a3b8" />
-              <Text style={styles.emptyAcsText}>Tidak ada perangkat ACS terhubung</Text>
-              <TouchableOpacity onPress={fetchAcsDevice} style={styles.refreshAcs}>
-                <RefreshCw size={14} color="#2563eb" />
-                <Text style={styles.refreshAcsText}>Refresh</Text>
-              </TouchableOpacity>
-            </View>
+             <View style={styles.emptyAcs}>
+               <Info size={20} color="#94a3b8" />
+               <Text style={styles.emptyAcsText}>{t('users.noAcsDevice')}</Text>
+               <TouchableOpacity onPress={fetchAcsDevice} style={styles.refreshAcs}>
+                 <RefreshCw size={14} color="#2563eb" />
+                 <Text style={styles.refreshAcsText}>{t('common.refresh')}</Text>
+               </TouchableOpacity>
+             </View>
           )}
         </View>
 
-        <View style={styles.usageBox}>
-           <Text style={styles.usageTitle}>Pemakaian Bulan Ini</Text>
-           {loading ? (
+         <View style={styles.usageBox}>
+            <Text style={styles.usageTitle}>{t('users.usageThisMonth')}</Text>
+            {loading ? (
              <ActivityIndicator color="#2563eb" />
            ) : (
              <View style={styles.usageGrid}>
                 <View style={styles.usageItem}>
-                   <Text style={styles.usageLabel}>Download</Text>
+                   <Text style={styles.usageLabel}>{t('users.download')}</Text>
                    <Text style={styles.usageValue}>{formatBytes(stats?.usage?.download)}</Text>
                 </View>
                 <View style={styles.verticalDivider} />
                 <View style={styles.usageItem}>
-                   <Text style={styles.usageLabel}>Upload</Text>
+                   <Text style={styles.usageLabel}>{t('users.upload')}</Text>
                    <Text style={styles.usageValue}>{formatBytes(stats?.usage?.upload)}</Text>
                 </View>
              </View>
@@ -436,8 +438,8 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           <View style={styles.modalContentFixed}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Edit WiFi Settings</Text>
-                <Text style={styles.modalSubtitle}>Router: {acsDevice?.model}</Text>
+                <Text style={styles.modalTitle}>{t('genieacs.editWifiTitle')}</Text>
+                <Text style={styles.modalSubtitle}>{t('genieacs.router')}: {acsDevice?.model}</Text>
               </View>
               <TouchableOpacity onPress={() => setWifiModalVisible(false)} style={styles.modalCloseBtn}>
                 <CloseIcon size={24} color="#64748b" />
@@ -448,24 +450,24 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
               <View style={styles.infoBox}>
                 <Info size={16} color="#0369a1" />
                 <Text style={styles.infoText}>
-                  Perubahan WiFi akan memutus koneksi perangkat nirkabel yang terhubung.
+                  {t('genieacs.wifiNote')}
                 </Text>
               </View>
 
-              <Text style={styles.inputLabel}>SSID (Nama WiFi)</Text>
+              <Text style={styles.inputLabel}>{t('genieacs.ssid')} ({t('dashboard.wifiName')})</Text>
               <TextInput
                 style={styles.modalInput}
                 value={wifiForm.ssid}
                 onChangeText={(text) => setWifiForm({...wifiForm, ssid: text})}
-                placeholder="Masukkan SSID"
+                placeholder={t('genieacs.ssidPlaceholder') || 'Masukkan SSID'}
               />
 
-              <Text style={styles.inputLabel}>Password Baru (Min. 8 karakter)</Text>
+              <Text style={styles.inputLabel}>{t('genieacs.newPassword')} ({t('dashboard.wifiMin8')})</Text>
               <TextInput
                 style={styles.modalInput}
                 value={wifiForm.password}
                 onChangeText={(text) => setWifiForm({...wifiForm, password: text})}
-                placeholder="Biarkan kosong jika tidak diubah"
+                placeholder={t('genieacs.leaveEmpty') || 'Biarkan kosong jika tidak diubah'}
                 secureTextEntry={false}
               />
             </View>
@@ -481,7 +483,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 ) : (
                   <>
                     <Save size={20} color="#fff" />
-                    <Text style={styles.saveButtonText}>Simpan Pengaturan</Text>
+                    <Text style={styles.saveButtonText}>{t('common.save')}</Text>
                   </>
                 )}
               </TouchableOpacity>

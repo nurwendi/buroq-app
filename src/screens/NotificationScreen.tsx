@@ -27,9 +27,11 @@ import {
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function NotificationScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,7 +119,7 @@ export default function NotificationScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>Notifikasi</Text>
+        <Text style={styles.title}>{t('notifications.title')}</Text>
         <View style={{ width: 44 }}>
            {unreadCount > 0 && (
              <TouchableOpacity onPress={markAllRead} style={styles.markAllIcon}>
@@ -132,7 +134,7 @@ export default function NotificationScreen() {
           <Search size={18} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari notifikasi..."
+            placeholder={t('notifications.searchPlaceholder')}
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholderTextColor="#94a3b8"
@@ -147,7 +149,7 @@ export default function NotificationScreen() {
               style={[styles.tab, activeFilter === f && styles.activeTab]}
             >
               <Text style={[styles.tabText, activeFilter === f && styles.activeTabText]}>
-                {f === 'all' ? 'Semua' : f === 'unread' ? 'Belum Dibaca' : 'Sudah Dibaca'}
+                {f === 'all' ? t('notifications.all') : f === 'unread' ? t('notifications.unread') : t('notifications.read')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -157,7 +159,7 @@ export default function NotificationScreen() {
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={styles.loadingText}>Memuat notifikasi...</Text>
+          <Text style={styles.loadingText}>{t('notifications.loading')}</Text>
         </View>
       ) : filteredNotifications.length === 0 ? (
         <ScrollView 
@@ -165,9 +167,9 @@ export default function NotificationScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <Bell size={64} color="#e2e8f0" />
-          <Text style={styles.emptyTitle}>Tidak ada notifikasi</Text>
+          <Text style={styles.emptyTitle}>{t('notifications.noNotifications')}</Text>
           <Text style={styles.emptySubtitle}>
-            {searchTerm ? 'Pencarian tidak ditemukan.' : 'Belum ada kabar terbaru untuk Anda.'}
+            {searchTerm ? t('notifications.noSearchFound') : t('notifications.noNewNews')}
           </Text>
         </ScrollView>
       ) : (
@@ -192,7 +194,7 @@ export default function NotificationScreen() {
                   <View style={styles.cardInfo}>
                     <View style={styles.cardHeaderMain}>
                       <Text style={[styles.cardTitle, !n.isRead && styles.unreadText]} numberOfLines={1}>
-                        {n.notification?.title || 'Sistem'}
+                        {n.notification?.title || t('notifications.system')}
                       </Text>
                       <View style={[styles.typeBadge, { backgroundColor: badge.bg }]}>
                         <Text style={[styles.typeBadgeText, { color: badge.text }]}>
@@ -223,13 +225,13 @@ export default function NotificationScreen() {
                       </View>
                     )}
                     <Text style={styles.senderName}>
-                      {n.notification?.sender?.fullName || 'Sistem'}
+                      {n.notification?.sender?.fullName || t('notifications.system')}
                     </Text>
                   </View>
                   
                   {!n.isRead && (
                     <TouchableOpacity onPress={() => markRead(n.id)} style={styles.markReadBtn}>
-                      <Text style={styles.markReadText}>Tandai Dibaca</Text>
+                      <Text style={styles.markReadText}>{t('notifications.markAsRead')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>

@@ -40,11 +40,13 @@ import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import { Linking } from 'react-native';
 import GradientHeader from '../../components/GradientHeader';
+import { useLanguage } from '../../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function CustomerDashboardView() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -115,7 +117,7 @@ export default function CustomerDashboardView() {
 
   const handleUpdateWifi = async () => {
     if (password && password.length < 8) {
-      Alert.alert('Error', 'Sandi WiFi minimal 8 karakter.');
+      Alert.alert('Error', t('dashboard.wifiMin8'));
       return;
     }
 
@@ -125,12 +127,12 @@ export default function CustomerDashboardView() {
         ssid: ssid,
         password: password
       });
-      Alert.alert('Sukses', 'Pengaturan Wi-Fi berhasil diperbarui! Perangkat akan segera melakukan konfigurasi ulang.');
+      Alert.alert(t('common.success'), t('dashboard.wifiUpdateSuccess'));
       setWifiModalVisible(false);
       setPassword('');
       fetchDevice();
     } catch (e: any) {
-      Alert.alert('Gagal', e.response?.data?.error || 'Gagal memperbarui Wi-Fi.');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('dashboard.wifiUpdateError'));
     } finally {
       setUpdatingWifi(false);
     }
@@ -157,7 +159,7 @@ export default function CustomerDashboardView() {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <GradientHeader 
         title={stats?.name || user?.fullName || user?.username} 
-        role="PELANGGAN"
+        role={t('sidebar.users').toUpperCase()}
         backgroundImage={resolveUrl(dashboardBgUrl)}
         userAvatar={resolveUrl(user?.avatar)}
       />
@@ -171,40 +173,40 @@ export default function CustomerDashboardView() {
            <View style={styles.statusInfo}>
               <Activity size={20} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
               <Text style={[styles.statusLabel, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
-                Status: {stats?.session?.active ? 'Online' : 'Offline'}
+                {t('common.status')}: {stats?.session?.active ? t('users.online') : t('users.offline')}
               </Text>
            </View>
            {stats?.session?.active && (
-             <Text style={styles.uptime}>Uptime: {stats?.session?.uptime || '-'}</Text>
+             <Text style={styles.uptime}>{t('dashboard.uptime')}: {stats?.session?.uptime || '-'}</Text>
            )}
         </View>
 
         <View style={styles.statsGrid}>
           <View style={{ width: '48%' }}>
             <StatCard 
-            title="Saldo / Deposit" 
+            title={t('dashboard.balance')} 
             value={`Rp ${(stats?.balance || 0).toLocaleString()}`} 
             icon={CreditCard} 
             color="#2563eb"
-            subtitle="Sisa saldo aktif"
+            subtitle={t('dashboard.balanceSubtitle')}
           />
           </View>
           <View style={{ width: '48%' }}>
           <StatCard 
-            title="Tagihan Aktif" 
+            title={t('dashboard.unpaidBills')} 
             value={stats?.unpaidBillsCount || 0} 
             icon={Bell} 
             color="#10b981" 
-            subtitle="Tagihan belum lunas"
+            subtitle={t('dashboard.unpaidBillsSubtitle')}
           />
           </View>
           <View style={{ width: '48%' }}>
           <StatCard 
-            title="Lama Berlangganan" 
-            value={`${stats?.monthsActive || 0} Bulan`} 
+            title={t('dashboard.subscriptionLength')} 
+            value={`${stats?.monthsActive || 0} ${t('dashboard.months')}`} 
             icon={Clock} 
             color="#f59e0b" 
-            subtitle="Terhitung sejak join"
+            subtitle={t('dashboard.subscriptionSubtitle')}
           />
           </View>
         </View>
@@ -216,12 +218,12 @@ export default function CustomerDashboardView() {
         >
           <View style={styles.billingHeader}>
              <CreditCard size={24} color={stats?.billing?.status === 'unpaid' ? '#ef4444' : '#10b981'} />
-             <Text style={styles.billingTitle}>Status Tagihan</Text>
+             <Text style={styles.billingTitle}>{t('dashboard.billingStatus')}</Text>
           </View>
           <View style={styles.billingBody}>
              <View>
                 <Text style={styles.billingStatus}>
-                  {stats?.billing?.status === 'unpaid' ? 'Belum Terbayar' : 'Lunas!'}
+                  {stats?.billing?.status === 'unpaid' ? t('dashboard.unpaid') : t('dashboard.paid')}
                 </Text>
                 <Text style={styles.billingInvoice}>Invoice: {stats?.billing?.invoice || '-'}</Text>
              </View>
@@ -236,15 +238,15 @@ export default function CustomerDashboardView() {
 
         {/* WiFi Management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pengaturan Router</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.routerSettings')}</Text>
           <View style={styles.wifiCard}>
             <View style={styles.wifiHeader}>
               <View style={styles.wifiIcon}>
                 <Wifi size={24} color="#2563eb" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.ssidLabel}>Nama Wi-Fi (SSID)</Text>
-                <Text style={styles.ssidValue}>{ssid || 'Memuat...'}</Text>
+                <Text style={styles.ssidLabel}>{t('dashboard.wifiName')}</Text>
+                <Text style={styles.ssidValue}>{ssid || t('common.loading')}</Text>
               </View>
               <TouchableOpacity
                 style={styles.editButton}
@@ -255,13 +257,13 @@ export default function CustomerDashboardView() {
             </View>
             <View style={styles.wifiFooter}>
               <ShieldCheck size={16} color="#10b981" />
-              <Text style={styles.securityText}>Koneksi Terlindungi WPA2</Text>
+              <Text style={styles.securityText}>{t('dashboard.securityWpa2')}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pusat Bantuan</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.supportCenter')}</Text>
           <View style={styles.supportGrid}>
              <TouchableOpacity
                 style={styles.supportCard}
@@ -270,7 +272,7 @@ export default function CustomerDashboardView() {
                 <View style={[styles.supportIcon, { backgroundColor: '#fef3c7' }]}>
                    <Phone size={24} color="#d97706" />
                 </View>
-                <Text style={styles.supportLabel}>Telepon CS</Text>
+                <Text style={styles.supportLabel}>{t('dashboard.csPhone')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity
@@ -280,14 +282,14 @@ export default function CustomerDashboardView() {
                 <View style={[styles.supportIcon, { backgroundColor: '#dcfce7' }]}>
                    <MessageSquare size={24} color="#16a34a" />
                 </View>
-                <Text style={styles.supportLabel}>WhatsApp</Text>
+                <Text style={styles.supportLabel}>{t('dashboard.whatsapp')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.supportCard}>
                 <View style={[styles.supportIcon, { backgroundColor: '#e0e7ff' }]}>
                    <HelpCircle size={24} color="#4338ca" />
                 </View>
-                <Text style={styles.supportLabel}>Panduan</Text>
+                <Text style={styles.supportLabel}>{t('dashboard.guide')}</Text>
              </TouchableOpacity>
           </View>
         </View>
@@ -295,7 +297,7 @@ export default function CustomerDashboardView() {
         {!device && !loadingDevice && (
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              Router Wi-Fi belum terdeteksi. Hubungi admin jika Anda menggunakan router kami.
+              {t('dashboard.noRouterInfo')}
             </Text>
           </View>
         )}
@@ -311,39 +313,39 @@ export default function CustomerDashboardView() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ubah Pengaturan Wi-Fi</Text>
+              <Text style={styles.modalTitle}>{t('genieacs.editWifiTitle')}</Text>
               <TouchableOpacity onPress={() => setWifiModalVisible(false)}>
-                <Text style={styles.cancelText}>Batal</Text>
+                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalBody}>
                <View style={styles.modalInputGroup}>
-                  <Text style={styles.modalLabel}>Nama Wi-Fi (SSID)</Text>
+                  <Text style={styles.modalLabel}>{t('dashboard.wifiName')}</Text>
                   <TextInput 
                     style={styles.modalInput}
                     value={ssid}
                     onChangeText={setSsid}
-                    placeholder="Masukkan nama WiFi baru"
+                    placeholder={t('dashboard.wifiPlaceholder')}
                   />
                </View>
 
                <View style={styles.modalInputGroup}>
-                  <Text style={styles.modalLabel}>Sandi Wi-Fi Baru</Text>
+                  <Text style={styles.modalLabel}>{t('genieacs.newPassword')}</Text>
                   <TextInput 
                     style={styles.modalInput}
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="Kosongkan jika tidak diubah"
+                    placeholder={t('dashboard.wifiPassPlaceholder')}
                     secureTextEntry
                   />
-                  <Text style={styles.passwordHint}>Minimal 8 karakter.</Text>
+                  <Text style={styles.passwordHint}>{t('dashboard.wifiMin8')}</Text>
                </View>
 
                <View style={styles.warningBox}>
                   <Zap size={16} color="#f59e0b" style={{ marginRight: 8 }} />
                   <Text style={styles.warningText}>
-                    Mengubah nama atau sandi akan memutus koneksi perangkat ini.
+                    {t('dashboard.wifiWarning')}
                   </Text>
                </View>
 
@@ -355,7 +357,7 @@ export default function CustomerDashboardView() {
                  {updatingWifi ? (
                    <ActivityIndicator color="#fff" />
                  ) : (
-                   <Text style={styles.saveButtonText}>Simpan Perubahan</Text>
+                    <Text style={styles.saveButtonText}>{t('common.save')}</Text>
                  )}
                </TouchableOpacity>
             </View>

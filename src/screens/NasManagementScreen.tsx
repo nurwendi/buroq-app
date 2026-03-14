@@ -24,9 +24,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function NasManagementScreen() {
   const navigation = useNavigation();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [nasList, setNasList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,7 +51,7 @@ export default function NasManagementScreen() {
       setNasList(response.data);
     } catch (error) {
       console.error('Failed to fetch NAS:', error);
-      Alert.alert('Error', 'Gagal mengambil data NAS.');
+      Alert.alert(t('common.error'), t('nas.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -57,7 +59,7 @@ export default function NasManagementScreen() {
 
   const handleSave = async () => {
     if (!form.nasname || !form.secret) {
-      Alert.alert('Error', 'IP Address dan Secret wajib diisi.');
+      Alert.alert(t('common.error'), t('nas.validationError'));
       return;
     }
     setSaving(true);
@@ -68,7 +70,7 @@ export default function NasManagementScreen() {
       resetForm();
     } catch (error) {
       console.error('Failed to save NAS:', error);
-      Alert.alert('Error', 'Gagal menyimpan NAS.');
+      Alert.alert(t('common.error'), t('nas.saveError'));
     } finally {
       setSaving(false);
     }
@@ -105,7 +107,7 @@ export default function NasManagementScreen() {
           <Shield size={12} color="#2563eb" style={{ marginRight: 4 }} />
           <Text style={styles.secretText}>{item.secret}</Text>
         </View>
-        <Text style={styles.nasDescription} numberOfLines={1}>{item.description || 'Tidak ada deskripsi'}</Text>
+        <Text style={styles.nasDescription} numberOfLines={1}>{item.description || t('nas.noDesc')}</Text>
       </View>
     </View>
   );
@@ -116,7 +118,7 @@ export default function NasManagementScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>NAS Management</Text>
+        <Text style={styles.headerTitle}>{t('nas.title')}</Text>
         <TouchableOpacity onPress={() => { resetForm(); setModalVisible(true); }} style={styles.addButton}>
           <Plus size={24} color="#2563eb" />
         </TouchableOpacity>
@@ -135,7 +137,7 @@ export default function NasManagementScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Server size={48} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Belum ada NAS terkonfigurasi</Text>
+              <Text style={styles.emptyText}>{t('nas.emptyList')}</Text>
             </View>
           }
         />
@@ -149,46 +151,46 @@ export default function NasManagementScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{form.id ? 'Edit NAS' : 'Tambah NAS Baru'}</Text>
+            <Text style={styles.modalTitle}>{form.id ? t('nas.editTitle') : t('nas.addTitle')}</Text>
             
             <ScrollView style={styles.formContent}>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>NAS IP Address</Text>
+                <Text style={styles.label}>{t('nas.ipAddress')}</Text>
                 <TextInput
                   style={styles.input}
                   value={form.nasname}
                   onChangeText={(text) => setForm({ ...form, nasname: text })}
-                  placeholder="192.168.88.1"
+                  placeholder={t('nas.placeholderIp') || "192.168.88.1"}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Secret</Text>
+                <Text style={styles.label}>{t('nas.secret')}</Text>
                 <TextInput
                   style={styles.input}
                   value={form.secret}
                   onChangeText={(text) => setForm({ ...form, secret: text })}
-                  placeholder="radius-secret"
+                  placeholder={t('nas.placeholderSecret') || "radius-secret"}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Shortname (Optional)</Text>
+                <Text style={styles.label}>{t('nas.shortname')}</Text>
                 <TextInput
                   style={styles.input}
                   value={form.shortname}
                   onChangeText={(text) => setForm({ ...form, shortname: text })}
-                  placeholder="mikrotik-pusat"
+                  placeholder={t('nas.placeholderShortname') || "mikrotik-pusat"}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Deskripsi</Text>
+                <Text style={styles.label}>{t('nas.description')}</Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={form.description}
                   onChangeText={(text) => setForm({ ...form, description: text })}
-                  placeholder="Keterangan router..."
+                  placeholder={t('nas.placeholderDesc') || "Keterangan router..."}
                   multiline
                 />
               </View>
@@ -199,7 +201,7 @@ export default function NasManagementScreen() {
                 onPress={() => setModalVisible(false)} 
                 style={[styles.modalButton, styles.cancelButton]}
               >
-                <Text style={styles.cancelButtonText}>Batal</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={handleSave} 
@@ -209,7 +211,7 @@ export default function NasManagementScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Simpan NAS</Text>
+                  <Text style={styles.saveButtonText}>{t('nas.saveBtn')}</Text>
                 )}
               </TouchableOpacity>
             </View>

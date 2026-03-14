@@ -33,7 +33,8 @@ import {
   LayoutDashboard,
   Shield,
   Server,
-  Clock
+  Clock,
+  Megaphone
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -41,9 +42,11 @@ import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
 import PppoePieChart from '../../components/PppoePieChart';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function AdminDashboardView() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -146,7 +149,7 @@ export default function AdminDashboardView() {
         {(stats?.pendingCount > 0 || (stats?.pendingPayments && stats?.pendingPayments.length > 0)) && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Pending Approval</Text>
+              <Text style={styles.sectionTitle}>{t('dashboard.pendingApproval')}</Text>
               <View style={styles.pendingBadge}>
                 <Text style={styles.pendingBadgeText}>{stats?.pendingCount || stats?.pendingPayments?.length || 0}</Text>
               </View>
@@ -164,7 +167,7 @@ export default function AdminDashboardView() {
                     </View>
                     <View>
                       <Text style={styles.pendingName}>{item.customerName || item.name}</Text>
-                      <Text style={styles.pendingInfo}>Menunggu konfirmasi pembayaran</Text>
+                      <Text style={styles.pendingInfo}>{t('dashboard.waitingPayment')}</Text>
                     </View>
                   </View>
                   <ChevronRight size={18} color="#cbd5e1" />
@@ -174,18 +177,18 @@ export default function AdminDashboardView() {
                 style={styles.seeAllPending}
                 onPress={() => navigation.navigate('UnpaidBills')}
               >
-                <Text style={styles.seeAllPendingText}>Lihat Semua Tagihan</Text>
+                <Text style={styles.seeAllPendingText}>{t('dashboard.allBills')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status Pelanggan</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.customerStatus')}</Text>
           <View style={styles.statsGrid}>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Semua" 
+                title={t('users.all') || 'All'} 
                 value={stats?.totalCustomers || 0} 
                 icon={Users} 
                 color="#0ea5e9" 
@@ -193,7 +196,7 @@ export default function AdminDashboardView() {
             </View>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Online" 
+                title={t('users.online') || 'Online'} 
                 value={onlineCount} 
                 icon={Activity} 
                 color="#10b981" 
@@ -201,7 +204,7 @@ export default function AdminDashboardView() {
             </View>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Offline" 
+                title={t('users.offline') || 'Offline'} 
                 value={Math.max(0, (stats?.totalCustomers || 0) - onlineCount)} 
                 icon={Wifi} 
                 color="#64748b" 
@@ -211,71 +214,78 @@ export default function AdminDashboardView() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Menu Utama</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
           <View style={styles.menuGrid}>
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerList')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#e0f2fe' }]}>
                    <Users size={24} color="#0ea5e9" />
                 </View>
-                <Text style={styles.menuLabel}>Pelanggan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.users')}</Text>
              </TouchableOpacity>
 
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BillingTab')}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BillingTab')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fdf4ff' }]}>
                    <CreditCard size={24} color="#d946ef" />
                 </View>
-                <Text style={styles.menuLabel}>Tagihan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.billing')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
                    <Settings size={24} color="#64748b" />
                 </View>
-                <Text style={styles.menuLabel}>Setelan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#dbeafe' }]}>
                    <PlusCircle size={24} color="#2563eb" />
                 </View>
-                <Text style={styles.menuLabel}>Tambah</Text>
+                <Text style={styles.menuLabel}>{t('common.add')}</Text>
              </TouchableOpacity>
 
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AllUsers')}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AllUsers')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
                    <Users size={24} color="#10b981" />
                 </View>
-                <Text style={styles.menuLabel}>Manajemen User</Text>
+                <Text style={styles.menuLabel}>{t('dashboard.userManagement')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PaymentForm')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fdf4ff' }]}>
                    <CreditCardIcon size={24} color="#d946ef" />
                 </View>
-                <Text style={styles.menuLabel}>Bayar</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.pay')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('NAT')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f3e8ff' }]}>
                    <Server size={24} color="#a855f7" />
                 </View>
-                <Text style={styles.menuLabel}>Router Management</Text>
+                <Text style={styles.menuLabel}>{t('dashboard.routerManagement')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('FinancialReport')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#ffe4e6' }]}>
                    <Activity size={24} color="#e11d48" />
                 </View>
-                <Text style={styles.menuLabel}>Laporan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.reports')}</Text>
+             </TouchableOpacity>
+
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Broadcast')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#fef3c7' }]}>
+                   <Megaphone size={24} color="#d97706" />
+                </View>
+                <Text style={styles.menuLabel}>{t('sidebar.broadcast')}</Text>
              </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.section}>
            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Kesehatan Router</Text>
+              <Text style={styles.sectionTitle}>{t('dashboard.routerHealth')}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('NAT')}>
-                 <Text style={styles.seeAll}>Lihat Semua</Text>
+                 <Text style={styles.seeAll}>{t('dashboard.seeAll')}</Text>
               </TouchableOpacity>
            </View>
            <View style={styles.routerList}>
@@ -289,7 +299,7 @@ export default function AdminDashboardView() {
                       </View>
                    </View>
                     <Text style={[styles.routerPercent, { color: (router.status === 'online' || router.online) ? '#10b981' : '#ef4444' }]}>
-                      {(router.status === 'online' || router.online) ? `${router.cpuLoad || 0}% CPU` : 'OFFLINE'}
+                      {(router.status === 'online' || router.online) ? `${router.cpuLoad || 0}% ${t('dashboard.cpu')}` : t('dashboard.offline').toUpperCase()}
                     </Text>
                 </View>
               ))}

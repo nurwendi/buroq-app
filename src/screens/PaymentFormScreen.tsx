@@ -29,12 +29,14 @@ import {
 } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import { printReceipt } from '../utils/printer';
 
 export default function PaymentFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { t } = useLanguage();
   const { customer: initialCustomer } = route.params || {};
 
   const [loading, setLoading] = useState(false);
@@ -107,11 +109,11 @@ export default function PaymentFormScreen() {
 
   const handleSave = async () => {
     if (!selectedCustomer) {
-      Alert.alert('Error', 'Silakan pilih pelanggan terlebih dahulu.');
+      Alert.alert(t('common.error'), t('billing.customerRequired'));
       return;
     }
     if (!amount || isNaN(Number(amount))) {
-      Alert.alert('Error', 'Jumlah pembayaran tidak valid.');
+      Alert.alert(t('common.error'), t('billing.invalidAmount'));
       return;
     }
 
@@ -132,7 +134,7 @@ export default function PaymentFormScreen() {
       // If cash, automatically suggest printing?
       // For now, let the user trigger it.
     } catch (e: any) {
-      Alert.alert('Gagal', e.response?.data?.error || 'Gagal menyimpan pembayaran.');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('billing.savePaymentError'));
     } finally {
       setLoading(false);
     }
@@ -147,21 +149,23 @@ export default function PaymentFormScreen() {
         customerName: selectedCustomer.name,
         date: new Date(lastPayment.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: lastPayment.amount,
-        paymentMethod: lastPayment.method === 'cash' ? 'Tunai' : 'Transfer'
+        paymentMethod: lastPayment.method === 'cash' ? t('billing.cash') : t('billing.transfer')
       });
-      Alert.alert('Sukses', 'Struk sedang dicetak.');
+      Alert.alert(t('common.success'), t('billing.printingReceipt'));
     } catch (e: any) {
       if (e.message?.includes('belum disetting')) {
         setPrinterModalVisible(true);
       } else {
-        Alert.alert('Gagal Cetak', e.message || 'Pastikan printer menyala dan terhubung.');
+        Alert.alert(t('billing.printingFailed'), e.message || t('billing.printReceiptError'));
       }
     }
   };
 
   const months = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    t('billing.january') || 'Januari', t('billing.february') || 'Februari', t('billing.march') || 'Maret', 
+    t('billing.april') || 'April', t('billing.may') || 'Mei', t('billing.june') || 'Juni',
+    t('billing.july') || 'Juli', t('billing.august') || 'Agustus', t('billing.september') || 'September', 
+    t('billing.october') || 'Oktober', t('billing.november') || 'November', t('billing.december') || 'Desember'
   ];
 
   return (
@@ -174,7 +178,7 @@ export default function PaymentFormScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.title}>Catat Pembayaran</Text>
+          <Text style={styles.title}>{t('billing.recordPayment')}</Text>
           <TouchableOpacity onPress={() => setPrinterModalVisible(true)} style={styles.settingsButton}>
             <Settings size={22} color="#64748b" />
           </TouchableOpacity>
@@ -183,7 +187,7 @@ export default function PaymentFormScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Customer Selection */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pilih Pelanggan</Text>
+            <Text style={styles.sectionTitle}>{t('billing.selectCustomer')}</Text>
             {selectedCustomer ? (
               <View style={styles.selectedCustomerCard}>
                  <View style={styles.customerIcon}>
@@ -194,7 +198,7 @@ export default function PaymentFormScreen() {
                     <Text style={styles.customerUser}>@{selectedCustomer.username}</Text>
                  </View>
                  <TouchableOpacity onPress={() => setSelectedCustomer(null)}>
-                    <Text style={styles.changeText}>Ganti</Text>
+                    <Text style={styles.changeText}>{t('billing.changeCustomer')}</Text>
                  </TouchableOpacity>
               </View>
             ) : (
@@ -203,7 +207,7 @@ export default function PaymentFormScreen() {
                   <Search size={20} color="#64748b" style={{ marginLeft: 15 }} />
                   <TextInput 
                     style={styles.searchInput}
-                    placeholder="Cari nama atau username..."
+                    placeholder={t('billing.searchCustomerPlaceholder')}
                     value={searchText}
                     onChangeText={setSearchText}
                     placeholderTextColor="#94a3b8"
@@ -237,10 +241,10 @@ export default function PaymentFormScreen() {
 
           {/* Payment Details */}
           <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>Detail Pembayaran</Text>
+            <Text style={styles.sectionTitle}>{t('billing.paymentDetails')}</Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Jumlah Bayar (Rp)</Text>
+              <Text style={styles.label}>{t('billing.paymentAmount')}</Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.iconBox}>
                   <Banknote size={20} color="#64748b" />
@@ -257,25 +261,25 @@ export default function PaymentFormScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Metode Pembayaran</Text>
+              <Text style={styles.label}>{t('billing.paymentMethod')}</Text>
               <View style={styles.methodToggle}>
                 <TouchableOpacity 
                   style={[styles.methodBtn, method === 'cash' && styles.methodBtnActive]}
                   onPress={() => setMethod('cash')}
                 >
-                   <Text style={[styles.methodText, method === 'cash' && styles.methodTextActive]}>Tunai / Chas</Text>
+                   <Text style={[styles.methodText, method === 'cash' && styles.methodTextActive]}>{t('billing.cash')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.methodBtn, method === 'transfer' && styles.methodBtnActive]}
                   onPress={() => setMethod('transfer')}
                 >
-                   <Text style={[styles.methodText, method === 'transfer' && styles.methodTextActive]}>Transfer Bank</Text>
+                   <Text style={[styles.methodText, method === 'transfer' && styles.methodTextActive]}>{t('billing.transfer')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Periode Tagihan</Text>
+              <Text style={styles.label}>{t('billing.billingPeriod')}</Text>
               <View style={styles.periodRow}>
                  <View style={[styles.inputWrapper, { flex: 1.5, marginRight: 10 }]}>
                     <View style={styles.iconBox}>
@@ -305,7 +309,7 @@ export default function PaymentFormScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Catatan (Opsional)</Text>
+              <Text style={styles.label}>{t('billing.notesOptional')}</Text>
               <View style={[styles.inputWrapper, { height: 100, alignItems: 'flex-start', paddingTop: 10 }]}>
                 <View style={[styles.iconBox, { height: 40 }]}>
                   <FileText size={20} color="#64748b" />
@@ -330,7 +334,7 @@ export default function PaymentFormScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>Konfirmasi Pembayaran</Text>
+              <Text style={styles.saveButtonText}>{t('billing.confirmPayment')}</Text>
             )}
           </TouchableOpacity>
           <View style={{ height: 40 }} />
@@ -341,14 +345,14 @@ export default function PaymentFormScreen() {
           <View style={styles.successOverlay}>
              <View style={styles.successCard}>
                 <CheckCircle2 size={70} color="#10b981" />
-                <Text style={styles.successTitle}>Pembayaran Berhasil!</Text>
-                <Text style={styles.successSub}>Data telah tersimpan di server.</Text>
+                <Text style={styles.successTitle}>{t('billing.paymentSuccess')}</Text>
+                <Text style={styles.successSub}>{t('billing.dataSavedServer')}</Text>
                 
                 <View style={styles.invoicePreview}>
-                   <Text style={styles.previewLabel}>Invoice</Text>
+                   <Text style={styles.previewLabel}>{t('billing.invoice')}</Text>
                    <Text style={styles.previewValue}>{lastPayment?.invoiceNumber}</Text>
                    <View style={styles.previewDivider} />
-                   <Text style={styles.previewLabel}>Total Bayar</Text>
+                   <Text style={styles.previewLabel}>{t('billing.totalPay')}</Text>
                    <Text style={styles.previewAmount}>Rp {lastPayment?.amount?.toLocaleString()}</Text>
                 </View>
 
@@ -356,7 +360,7 @@ export default function PaymentFormScreen() {
                    {method === 'cash' && (
                      <TouchableOpacity style={styles.printBtnAction} onPress={handlePrint}>
                         <Printer size={20} color="#fff" />
-                        <Text style={styles.printBtnText}>Cetak Struk</Text>
+                        <Text style={styles.printBtnText}>{t('billing.printReceipt')}</Text>
                      </TouchableOpacity>
                    )}
                    
@@ -367,7 +371,7 @@ export default function PaymentFormScreen() {
                         navigation.goBack();
                      }}
                    >
-                      <Text style={styles.doneBtnText}>Selesai</Text>
+                      <Text style={styles.doneBtnText}>{t('billing.done')}</Text>
                    </TouchableOpacity>
                 </View>
              </View>

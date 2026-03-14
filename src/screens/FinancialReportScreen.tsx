@@ -31,12 +31,14 @@ import { useNavigation } from '@react-navigation/native';
 import { Share, Alert } from 'react-native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { printReport } from '../utils/printer';
 
 const { width } = Dimensions.get('window');
 
 export default function FinancialReportScreen() {
   const navigation = useNavigation<any>();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -46,10 +48,7 @@ export default function FinancialReportScreen() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const months = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-  ];
+  const months = t('financial.months') as unknown as string[];
 
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
 
@@ -77,17 +76,17 @@ export default function FinancialReportScreen() {
   const handleShare = async () => {
     if (!data) return;
     
-    const summary = `*LAPORAN KEUANGAN ${months[selectedMonth].toUpperCase()} ${selectedYear}*\n\n` +
-      `- Revenue: ${formatCurrency(data.summary.totalRevenue)}\n` +
-      `- Unpaid: ${formatCurrency(data.summary.totalUnpaid)}\n` +
-      `- Expenses: ${formatCurrency(data.summary.totalCommissions)}\n` +
-      `*NET INCOME: ${formatCurrency(data.summary.netIncome)}*\n\n` +
-      `_Sent from Buroq Manager Mobile_`;
+    const summary = t('financial.shareTitle', { month: months[selectedMonth].toUpperCase(), year: selectedYear.toString() }) + '\n\n' +
+      `- ${t('financial.revenue')}: ${formatCurrency(data.summary.totalRevenue)}\n` +
+      `- ${t('financial.unpaid')}: ${formatCurrency(data.summary.totalUnpaid)}\n` +
+      `- ${t('financial.expenses')}: ${formatCurrency(data.summary.totalCommissions)}\n` +
+      `*${t('financial.netIncome').toUpperCase()}: ${formatCurrency(data.summary.netIncome)}*\n\n` +
+      `_${t('financial.sentFrom')}_`;
 
     try {
       await Share.share({
         message: summary,
-        title: `Laporan Keuangan ${months[selectedMonth]} ${selectedYear}`
+        title: t('financial.shareTitle', { month: months[selectedMonth], year: selectedYear.toString() })
       });
     } catch (error) {
       console.error('Sharing failed', error);
@@ -99,16 +98,16 @@ export default function FinancialReportScreen() {
     setPrinting(true);
     try {
       await printReport(months[selectedMonth], selectedYear, data);
-      Alert.alert('Sukses', 'Laporan berhasil dikirim ke printer');
+      Alert.alert(t('common.success'), t('financial.printSuccess'));
     } catch (error: any) {
-      Alert.alert('Gagal Mencetak', error.message || 'Pastikan printer bluetooth sudah terhubung.');
+      Alert.alert(t('financial.printError'), error.message || t('financial.printErrorDesc'));
     } finally {
       setPrinting(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat(language === 'id' ? 'id-ID' : 'en-US', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0
@@ -136,25 +135,25 @@ export default function FinancialReportScreen() {
       {/* Summary Grid */}
       <View style={styles.summaryGrid}>
         <SummaryCard 
-          title="Revenue" 
+          title={t('financial.revenue')} 
           amount={data?.summary?.totalRevenue} 
           color="#2563eb" 
           icon={DollarSign}
         />
         <SummaryCard 
-          title="Unpaid" 
+          title={t('financial.unpaid')} 
           amount={data?.summary?.totalUnpaid} 
           color="#f59e0b" 
           icon={AlertCircle}
         />
         <SummaryCard 
-          title="Expenses" 
+          title={t('financial.expenses')} 
           amount={data?.summary?.totalCommissions} 
           color="#ef4444" 
           icon={ArrowDownRight}
         />
         <SummaryCard 
-          title="Net Income" 
+          title={t('financial.netIncome')} 
           amount={data?.summary?.netIncome} 
           color="#10b981" 
           icon={TrendingUp}
@@ -164,14 +163,14 @@ export default function FinancialReportScreen() {
       {/* Staff Performance */}
       <View style={styles.sectionHeader}>
         <Users size={18} color="#1e293b" />
-        <Text style={styles.sectionTitle}>Staff Performance</Text>
+        <Text style={styles.sectionTitle}>{t('financial.staffPerformance')}</Text>
       </View>
       
       <View style={styles.tableCard}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeadText, { flex: 2 }]}>Staff</Text>
-          <Text style={[styles.tableHeadText, { flex: 1, textAlign: 'center' }]}>Count</Text>
-          <Text style={[styles.tableHeadText, { flex: 2, textAlign: 'right' }]}>Net Profit</Text>
+          <Text style={[styles.tableHeadText, { flex: 2 }]}>{t('financial.staff')}</Text>
+          <Text style={[styles.tableHeadText, { flex: 1, textAlign: 'center' }]}>{t('financial.count')}</Text>
+          <Text style={[styles.tableHeadText, { flex: 2, textAlign: 'right' }]}>{t('financial.netProfit')}</Text>
         </View>
         {data?.staffBreakdown?.map((s: any, i: number) => (
           <View key={i} style={[styles.tableRow, i === data.staffBreakdown.length - 1 && { borderBottomWidth: 0 }]}>
@@ -187,7 +186,7 @@ export default function FinancialReportScreen() {
       {/* All Payments */}
       <View style={styles.sectionHeader}>
         <FileText size={18} color="#1e293b" />
-        <Text style={styles.sectionTitle}>Semua Pembayaran</Text>
+        <Text style={styles.sectionTitle}>{t('financial.allPayments')}</Text>
       </View>
     </View>
   );
@@ -214,7 +213,7 @@ export default function FinancialReportScreen() {
         <View style={styles.footerItem}>
           <Calendar size={12} color="#94a3b8" />
           <Text style={styles.footerText}>
-            {new Date(item.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+            {new Date(item.date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short' })}
           </Text>
         </View>
         <View style={styles.footerItem}>
@@ -235,7 +234,7 @@ export default function FinancialReportScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Laporan Keuangan</Text>
+        <Text style={styles.headerTitle}>{t('financial.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
             <ShareIcon size={20} color="#1e293b" />
@@ -287,7 +286,7 @@ export default function FinancialReportScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <PieChart size={64} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada data laporan bulan ini</Text>
+              <Text style={styles.emptyText}>{t('financial.noData')}</Text>
             </View>
           }
         />

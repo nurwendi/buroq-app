@@ -30,10 +30,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SystemUsersScreen() {
   const { user: currentUser } = useAuth();
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,7 +145,7 @@ export default function SystemUsersScreen() {
 
   const handleSubmit = async () => {
     if (!formData.username || (!editingUser && !formData.password)) {
-      Alert.alert('Error', 'Username dan Password wajib diisi');
+      Alert.alert(t('common.error'), t('users.requiredFields'));
       return;
     }
 
@@ -158,7 +160,7 @@ export default function SystemUsersScreen() {
       if (editingUser) {
         if (!body.password) delete (body as any).password;
         await apiClient.put(`/api/admin/users/${editingUser.id}`, body);
-        Alert.alert('Success', 'User berhasil diperbarui');
+        Alert.alert(t('common.success'), t('users.userUpdateSuccess'));
       } else {
         await apiClient.post('/api/admin/users', body);
         Alert.alert('Success', 'User berhasil ditambahkan');
@@ -166,7 +168,7 @@ export default function SystemUsersScreen() {
       setModalVisible(false);
       fetchUsers();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Gagal menyimpan user');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('users.userSaveError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -174,19 +176,19 @@ export default function SystemUsersScreen() {
 
   const handleDelete = (id: number) => {
     Alert.alert(
-      'Konfirmasi Hapus',
-      'Apakah Anda yakin ingin menghapus user ini?',
+      t('users.deleteConfirmTitle'),
+      t('users.deleteConfirmMsg'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Hapus', 
+          text: t('users.deleteBtn'), 
           style: 'destructive',
           onPress: async () => {
             try {
               await apiClient.delete(`/api/admin/users/${id}`);
               fetchUsers();
             } catch (e) {
-              Alert.alert('Error', 'Gagal menghapus user');
+              Alert.alert(t('common.error'), t('users.userDeleteError'));
             }
           }
         }
@@ -272,7 +274,7 @@ export default function SystemUsersScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>System Users</Text>
+        <Text style={styles.title}>{t('systemUsers.title')}</Text>
         {(currentUser?.role === 'superadmin' || currentUser?.role === 'admin') ? (
           <TouchableOpacity onPress={() => handleOpenModal()} style={styles.addButton}>
             <Plus size={24} color="#ffffff" />
@@ -287,7 +289,7 @@ export default function SystemUsersScreen() {
           <Search size={20} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari user..."
+            placeholder={t('systemUsers.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#94a3b8"
@@ -309,7 +311,7 @@ export default function SystemUsersScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Users size={64} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada user ditemukan</Text>
+              <Text style={styles.emptyText}>{t('users.noUsersFound')}</Text>
             </View>
           }
         />
@@ -321,7 +323,7 @@ export default function SystemUsersScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingUser ? 'Edit User' : 'Tambah User'}
+                {editingUser ? t('users.editUserModal') : t('users.addUserModal')}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <CloseIcon size={24} color="#64748b" />
@@ -329,7 +331,7 @@ export default function SystemUsersScreen() {
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>{t('users.username')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.username}
@@ -337,7 +339,7 @@ export default function SystemUsersScreen() {
                 autoCapitalize="none"
               />
 
-              <Text style={styles.label}>{editingUser ? 'Password (Biarkan kosong jika tidak diganti)' : 'Password'}</Text>
+              <Text style={styles.label}>{editingUser ? t('users.passwordHint') : t('users.password')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.password}
@@ -345,14 +347,14 @@ export default function SystemUsersScreen() {
                 secureTextEntry
               />
 
-              <Text style={styles.label}>Nama Lengkap</Text>
+              <Text style={styles.label}>{t('users.fullName')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.fullName}
                 onChangeText={(text) => setFormData({...formData, fullName: text})}
               />
 
-              <Text style={styles.label}>Telepon</Text>
+              <Text style={styles.label}>{t('users.phone')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.phone}
@@ -360,7 +362,7 @@ export default function SystemUsersScreen() {
                 keyboardType="phone-pad"
               />
 
-              <Text style={styles.label}>Alamat</Text>
+              <Text style={styles.label}>{t('users.address')}</Text>
               <TextInput
                 style={[styles.modalInput, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
                 value={formData.address}
@@ -370,7 +372,7 @@ export default function SystemUsersScreen() {
 
               <View style={styles.row}>
                 <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.label}>Prefix (Company)</Text>
+                  <Text style={styles.label}>{t('users.prefix')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.prefix}
@@ -379,7 +381,7 @@ export default function SystemUsersScreen() {
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: 8 }}>
-                  <Text style={styles.label}>Agent ID (ID)</Text>
+                  <Text style={styles.label}>{t('users.agentId')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.agentNumber}
@@ -388,7 +390,7 @@ export default function SystemUsersScreen() {
                 </View>
               </View>
 
-              <Text style={styles.label}>Pool Radius</Text>
+              <Text style={styles.label}>{t('users.poolRadius')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.radiusPool}
@@ -396,7 +398,7 @@ export default function SystemUsersScreen() {
                 onChangeText={(text) => setFormData({...formData, radiusPool: text})}
               />
 
-              <Text style={styles.label}>Peran Sistem</Text>
+              <Text style={styles.label}>{t('systemUsers.systemRole')}</Text>
               <View style={styles.rolePickerContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {['Admin', 'Manager', 'Staff (Agen/Teknisi)', 'Partner', 'Viewer'].filter(r => {
@@ -406,24 +408,25 @@ export default function SystemUsersScreen() {
                     return false;
                   }).map((r) => {
                     const mappedRole = r.startsWith('Staff') ? 'staff' : r.toLowerCase();
+                    const label = mappedRole === 'staff' ? t('systemUsers.roles.staff') : t(`systemUsers.roles.${mappedRole}`);
                     return (
                       <TouchableOpacity 
                         key={r}
-                        style={[styles.roleOption, (formData.role === mappedRole) && styles.roleOptionActive, { marginRight: 8 }]}
-                        onPress={() => setFormData({...formData, role: mappedRole})}
-                      >
-                        <Text style={[styles.roleOptionText, (formData.role === mappedRole) && styles.roleOptionTextActive]}>
-                          {r}
-                        </Text>
-                      </TouchableOpacity>
+                         style={[styles.roleOption, (formData.role === mappedRole) && styles.roleOptionActive, { marginRight: 8 }]}
+                         onPress={() => setFormData({...formData, role: mappedRole})}
+                       >
+                         <Text style={[styles.roleOptionText, (formData.role === mappedRole) && styles.roleOptionTextActive]}>
+                           {label}
+                         </Text>
+                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
-                <Text style={styles.roleHint}>Admin mengelola peran operasional.</Text>
+                <Text style={styles.roleHint}>{t('systemUsers.adminHint')}</Text>
               </View>
 
               <View style={styles.businessRoleContainer}>
-                <Text style={styles.businessRoleTitle}>Peran Bisnis</Text>
+                <Text style={styles.businessRoleTitle}>{t('systemUsers.businessRole')}</Text>
                 
                 <TouchableOpacity 
                   style={styles.businessRoleOption} 
@@ -432,7 +435,7 @@ export default function SystemUsersScreen() {
                   <View style={[styles.customCheckbox, formData.isAgent && styles.customCheckboxActive]}>
                     {formData.isAgent && <View style={styles.customCheckboxInner} />}
                   </View>
-                  <Text style={styles.businessRoleLabel}>Sebagai Agen</Text>
+                  <Text style={styles.businessRoleLabel}>{t('systemUsers.asAgent')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -442,7 +445,7 @@ export default function SystemUsersScreen() {
                   <View style={[styles.customCheckbox, formData.isTechnician && styles.customCheckboxActive]}>
                     {formData.isTechnician && <View style={styles.customCheckboxInner} />}
                   </View>
-                  <Text style={styles.businessRoleLabel}>Sebagai Teknisi</Text>
+                  <Text style={styles.businessRoleLabel}>{t('systemUsers.asTechnician')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -460,7 +463,7 @@ export default function SystemUsersScreen() {
                 ) : (
                   <>
                     <Save size={20} color="#fff" />
-                    <Text style={styles.saveButtonText}>Simpan</Text>
+                    <Text style={styles.saveButtonText}>{t('systemUsers.save')}</Text>
                   </>
                 )}
               </TouchableOpacity>

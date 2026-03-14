@@ -12,11 +12,13 @@ import {
 import { User, Shield, LogOut, ChevronRight, Phone, Mail, MapPin } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
 
   const resolveUrl = (path: string) => {
     if (!path) return '';
@@ -27,12 +29,12 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Konfirmasi Keluar',
-      'Apakah Anda yakin ingin keluar dari aplikasi?',
+      t('profile.logoutConfirmTitle'),
+      t('profile.logoutConfirmMsg'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Keluar', 
+          text: t('profile.logoutBtn'), 
           style: 'destructive',
           onPress: async () => {
             await logout();
@@ -62,17 +64,17 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{user?.fullName || user?.username}</Text>
           <View style={styles.roleBadge}>
             <Shield size={14} color="#2563eb" />
-            <Text style={styles.roleText}>{user?.role?.toUpperCase() || 'USER'}</Text>
+            <Text style={styles.roleText}>{user?.role?.toUpperCase() || t('sidebar.users').toUpperCase()}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informasi Akun</Text>
+          <Text style={styles.sectionTitle}>{t('profile.accountInfo')}</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <User size={20} color="#64748b" />
               <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Username</Text>
+                <Text style={styles.infoLabel}>{t('profile.username')}</Text>
                 <Text style={styles.infoValue}>{user?.username || '-'}</Text>
               </View>
             </View>
@@ -80,7 +82,7 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <Phone size={20} color="#64748b" />
               <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Nomor Telepon</Text>
+                <Text style={styles.infoLabel}>{t('profile.phoneNumber')}</Text>
                 <Text style={styles.infoValue}>{user?.phone || '-'}</Text>
               </View>
             </View>
@@ -88,7 +90,7 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <Mail size={20} color="#64748b" />
               <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoLabel}>{t('profile.email')}</Text>
                 <Text style={styles.infoValue}>{user?.email || '-'}</Text>
               </View>
             </View>
@@ -96,7 +98,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pengaturan</Text>
+          <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
           <TouchableOpacity 
             style={styles.menuItem}
             onPress={() => navigation.navigate('SettingsTab')}
@@ -104,20 +106,17 @@ export default function ProfileScreen() {
             <View style={[styles.menuIcon, { backgroundColor: '#eff6ff' }]}>
               <User size={20} color="#2563eb" />
             </View>
-            <Text style={styles.menuLabel}>Ubah Profil</Text>
+            <Text style={styles.menuLabel}>{t('profile.editProfile')}</Text>
             <ChevronRight size={20} color="#cbd5e1" />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={styles.logoutBtn}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <LogOut size={20} color="#ef4444" />
-          <Text style={styles.logoutText}>Keluar / Logout</Text>
+          <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Buroq Manager v1.0.6 (Build 7)</Text>
+        <Text style={styles.version}>{t('appSettings.version')} 1.0.6</Text>
       </ScrollView>
     </SafeAreaView>
   );

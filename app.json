@@ -41,6 +41,20 @@
       "eas": {
         "projectId": "66d21fbb-f9a3-4b85-98f7-b43d23026d64"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysPermission": "Allow $(PRODUCT_NAME) to access your location."
+        }
+      ]
+    ]
   }
 }

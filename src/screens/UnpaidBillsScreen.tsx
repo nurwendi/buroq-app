@@ -13,9 +13,11 @@ import {
 import { Search, CreditCard, ChevronRight, AlertCircle, ArrowLeft, Clock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function UnpaidBillsScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [bills, setBills] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,12 @@ export default function UnpaidBillsScreen() {
   );
 
   const getMonthName = (month: number) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const months = [
+      t('billing.january') || 'Jan', t('billing.february') || 'Feb', t('billing.march') || 'Mar', 
+      t('billing.april') || 'Apr', t('billing.may') || 'Mei', t('billing.june') || 'Jun', 
+      t('billing.july') || 'Jul', t('billing.august') || 'Agu', t('billing.september') || 'Sep', 
+      t('billing.october') || 'Okt', t('billing.november') || 'Nov', t('billing.december') || 'Des'
+    ];
     return months[month] || '';
   };
 
@@ -71,7 +78,7 @@ export default function UnpaidBillsScreen() {
           <Text style={styles.amount}>Rp {item.amount.toLocaleString()}</Text>
         </View>
         <Text style={styles.invoice}>{item.invoiceNumber}</Text>
-        <Text style={styles.period}>Periode: {getMonthName(item.month)} {item.year}</Text>
+        <Text style={styles.period}>{t('users.period')}: {getMonthName(item.month)} {item.year}</Text>
       </View>
       <ChevronRight size={20} color="#cbd5e1" />
     </TouchableOpacity>
@@ -83,7 +90,7 @@ export default function UnpaidBillsScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tagihan Tertunda</Text>
+        <Text style={styles.headerTitle}>{t('billing.unpaidBills')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -92,7 +99,7 @@ export default function UnpaidBillsScreen() {
           <Search size={20} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari username atau invoice..."
+            placeholder={t('billing.searchInvoicePlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -115,8 +122,8 @@ export default function UnpaidBillsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <AlertCircle size={48} color="#94a3b8" />
-              <Text style={styles.emptyTitle}>Tidak Ada Tagihan</Text>
-              <Text style={styles.emptyDesc}>Semua tagihan telah lunas atau belum ada tagihan terdaftar.</Text>
+              <Text style={styles.emptyTitle}>{t('billing.noBills')}</Text>
+              <Text style={styles.emptyDesc}>{t('billing.noBillsDesc')}</Text>
             </View>
           }
         />

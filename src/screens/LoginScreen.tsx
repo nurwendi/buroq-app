@@ -16,6 +16,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { User, Lock, Eye, EyeOff, Settings } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CONFIG } from '../api/config';
@@ -39,6 +40,7 @@ export default function LoginScreen() {
   const slideAnim = useState(new Animated.Value(50))[0];
 
   const { login } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadServerUrl();
@@ -80,7 +82,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      setError('Masukkan ID Pelanggan/Username dan Password');
+      setError(t('login.loginRequired'));
       return;
     }
 
@@ -96,13 +98,13 @@ export default function LoginScreen() {
       await login(username, password);
     } catch (e: any) {
       console.error('Login Error:', e);
-      let msg = 'Gagal masuk. Periksa kembali kredensial Anda.';
+      let msg = t('login.loginFailed');
       
       if (e.message) {
         if (e.message.includes('Network Error')) {
-          msg = 'Kesalahan Jaringan. Pastikan Anda terhubung ke internet dan URL server benar.';
+          msg = t('login.networkError');
         } else if (e.message.includes('timeout')) {
-          msg = 'Koneksi ke server timeout. Silakan coba lagi.';
+          msg = t('login.timeoutError');
         } else {
           msg = e.message;
         }
@@ -150,7 +152,7 @@ export default function LoginScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Username / ID Pelanggan"
+              placeholder={t('login.usernamePlaceholder')}
               placeholderTextColor="rgba(255, 255, 255, 0.5)"
               value={username}
               onChangeText={setUsername}
@@ -165,7 +167,7 @@ export default function LoginScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder={t('login.passwordPlaceholder')}
               placeholderTextColor="rgba(255, 255, 255, 0.5)"
               value={password}
               onChangeText={setPassword}
@@ -200,7 +202,7 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.loginButtonText}>MASUK KE AKUN</Text>
+                <Text style={styles.loginButtonText}>{t('login.signIn')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
@@ -211,7 +213,7 @@ export default function LoginScreen() {
           >
             <Settings size={16} color="rgba(255, 255, 255, 0.6)" />
             <Text style={styles.settingsText}>
-              {showServerSetting ? 'Tutup Pengaturan Server' : 'Pengaturan Server'}
+              {showServerSetting ? t('login.closeServerSettings') : t('login.serverSettings')}
             </Text>
           </TouchableOpacity>
 
@@ -219,7 +221,7 @@ export default function LoginScreen() {
             <View style={styles.serverBox}>
               <TextInput
                 style={styles.serverInput}
-                placeholder="URL Server (http://...)"
+                placeholder={t('login.serverUrlPlaceholder')}
                 placeholderTextColor="rgba(255, 255, 255, 0.4)"
                 value={serverUrl}
                 onChangeText={setServerUrl}

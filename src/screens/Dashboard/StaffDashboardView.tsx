@@ -29,10 +29,12 @@ import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
 import PppoePieChart from '../../components/PppoePieChart';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function StaffDashboardView() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
@@ -98,7 +100,7 @@ export default function StaffDashboardView() {
         <View>
           <Text style={styles.customerName}>{item.customerName}</Text>
           <Text style={styles.transactionDate}>
-            {new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+            {new Date(item.date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })}
           </Text>
         </View>
       </View>
@@ -130,48 +132,48 @@ export default function StaffDashboardView() {
         <View style={styles.statsGrid}>
           <View style={{ width: '48%' }}>
             <StatCard 
-              title="Pendapatan Total" 
+              title={t('dashboard.revenueTotal')} 
               value={`Rp ${(stats?.totalRevenue || 0).toLocaleString()}`} 
               icon={TrendingUp} 
               color="#2563eb" 
-              subtitle="Total kumulatif"
+              subtitle={t('dashboard.totalCumulative')}
             />
           </View>
           <View style={{ width: '48%' }}>
             <StatCard 
-              title="Bulan Ini" 
+              title={t('dashboard.thisMonth')} 
               value={`Rp ${(stats?.thisMonthRevenue || 0).toLocaleString()}`} 
               icon={TrendingUp} 
               color="#10b981" 
-              subtitle="Pendapatan bulan ini"
+              subtitle={t('dashboard.thisMonthRevenueDesc')}
             />
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('CustomerList')} style={{ width: '48%' }}>
             <StatCard 
-              title="Pelanggan Aktif" 
+              title={t('dashboard.activeUsers')} 
               value={stats.activeCustomers} 
               icon={CreditCard} 
               color="#f59e0b" 
-              subtitle="PPPoE Online"
+              subtitle={t('dashboard.online_pppoe')}
             />
           </TouchableOpacity>
           <View style={{ width: '48%' }}>
             <StatCard 
-              title="Belum Terbayar" 
+              title={t('dashboard.unpaid')} 
               value={`Rp ${(stats?.totalUnpaid || 0).toLocaleString()}`} 
               icon={Clock} 
               color="#ef4444" 
-              subtitle="Tagihan outstanding"
+              subtitle={t('dashboard.unpaidSubtitle')}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status Pelanggan</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.customerStatus')}</Text>
           <View style={styles.statsGrid}>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Semua" 
+                title={t('users.all') || 'All'} 
                 value={stats?.totalCustomers || 0} 
                 icon={Users} 
                 color="#0ea5e9" 
@@ -179,7 +181,7 @@ export default function StaffDashboardView() {
             </View>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Online" 
+                title={t('users.online') || 'Online'} 
                 value={stats?.pppoeActive || 0} 
                 icon={Users} 
                 color="#10b981" 
@@ -187,7 +189,7 @@ export default function StaffDashboardView() {
             </View>
             <View style={{ width: '31%' }}>
               <StatCard 
-                title="Offline" 
+                title={t('users.offline') || 'Offline'} 
                 value={stats?.pppoeOffline || 0} 
                 icon={Users} 
                 color="#64748b" 
@@ -197,50 +199,50 @@ export default function StaffDashboardView() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Menu Utama</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
           <View style={styles.menuGrid}>
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerList')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#e0f2fe' }]}>
                    <Users size={24} color="#0ea5e9" />
                 </View>
-                <Text style={styles.menuLabel}>Pelanggan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.users')}</Text>
              </TouchableOpacity>
 
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BillingTab')}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BillingTab')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fdf4ff' }]}>
                    <CreditCard size={24} color="#d946ef" />
                 </View>
-                <Text style={styles.menuLabel}>Tagihan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.billing')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
                    <Settings size={24} color="#64748b" />
                 </View>
-                <Text style={styles.menuLabel}>Setelan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#dbeafe' }]}>
                    <PlusCircle size={24} color="#2563eb" />
                 </View>
-                <Text style={styles.menuLabel}>Tambah</Text>
+                <Text style={styles.menuLabel}>{t('common.add')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PaymentForm')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
                    <CreditCard size={24} color="#10b981" />
                 </View>
-                <Text style={styles.menuLabel}>Bayar</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.pay')}</Text>
              </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Transaksi Terbaru</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.recentTransactions')}</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAll}>Lihat Semua</Text>
+              <Text style={styles.seeAll}>{t('dashboard.seeAll')}</Text>
             </TouchableOpacity>
           </View>
           
@@ -255,7 +257,7 @@ export default function StaffDashboardView() {
                     <View>
                       <Text style={styles.customerName}>{item.customerName}</Text>
                       <Text style={styles.transactionDate}>
-                        {new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(item.date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </Text>
                     </View>
                   </View>
@@ -263,7 +265,7 @@ export default function StaffDashboardView() {
                 </View>
               ))
             ) : (
-                <Text style={styles.noData}>Belum ada transaksi.</Text>
+                <Text style={styles.noData}>{t('dashboard.noRecentTransactions')}</Text>
             )}
           </View>
         </View>

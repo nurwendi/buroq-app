@@ -29,10 +29,13 @@ import {
   PlusCircle,
   Activity,
   CreditCard,
-  Settings
+  Settings,
+  Megaphone,
+  Router
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import apiClient from '../../api/client';
 import GradientHeader from '../../components/GradientHeader';
 import StatCard from '../../components/StatCard';
@@ -55,6 +58,7 @@ const ProgressMeter = ({ value, label, color }: { value: number, label: string, 
 
 export default function SuperadminDashboardView() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -169,7 +173,7 @@ export default function SuperadminDashboardView() {
         <View style={styles.statsGrid}>
           <View style={{ width: '48%' }}>
             <StatCard 
-              title="Total Admin" 
+              title={t('dashboard.totalAdmin')} 
               value={stats?.adminCount || 0} 
               icon={Shield} 
               color="#2563eb" 
@@ -178,41 +182,41 @@ export default function SuperadminDashboardView() {
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('CustomerList')} style={{ width: '48%' }}>
             <StatCard 
-              title="Total Pelanggan" 
+              title={t('dashboard.totalUsers')} 
               value={stats?.totalCustomers || 0} 
               icon={Users} 
               color="#10b981" 
-              subtitle="Semua Mitra"
+              subtitle={t('dashboard.allMitra')}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('SystemUsers')} style={{ width: '48%' }}>
             <StatCard 
-              title="Staff/Mitra" 
+              title={t('dashboard.systemUsers')} 
               value={stats?.systemUserCount || 0} 
               icon={Users} 
               color="#f59e0b" 
-              subtitle="Technical & Sales"
+              subtitle={t('dashboard.techSales')}
             />
           </TouchableOpacity>
           <View style={{ width: '48%' }}>
             <StatCard 
-              title="Total Router" 
+              title={t('dashboard.totalRouter')} 
               value={stats?.routers?.length || 0} 
               icon={Wifi} 
               color="#8b5cf6" 
-              subtitle="Node Terkoneksi"
+              subtitle={t('dashboard.nodeConnected')}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Menu Utama</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
           <View style={styles.menuGrid}>
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerList')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#e0f2fe' }]}>
                    <Users size={24} color="#0ea5e9" />
                 </View>
-                <Text style={styles.menuLabel}>Pelanggan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.users')}</Text>
              </TouchableOpacity>
 
 
@@ -220,28 +224,28 @@ export default function SuperadminDashboardView() {
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
                    <Settings size={24} color="#64748b" />
                 </View>
-                <Text style={styles.menuLabel}>Setelan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SystemUsers')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#dbeafe' }]}>
                    <Shield size={24} color="#2563eb" />
                 </View>
-                <Text style={styles.menuLabel}>Admin</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.pppoe')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AllUsers')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
                    <Users size={24} color="#10b981" />
                 </View>
-                <Text style={styles.menuLabel}>All Users</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.allUsers')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('NAT')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f3e8ff' }]}>
                    <Server size={24} color="#a855f7" />
                 </View>
-                <Text style={styles.menuLabel}>NAS</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.nas')}</Text>
              </TouchableOpacity>
 
 
@@ -249,13 +253,33 @@ export default function SuperadminDashboardView() {
                 <View style={[styles.menuIconContainer, { backgroundColor: '#ffe4e6' }]}>
                    <Activity size={24} color="#e11d48" />
                 </View>
-                <Text style={styles.menuLabel}>Laporan</Text>
+                <Text style={styles.menuLabel}>{t('sidebar.reports')}</Text>
              </TouchableOpacity>
+             
+             <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Broadcast')}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: '#fdf2f8' }]}>
+                <Megaphone size={24} color="#db2777" />
+              </View>
+              <Text style={styles.menuLabel}>{t('sidebar.broadcast')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('GenieACS')}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
+                <Router size={24} color="#f97316" />
+              </View>
+              <Text style={styles.menuLabel}>{t('sidebar.genieacs')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status Server Utama</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.serverStatus')}</Text>
           <View style={styles.serverCard}>
              <View style={styles.serverHeader}>
                 <Server size={20} color="#2563eb" />
@@ -263,32 +287,32 @@ export default function SuperadminDashboardView() {
              </View>
              
              <ProgressMeter 
-                label="CPU Load" 
+                label={t('dashboard.cpuLoad')} 
                 value={stats.serverCpuLoad || 0} 
                 color={stats.serverCpuLoad > 80 ? '#ef4444' : '#2563eb'} 
              />
              
              <ProgressMeter 
-                label="RAM Usage" 
+                label={t('dashboard.ramUsage')} 
                 value={memUsagePercent} 
                 color={memUsagePercent > 80 ? '#f59e0b' : '#10b981'} 
              />
              <Text style={styles.memDetails}>
-                Used: {formatMemory(stats.serverMemoryUsed)} / {formatMemory(stats.serverMemoryTotal)}
+                {t('dashboard.used')}: {formatMemory(stats.serverMemoryUsed)} / {formatMemory(stats.serverMemoryTotal)}
              </Text>
 
              {systemInfo && (
                <View style={styles.systemSpecs}>
                  <View style={styles.specItem}>
-                   <Text style={styles.specLabel}>Platform</Text>
+                   <Text style={styles.specLabel}>{t('dashboard.platform')}</Text>
                    <Text style={styles.specValue}>{systemInfo.platform} ({systemInfo.type})</Text>
                  </View>
                  <View style={styles.specItem}>
-                   <Text style={styles.specLabel}>Processor</Text>
+                   <Text style={styles.specLabel}>{t('dashboard.processor')}</Text>
                    <Text style={styles.specValue} numberOfLines={1}>{systemInfo.cpu?.model}</Text>
                  </View>
                  <View style={styles.specItem}>
-                   <Text style={styles.specLabel}>Cores / Speed</Text>
+                   <Text style={styles.specLabel}>{t('dashboard.coresSpeed')}</Text>
                    <Text style={styles.specValue}>{systemInfo.cpu?.cores} Cores @ {systemInfo.cpu?.speed} MHz</Text>
                  </View>
                </View>
@@ -299,9 +323,9 @@ export default function SuperadminDashboardView() {
         {(ownerStats || []).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Statistik Owner (Mitra)</Text>
+              <Text style={styles.sectionTitle}>{t('dashboard.ownerStats')}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('SystemUsers')}>
-                <Text style={styles.seeAllText}>Lihat Semua</Text>
+                <Text style={styles.seeAllText}>{t('dashboard.seeAll')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ownerScroll}>
@@ -314,17 +338,17 @@ export default function SuperadminDashboardView() {
                     <View style={styles.ownerStatsRow}>
                       <View style={styles.ownerStatItem}>
                          <Text style={styles.ownerStatValue}>{stat.active}</Text>
-                         <Text style={styles.ownerStatLabel}>Active</Text>
+                         <Text style={styles.ownerStatLabel}>{t('dashboard.active')}</Text>
                       </View>
                       <View style={styles.ownerStatDivider} />
                       <View style={styles.ownerStatItem}>
                          <Text style={styles.ownerStatValue}>{stat.offline}</Text>
-                         <Text style={[styles.ownerStatLabel, { color: '#ef4444' }]}>Offline</Text>
+                         <Text style={[styles.ownerStatLabel, { color: '#ef4444' }]}>{t('dashboard.offline')}</Text>
                       </View>
                       <View style={styles.ownerStatDivider} />
                       <View style={styles.ownerStatItem}>
                          <Text style={styles.ownerStatValue}>{stat.total}</Text>
-                         <Text style={styles.ownerStatLabel}>Total</Text>
+                         <Text style={styles.ownerStatLabel}>{t('dashboard.total')}</Text>
                       </View>
                     </View>
                  </View>
@@ -335,7 +359,7 @@ export default function SuperadminDashboardView() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Kesehatan Router</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.routerHealth')}</Text>
             <Activity size={18} color="#10b981" />
           </View>
           
@@ -345,12 +369,12 @@ export default function SuperadminDashboardView() {
                 <View style={styles.routerLeft}>
                   <View style={[styles.statusDot, { backgroundColor: (router.status === 'online' || router.online) ? '#10b981' : '#ef4444' }]} />
                   <View>
-                    <Text style={styles.routerName}>{router.name || 'Unknown Router'}</Text>
+                    <Text style={styles.routerName}>{router.name || t('dashboard.unknownRouter')}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={styles.routerHost}>{router.host || '-'}</Text>
                       <View style={styles.ownerBadgeSmall}>
                         <Text style={styles.ownerBadgeText}>
-                          {(ownerStats || []).find(o => o.id === router.ownerId)?.owner || 'Global'}
+                          {(ownerStats || []).find(o => o.id === router.ownerId)?.owner || t('dashboard.global')}
                         </Text>
                       </View>
                     </View>
@@ -368,7 +392,7 @@ export default function SuperadminDashboardView() {
                     </View>
                   </View>
                 ) : (
-                  <Text style={styles.offlineText}>OFFLINE</Text>
+                  <Text style={styles.offlineText}>{t('dashboard.offline').toUpperCase()}</Text>
                 )}
               </View>
             ))}

@@ -16,6 +16,7 @@ import { Send, Megaphone, Users, User, ArrowLeft, Info, AlertTriangle, CheckCirc
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type TargetType = 'all' | 'customers' | 'staff' | 'specific';
 type NotificationType = 'info' | 'success' | 'alert' | 'error';
@@ -23,6 +24,7 @@ type NotificationType = 'info' | 'success' | 'alert' | 'error';
 export default function BroadcastScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [targetType, setTargetType] = useState<TargetType>('customers');
@@ -35,16 +37,16 @@ export default function BroadcastScreen() {
 
   const handleSend = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Judul tidak boleh kosong');
+      Alert.alert(t('common.error'), t('broadcast.titleRequired'));
       return;
     }
     if (!message.trim()) {
-      Alert.alert('Error', 'Pesan tidak boleh kosong');
+      Alert.alert(t('common.error'), t('broadcast.messageRequired'));
       return;
     }
 
     if (targetType === 'specific' && !targetUsername.trim()) {
-      Alert.alert('Error', 'Username target tidak boleh kosong');
+      Alert.alert(t('common.error'), t('broadcast.usernameRequired'));
       return;
     }
 
@@ -58,12 +60,12 @@ export default function BroadcastScreen() {
         username: targetType === 'specific' ? targetUsername.trim() : null,
       });
       
-      Alert.alert('Berhasil', 'Pengumuman telah dikirim', [
+      Alert.alert(t('common.success'), t('broadcast.sendSuccess'), [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } catch (error: any) {
       console.error('Failed to send broadcast', error);
-      Alert.alert('Error', error.response?.data?.error || 'Gagal mengirim pengumuman');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('broadcast.sendError'));
     } finally {
       setLoading(false);
     }
@@ -71,10 +73,10 @@ export default function BroadcastScreen() {
 
   const getTargetOptions = () => {
     const options = [
-      { id: 'all', label: 'Semua', icon: Users, desc: 'Staff & Pelanggan' },
-      { id: 'customers', label: 'Pelanggan', icon: Users, desc: 'Hanya Pelanggan' },
-      { id: 'staff', label: 'Staff', icon: UserCog, desc: 'Staff & Manager' },
-      { id: 'specific', label: 'Spesifik', icon: User, desc: 'Target Username' },
+      { id: 'all', label: t('broadcast.all'), icon: Users, desc: t('broadcast.allDesc') },
+      { id: 'customers', label: t('broadcast.customers'), icon: Users, desc: t('broadcast.customersDesc') },
+      { id: 'staff', label: t('broadcast.staff'), icon: UserCog, desc: t('broadcast.staffDesc') },
+      { id: 'specific', label: t('broadcast.specific'), icon: User, desc: t('broadcast.specificDesc') },
     ];
 
     // Filter based on role if needed (Web version allows these 3 for Admin/Manager)
@@ -91,13 +93,16 @@ export default function BroadcastScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <ArrowLeft size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Blast Notifikasi</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Megaphone size={20} color="#2563eb" />
+            <Text style={styles.headerTitle}>{t('broadcast.title')}</Text>
+          </View>
           <View style={{ width: 40 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.section}>
-            <Text style={styles.label}>Target Penerima</Text>
+            <Text style={styles.label}>{t('broadcast.targetRecipient')}</Text>
             <View style={styles.targetGrid}>
               {getTargetOptions().map((opt) => (
                 <TouchableOpacity 
@@ -115,10 +120,10 @@ export default function BroadcastScreen() {
 
           {targetType === 'specific' && (
             <View style={styles.section}>
-              <Text style={styles.label}>Username Pelanggan</Text>
+              <Text style={styles.label}>{t('broadcast.targetUsername')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan PPPoE Username"
+                placeholder={t('broadcast.usernamePlaceholder')}
                 value={targetUsername}
                 onChangeText={setTargetUsername}
                 autoCapitalize="none"
@@ -127,7 +132,7 @@ export default function BroadcastScreen() {
           )}
 
           <View style={styles.section}>
-            <Text style={styles.label}>Tipe Notifikasi</Text>
+            <Text style={styles.label}>{t('broadcast.notifType')}</Text>
             <View style={styles.typeGrid}>
               {[
                 { id: 'info', color: '#3b82f6', icon: Info },
@@ -153,20 +158,20 @@ export default function BroadcastScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>Judul Notifikasi</Text>
+            <Text style={styles.label}>{t('broadcast.notifTitle')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Contoh: Pemeliharaan Jaringan"
+              placeholder={t('broadcast.notifTitlePlaceholder')}
               value={title}
               onChangeText={setTitle}
             />
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>Isi Pesan</Text>
+            <Text style={styles.label}>{t('broadcast.messageContent')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Tuliskan detail pengumuman Anda di sini..."
+              placeholder={t('broadcast.messagePlaceholder')}
               value={message}
               onChangeText={setMessage}
               multiline
@@ -185,7 +190,7 @@ export default function BroadcastScreen() {
             ) : (
               <>
                 <Send size={20} color="#ffffff" />
-                <Text style={styles.sendBtnText}>Kirim Sekarang</Text>
+                <Text style={styles.sendBtnText}>{t('broadcast.sendNow')}</Text>
               </>
             )}
           </TouchableOpacity>

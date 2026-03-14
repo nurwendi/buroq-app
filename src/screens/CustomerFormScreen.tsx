@@ -10,7 +10,8 @@ import {
   Alert,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Linking
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -34,10 +35,12 @@ import * as Contacts from 'expo-contacts';
 import * as Location from 'expo-location';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CustomerFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { t } = useLanguage();
   const { customer, mode = 'add' } = route.params || {};
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +93,7 @@ export default function CustomerFormScreen() {
       }
     } catch (e) {
       console.error('Failed to fetch initial data', e);
-      Alert.alert('Error', 'Gagal memuat data pendukung.');
+      Alert.alert(t('common.error'), t('users.dataSupportError'));
     } finally {
       setFetchingData(false);
     }
@@ -98,7 +101,7 @@ export default function CustomerFormScreen() {
 
   const handleSave = async () => {
     if (!formData.username || !formData.name) {
-      Alert.alert('Error', 'Username dan Nama wajib diisi.');
+      Alert.alert(t('common.error'), t('users.usernameNameRequired'));
       return;
     }
 
@@ -108,11 +111,11 @@ export default function CustomerFormScreen() {
       // which includes robust logic for Radius sync, profile assignment, etc.
       await apiClient.post('/api/customers', formData);
       
-      Alert.alert('Sukses', `Pelanggan berhasil ${mode === 'add' ? 'ditambahkan' : 'diperbarui'}.`, [
-        { text: 'OK', onPress: () => navigation.goBack() }
+      Alert.alert(t('common.success'), mode === 'add' ? t('users.addSuccess') : t('users.updateSuccess'), [
+        { text: t('common.ok'), onPress: () => navigation.goBack() }
       ]);
     } catch (e: any) {
-      Alert.alert('Gagal', e.response?.data?.error || 'Terjadi kesalahan saat menyimpan data.');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('users.saveError'));
     } finally {
       setLoading(false);
     }
@@ -120,10 +123,10 @@ export default function CustomerFormScreen() {
 
   const pickContact = async () => {
     // Explicit permission check
-    const { status: existingStatus } = await Contacts.getPermissionsAsync();
+    const { status: existingStatus, canAskAgain } = await Contacts.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
+    if (existingStatus !== 'granted' && canAskAgain) {
       const { status } = await Contacts.requestPermissionsAsync();
       finalStatus = status;
     }
@@ -149,14 +152,40 @@ export default function CustomerFormScreen() {
         console.log('Contact picker cancelled or failed');
       }
     } else {
-      Alert.alert('Izin Ditolak', 'Aplikasi butuh izin akses kontak untuk fitur ini.');
+      const message = canAskAgain 
+        ? t('users.contactPermissionMsg') 
+        : t('users.contactPermissionPermanentMsg') || 'Permissions are permanently denied. Please enable them in your device settings.';
+      
+      Alert.alert(
+        t('users.permissionDenied'), 
+        message,
+        canAskAgain 
+          ? [{ text: t('common.ok'), style: 'cancel' }]
+          : [
+              { text: t('common.settings'), onPress: () => Linking.openSettings() },
+              { text: t('common.cancel'), style: 'cancel' }
+            ]
+      );
     }
   };
 
   const handleGetLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
+    let { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Izin Ditolak', 'Aplikasi butuh izin lokasi untuk fitur ini.');
+      const message = canAskAgain 
+        ? t('users.locationPermissionMsg') 
+        : t('users.locationPermissionPermanentMsg') || 'Location permission permanently denied. Please enable in settings.';
+      
+      Alert.alert(
+        t('users.permissionDenied'), 
+        message,
+        canAskAgain 
+          ? [{ text: t('common.ok'), style: 'cancel' }]
+          : [
+              { text: t('common.settings'), onPress: () => Linking.openSettings() },
+              { text: t('common.cancel'), style: 'cancel' }
+            ]
+      );
       return;
     }
 
@@ -166,7 +195,7 @@ export default function CustomerFormScreen() {
       const coords = `${location.coords.latitude}, ${location.coords.longitude}`;
       setFormData(prev => ({ ...prev, coordinates: coords }));
     } catch (e) {
-      Alert.alert('Error', 'Gagal mendapatkan lokasi GPS.');
+      Alert.alert(t('common.error'), t('users.gpsError'));
     } finally {
       setLoading(false);
     }
@@ -176,7 +205,7 @@ export default function CustomerFormScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={styles.loadingText}>Memuat formulir...</Text>
+        <Text style={styles.loadingText}>{t('users.loadingForm')}</Text>
       </View>
     );
   }
@@ -229,7 +258,7 @@ export default function CustomerFormScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.title}>{mode === 'add' ? 'Tambah Pelanggan' : 'Edit Pelanggan'}</Text>
+          <Text style={styles.title}>{mode === 'add' ? t('users.addTitle') : t('users.editTitle')}</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -237,11 +266,11 @@ export default function CustomerFormScreen() {
           <View style={styles.formCard}>
             
             {/* --- SECTION 1: KREDENSIAL PPPOE --- */}
-            <SectionHeader title="Kredensial PPPoE" icon={Key} />
+            <SectionHeader title={t('users.pppoeCredentials')} icon={Key} />
             
             {mode === 'edit' && (
               <InputField 
-                label="Customer ID (System ID)" 
+                label={t('users.systemId')} 
                 icon={Info} 
                 value={formData.customerId}
                 placeholder="Auto-generated"
@@ -250,24 +279,24 @@ export default function CustomerFormScreen() {
             )}
 
             <InputField 
-              label="Username / ID Client" 
+              label={t('users.usernameLabel')} 
               icon={User} 
               value={formData.username}
               onChangeText={(text: string) => setFormData({ ...formData, username: text })}
-              placeholder="Contoh: hudi_buroq"
+              placeholder={t('users.usernamePlaceholder') || "Contoh: hudi_buroq"}
             />
 
             <InputField 
-              label="Password" 
+              label={t('users.passwordLabel')} 
               icon={Lock} 
               value={formData.password}
               onChangeText={(text: string) => setFormData({ ...formData, password: text })}
-              placeholder={mode === 'edit' ? 'Kosongkan jika tidak diubah' : 'Sandi untuk login PPPoE/WiFi'}
+              placeholder={mode === 'edit' ? t('dashboard.wifiPassPlaceholder') : t('users.passwordPlaceholder') || 'Sandi untuk login PPPoE/WiFi'}
               secureTextEntry
             />
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Paket / Layanan</Text>
+              <Text style={styles.label}>{t('users.servicePackage')}</Text>
               <View style={styles.pickerWrapper}>
                 <View style={styles.iconBox}>
                   <Package size={20} color="#64748b" />
@@ -290,9 +319,9 @@ export default function CustomerFormScreen() {
             <View style={styles.divider} />
 
             {/* --- SECTION 2: TARGET ROUTER --- */}
-            <SectionHeader title="Target Router" icon={Server} />
+            <SectionHeader title={t('users.targetRouter')} icon={Server} />
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Pilih Router Mikrotik</Text>
+              <Text style={styles.label}>{t('users.selectMikrotik')}</Text>
               <View style={styles.pickerWrapper}>
                 <View style={styles.iconBox}>
                   <Server size={20} color="#64748b" />
@@ -318,29 +347,29 @@ export default function CustomerFormScreen() {
             <View style={styles.divider} />
 
             {/* --- SECTION 3: INFO PELANGGAN --- */}
-            <SectionHeader title="Info Pelanggan" icon={Info} />
+            <SectionHeader title={t('users.customerInfo')} icon={Info} />
 
             <InputField 
-              label="Nama Lengkap" 
+              label={t('users.fullName')} 
               icon={User} 
               value={formData.name}
               onChangeText={(text: string) => setFormData({ ...formData, name: text })}
-              placeholder="Contoh: Adi Hudi"
+              placeholder={t('users.fullNamePlaceholder') || "Contoh: Adi Hudi"}
               rightIcon={BookUser}
               onRightIconPress={pickContact}
             />
 
             <InputField 
-              label="Nomor WhatsApp" 
+              label={t('users.whatsappNumber')} 
               icon={Phone} 
               value={formData.phone}
               onChangeText={(text: string) => setFormData({ ...formData, phone: text })}
-              placeholder="62812..."
+              placeholder={t('users.whatsappPlaceholder') || "62812..."}
               keyboardType="phone-pad"
             />
 
             <InputField 
-              label="Email (Opsional)" 
+              label={t('users.emailOptional')} 
               icon={Mail} 
               value={formData.email}
               onChangeText={(text: string) => setFormData({ ...formData, email: text })}
@@ -349,15 +378,15 @@ export default function CustomerFormScreen() {
             />
 
             <InputField 
-              label="Alamat Lengkap" 
+              label={t('users.fullAddress')} 
               icon={MapPin} 
               value={formData.address}
               onChangeText={(text: string) => setFormData({ ...formData, address: text })}
-              placeholder="Nama jalan, RT/RW, Dusun"
+              placeholder={t('users.addressPlaceholder') || "Nama jalan, RT/RW, Dusun"}
             />
 
             <InputField 
-              label="Koordinat GPS (Lat, Long)" 
+              label={t('users.gpsCoordinates')} 
               icon={Compass} 
               value={formData.coordinates}
               onChangeText={(text: string) => setFormData({ ...formData, coordinates: text })}
@@ -367,21 +396,21 @@ export default function CustomerFormScreen() {
             />
 
             <InputField 
-              label="Catatan / Comment" 
+              label={t('users.notesComment')} 
               icon={MessageSquare} 
               value={formData.comment}
               onChangeText={(text: string) => setFormData({ ...formData, comment: text })}
-              placeholder="Tambahkan catatan khusus..."
+              placeholder={t('users.notesPlaceholder') || "Tambahkan catatan khusus..."}
               multiline
             />
 
             <View style={styles.divider} />
 
             {/* --- SECTION 4: PENUGASAN --- */}
-            <SectionHeader title="Penugasan" icon={Users} />
+            <SectionHeader title={t('users.assignment')} icon={Users} />
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Pilih Sales / Agent</Text>
+              <Text style={styles.label}>{t('users.selectSales')}</Text>
               <View style={styles.pickerWrapper}>
                  <View style={styles.iconBox}>
                    <Users size={20} color="#64748b" />
@@ -391,7 +420,7 @@ export default function CustomerFormScreen() {
                         style={[styles.chip, !formData.agentId && styles.chipActive]}
                         onPress={() => setFormData({ ...formData, agentId: '' })}
                      >
-                        <Text style={[styles.chipText, !formData.agentId && styles.chipTextActive]}>Tanpa Agent</Text>
+                        <Text style={[styles.chipText, !formData.agentId && styles.chipTextActive]}>{t('users.noAgent')}</Text>
                     </TouchableOpacity>
                     {agents.map((a) => (
                      <TouchableOpacity 
@@ -407,7 +436,7 @@ export default function CustomerFormScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Pilih Teknisi</Text>
+              <Text style={styles.label}>{t('users.selectTechnician')}</Text>
               <View style={styles.pickerWrapper}>
                  <View style={styles.iconBox}>
                    <Users size={20} color="#64748b" />
@@ -417,7 +446,7 @@ export default function CustomerFormScreen() {
                         style={[styles.chip, !formData.technicianId && styles.chipActive]}
                         onPress={() => setFormData({ ...formData, technicianId: '' })}
                      >
-                        <Text style={[styles.chipText, !formData.technicianId && styles.chipTextActive]}>Tanpa Teknisi</Text>
+                        <Text style={[styles.chipText, !formData.technicianId && styles.chipTextActive]}>{t('users.noTechnician')}</Text>
                     </TouchableOpacity>
                     {technicians.map((t) => (
                      <TouchableOpacity 
@@ -441,7 +470,7 @@ export default function CustomerFormScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>Simpan Data Pelanggan</Text>
+              <Text style={styles.saveButtonText}>{t('users.saveCustomerData')}</Text>
             )}
           </TouchableOpacity>
           <View style={{ height: 40 }} />

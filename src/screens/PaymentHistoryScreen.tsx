@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import { ArrowLeft, CreditCard, ChevronRight, Filter, Calendar } from 'lucide-react-native';
 import apiClient from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PaymentHistoryScreen({ route, navigation }: any) {
   const { username, name } = route.params;
+  const { t } = useLanguage();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,7 +56,7 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
         <View style={styles.invoiceInfo}>
           <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
           <Text style={styles.paymentDate}>
-            {new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date(item.date).toLocaleDateString(t('common.locale') === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}15` }]}>
@@ -67,7 +69,7 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
       <View style={styles.paymentBody}>
         <View style={styles.paymentMethod}>
           <CreditCard size={16} color="#94a3b8" />
-          <Text style={styles.methodText}>{item.method || 'Cash'}</Text>
+          <Text style={styles.methodText}>{item.method === 'cash' ? (t('billing.cash') || 'Cash') : (t('billing.transfer') || 'Transfer')}</Text>
         </View>
         <Text style={styles.amountText}>Rp {item.amount.toLocaleString()}</Text>
       </View>
@@ -87,7 +89,7 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.title}>Riwayat Pembayaran</Text>
+          <Text style={styles.title}>{t('billing.paymentHistory')}</Text>
           <Text style={styles.subtitle}>{name || username}</Text>
         </View>
         <TouchableOpacity style={styles.filterButton}>
@@ -111,7 +113,7 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <CreditCard size={48} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada riwayat pembayaran</Text>
+              <Text style={styles.emptyText}>{t('billing.noPaymentHistory')}</Text>
             </View>
           }
         />

@@ -15,8 +15,10 @@ import {
 import { Search, ArrowLeft, Filter, Users } from 'lucide-react-native';
 import apiClient from '../api/client';
 import CustomerItem from '../components/CustomerItem';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CustomerListScreen({ navigation }: any) {
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ export default function CustomerListScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.title}>Daftar Pelanggan</Text>
+          <Text style={styles.title}>{t('users.listTitle')}</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -114,7 +116,7 @@ export default function CustomerListScreen({ navigation }: any) {
             <Search size={20} color="#94a3b8" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Cari nama, username, atau ID..."
+              placeholder={t('users.searchPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholderTextColor="#94a3b8"
@@ -129,7 +131,7 @@ export default function CustomerListScreen({ navigation }: any) {
               onPress={() => setFilterType('all')}
             >
               <Text style={[styles.filterChipText, filterType === 'all' && styles.filterChipTextActive]}>
-                Semua ({counts.all})
+                {t('users.all')} ({counts.all})
               </Text>
             </TouchableOpacity>
 
@@ -139,7 +141,7 @@ export default function CustomerListScreen({ navigation }: any) {
             >
               <View style={[styles.statusDot, { backgroundColor: '#10b981' }]} />
               <Text style={[styles.filterChipText, filterType === 'online' && styles.filterChipTextActive]}>
-                Online ({counts.online})
+                {t('users.online')} ({counts.online})
               </Text>
             </TouchableOpacity>
 
@@ -149,7 +151,7 @@ export default function CustomerListScreen({ navigation }: any) {
             >
               <View style={[styles.statusDot, { backgroundColor: '#cbd5e1' }]} />
               <Text style={[styles.filterChipText, filterType === 'offline' && styles.filterChipTextActive]}>
-                Offline ({counts.offline})
+                {t('users.offline')} ({counts.offline})
               </Text>
             </TouchableOpacity>
 
@@ -159,7 +161,7 @@ export default function CustomerListScreen({ navigation }: any) {
             >
               <View style={[styles.statusDot, { backgroundColor: '#ef4444' }]} />
               <Text style={[styles.filterChipText, filterType === 'isolir' && styles.filterChipTextActive]}>
-                Isolir ({counts.isolir})
+                {t('users.isolir')} ({counts.isolir})
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -183,7 +185,7 @@ export default function CustomerListScreen({ navigation }: any) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Users size={48} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Pelanggan tidak ditemukan</Text>
+              <Text style={styles.emptyText}>{t('users.notFound')}</Text>
             </View>
           }
           refreshControl={

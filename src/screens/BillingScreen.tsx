@@ -2,14 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { FileText, CreditCard, Clock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function BillingScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Tagihan & Pembayaran</Text>
+        <Text style={styles.headerTitle}>{t('billing.title')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.grid}>
@@ -20,8 +22,8 @@ export default function BillingScreen() {
             <View style={[styles.iconContainer, { backgroundColor: '#dcfce7' }]}>
               <CreditCard size={32} color="#16a34a" />
             </View>
-            <Text style={styles.cardTitle}>Bayar Tagihan</Text>
-            <Text style={styles.cardDesc}>Form penerimaan pembayaran tunai</Text>
+            <Text style={styles.cardTitle}>{t('billing.payBill')}</Text>
+            <Text style={styles.cardDesc}>{t('billing.payBillDesc')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -34,8 +36,8 @@ export default function BillingScreen() {
             <View style={[styles.iconContainer, { backgroundColor: '#e0f2fe' }]}>
               <FileText size={32} color="#0284c7" />
             </View>
-            <Text style={styles.cardTitle}>Riwayat Transaksi</Text>
-            <Text style={styles.cardDesc}>Lihat riwayat pembayaran pelanggan</Text>
+            <Text style={styles.cardTitle}>{t('billing.history')}</Text>
+            <Text style={styles.cardDesc}>{t('billing.historyDesc')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -45,8 +47,8 @@ export default function BillingScreen() {
             <View style={[styles.iconContainer, { backgroundColor: '#fef3c7' }]}>
               <Clock size={32} color="#d97706" />
             </View>
-            <Text style={styles.cardTitle}>Tagihan Tertunda</Text>
-            <Text style={styles.cardDesc}>Daftar pelanggan yang belum lunas</Text>
+            <Text style={styles.cardTitle}>{t('billing.unpaidBills')}</Text>
+            <Text style={styles.cardDesc}>{t('billing.unpaidBillsDesc')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

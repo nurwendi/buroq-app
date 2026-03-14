@@ -2,31 +2,34 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { LogOut, User, Shield, Info, Settings as SettingsIcon, ChevronRight, CreditCard, Database, Server, Cog } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
-import { Alert, ActivityIndicator } from 'react-native';
+import { Alert, ActivityIndicator, Image } from 'react-native';
+import { Languages } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const navigation = useNavigation<any>();
   const [backingUp, setBackingUp] = React.useState(false);
 
   const handleBackup = async () => {
     Alert.alert(
-      'Database Backup',
-      'Apakah Anda ingin mencadangkan database sekarang?',
+      t('appSettings.backupTitle'),
+      t('appSettings.backupConfirm'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Ya, Backup', 
+          text: t('appSettings.backupConfirmBtn'), 
           onPress: async () => {
             setBackingUp(true);
             try {
               const response = await apiClient.post('/api/backup', {});
-              Alert.alert('Sukses', 'Backup database berhasil dibuat.');
+              Alert.alert(t('common.success'), t('appSettings.backupSuccess'));
             } catch (error) {
               console.error('Backup failed:', error);
-              Alert.alert('Error', 'Gagal membuat backup database.');
+              Alert.alert(t('common.error'), t('appSettings.backupError'));
             } finally {
               setBackingUp(false);
             }
@@ -36,10 +39,22 @@ export default function SettingsScreen() {
     );
   };
 
+  const changeLanguage = () => {
+    Alert.alert(
+      t('appSettings.selectLanguage'),
+      '',
+      [
+        { text: 'Bahasa Indonesia', onPress: () => setLanguage('id') },
+        { text: 'English', onPress: () => setLanguage('en') },
+        { text: t('common.cancel'), style: 'cancel' }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Pengaturan</Text>
+        <Text style={styles.headerTitle}>{t('sidebar.settings')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -51,13 +66,13 @@ export default function SettingsScreen() {
           <View style={styles.profileInfo}>
             <Text style={styles.name} numberOfLines={1}>{user?.fullName || user?.username}</Text>
             <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>{user?.role?.toUpperCase() || 'PENGGUNA'}</Text>
+              <Text style={styles.roleText}>{user?.role?.toUpperCase() || t('sidebar.users').toUpperCase()}</Text>
             </View>
           </View>
         </View>
 
         {/* Setting Groups */}
-        <Text style={styles.sectionTitle}>Akun & Keamanan</Text>
+        <Text style={styles.sectionTitle}>{t('appSettings.accountSecurity')}</Text>
         <View style={styles.settingGroup}>
           <TouchableOpacity 
             style={styles.settingItem}
@@ -66,7 +81,7 @@ export default function SettingsScreen() {
             <View style={[styles.settingIcon, { backgroundColor: '#e0f2fe' }]}>
               <User size={20} color="#0284c7" />
             </View>
-            <Text style={styles.settingLabel}>Edit Profil</Text>
+            <Text style={styles.settingLabel}>{t('appSettings.editProfile')}</Text>
             <ChevronRight size={20} color="#94a3b8" />
           </TouchableOpacity>
           
@@ -77,12 +92,12 @@ export default function SettingsScreen() {
             <View style={[styles.settingIcon, { backgroundColor: '#fef3c7' }]}>
               <Shield size={20} color="#d97706" />
             </View>
-            <Text style={styles.settingLabel}>Ganti Password</Text>
+            <Text style={styles.settingLabel}>{t('appSettings.changePassword')}</Text>
             <ChevronRight size={20} color="#94a3b8" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>Aplikasi</Text>
+        <Text style={styles.sectionTitle}>{t('appSettings.application')}</Text>
         <View style={styles.settingGroup}>
           <TouchableOpacity 
             style={styles.settingItem}
@@ -91,8 +106,24 @@ export default function SettingsScreen() {
             <View style={[styles.settingIcon, { backgroundColor: '#f3e8ff' }]}>
               <SettingsIcon size={20} color="#9333ea" />
             </View>
-            <Text style={styles.settingLabel}>Pengaturan Server</Text>
+            <Text style={styles.settingLabel}>{t('appSettings.serverSettings')}</Text>
             <ChevronRight size={20} color="#94a3b8" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={changeLanguage}
+          >
+            <View style={[styles.settingIcon, { backgroundColor: '#fdf2f8' }]}>
+              <Languages size={20} color="#db2777" />
+            </View>
+            <Text style={styles.settingLabel}>{t('appSettings.language')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: '#94a3b8', fontSize: 13, marginRight: 8 }}>
+                {language === 'id' ? 'Bahasa Indonesia' : 'English'}
+              </Text>
+              <ChevronRight size={20} color="#94a3b8" />
+            </View>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -102,14 +133,14 @@ export default function SettingsScreen() {
             <View style={[styles.settingIcon, { backgroundColor: '#dcfce7' }]}>
               <Info size={20} color="#16a34a" />
             </View>
-            <Text style={styles.settingLabel}>Tentang Aplikasi</Text>
+            <Text style={styles.settingLabel}>{t('appSettings.aboutApp')}</Text>
             <ChevronRight size={20} color="#94a3b8" />
           </TouchableOpacity>
         </View>
 
         {(user?.role === 'superadmin' || user?.role === 'admin') && (
           <>
-            <Text style={styles.sectionTitle}>Sistem & Infrastruktur</Text>
+            <Text style={styles.sectionTitle}>{t('appSettings.systemInfra')}</Text>
             <View style={styles.settingGroup}>
               {user?.role === 'superadmin' && (
                 <TouchableOpacity 
@@ -119,7 +150,7 @@ export default function SettingsScreen() {
                   <View style={[styles.settingIcon, { backgroundColor: '#e0f2fe' }]}>
                     <Cog size={20} color="#0284c7" />
                   </View>
-                  <Text style={styles.settingLabel}>Pengaturan Sistem</Text>
+                  <Text style={styles.settingLabel}>{t('appSettings.systemSettings')}</Text>
                   <ChevronRight size={20} color="#94a3b8" />
                 </TouchableOpacity>
               )}
@@ -131,7 +162,7 @@ export default function SettingsScreen() {
                 <View style={[styles.settingIcon, { backgroundColor: '#f3e8ff' }]}>
                   <Server size={20} color="#9333ea" />
                 </View>
-                <Text style={styles.settingLabel}>NAS Management (Radius)</Text>
+                <Text style={styles.settingLabel}>{t('appSettings.nasManagement')}</Text>
                 <ChevronRight size={20} color="#94a3b8" />
               </TouchableOpacity>
 
@@ -142,7 +173,7 @@ export default function SettingsScreen() {
                 <View style={[styles.settingIcon, { backgroundColor: '#fce7f3' }]}>
                   <CreditCard size={20} color="#db2777" />
                 </View>
-                <Text style={styles.settingLabel}>Payment Gateway</Text>
+                <Text style={styles.settingLabel}>{t('appSettings.paymentGateway')}</Text>
                 <ChevronRight size={20} color="#94a3b8" />
               </TouchableOpacity>
 
@@ -155,7 +186,7 @@ export default function SettingsScreen() {
                   <View style={[styles.settingIcon, { backgroundColor: '#ecfdf5' }]}>
                     {backingUp ? <ActivityIndicator size="small" color="#059669" /> : <Database size={20} color="#059669" />}
                   </View>
-                  <Text style={styles.settingLabel}>Database Backup</Text>
+                  <Text style={styles.settingLabel}>{t('appSettings.backupTitle')}</Text>
                   <ChevronRight size={20} color="#94a3b8" />
                 </TouchableOpacity>
               )}
@@ -166,10 +197,10 @@ export default function SettingsScreen() {
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <LogOut size={20} color="#ef4444" />
-          <Text style={styles.logoutText}>Keluar dari Akun</Text>
+          <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.versionText}>Versi 1.0.0</Text>
+        <Text style={styles.versionText}>{t('appSettings.version')} 1.0.6 (Build 7)</Text>
       </ScrollView>
     </SafeAreaView>
   );

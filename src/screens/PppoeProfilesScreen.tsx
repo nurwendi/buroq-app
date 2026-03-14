@@ -31,10 +31,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PppoeProfilesScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const { t } = useLanguage();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [pools, setPools] = useState<any[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<any[]>([]);
@@ -84,7 +86,7 @@ export default function PppoeProfilesScreen() {
       setPools(poolsRes.data || []);
     } catch (e) {
       console.error('Failed to fetch PPPoE profiles', e);
-      Alert.alert('Error', 'Gagal mengambil data profile.');
+      Alert.alert(t('common.error'), t('pppoe.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ export default function PppoeProfilesScreen() {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      Alert.alert('Error', 'Nama profile wajib diisi');
+      Alert.alert(t('common.error'), t('pppoe.nameRequired'));
       return;
     }
 
@@ -162,15 +164,15 @@ export default function PppoeProfilesScreen() {
       if (editingProfile) {
         body.id = editingProfile['.id'];
         await apiClient.patch('/api/pppoe/profiles', body);
-        Alert.alert('Success', 'Profile berhasil diperbarui');
+        Alert.alert(t('common.success'), t('pppoe.profileUpdateSuccess'));
       } else {
         await apiClient.post('/api/pppoe/profiles', body);
-        Alert.alert('Success', 'Profile berhasil ditambahkan');
+        Alert.alert(t('common.success'), t('pppoe.profileAddSuccess'));
       }
       setModalVisible(false);
       fetchData();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.error || 'Gagal menyimpan profile');
+      Alert.alert(t('common.error'), e.response?.data?.error || t('pppoe.profileSaveError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -178,12 +180,12 @@ export default function PppoeProfilesScreen() {
 
   const handleDelete = (profile: any) => {
     Alert.alert(
-      'Konfirmasi Hapus',
-      `Hapus profile ${profile.name}?`,
+      t('pppoe.deleteConfirmTitle'),
+      t('pppoe.deleteConfirmMsg').replace('{name}', profile.name),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Hapus', 
+          text: t('common.delete'), 
           style: 'destructive',
           onPress: async () => {
             try {
@@ -195,7 +197,7 @@ export default function PppoeProfilesScreen() {
               });
               fetchData();
             } catch (e) {
-              Alert.alert('Error', 'Gagal menghapus profile');
+              Alert.alert(t('common.error'), t('pppoe.deleteError'));
             }
           }
         }
@@ -257,7 +259,7 @@ export default function PppoeProfilesScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.title}>PPPoE Profiles</Text>
+        <Text style={styles.title}>{t('pppoe.title')}</Text>
         <TouchableOpacity onPress={() => handleOpenModal()} style={styles.addButton}>
           <Plus size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -268,7 +270,7 @@ export default function PppoeProfilesScreen() {
           <Search size={20} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari profile..."
+            placeholder={t('pppoe.searchPlaceholder')}
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholderTextColor="#94a3b8"
@@ -290,7 +292,7 @@ export default function PppoeProfilesScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Gauge size={64} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Tidak ada profile ditemukan</Text>
+              <Text style={styles.emptyText}>{t('pppoe.noProfiles')}</Text>
             </View>
           }
         />
@@ -302,7 +304,7 @@ export default function PppoeProfilesScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingProfile ? 'Edit Profile' : 'Tambah Profile'}
+                {editingProfile ? t('pppoe.editProfileModal') || 'Edit Profile' : t('pppoe.addProfileModal') || 'Tambah Profile'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <CloseIcon size={24} color="#64748b" />
@@ -310,7 +312,7 @@ export default function PppoeProfilesScreen() {
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Nama Profile</Text>
+              <Text style={styles.label}>{t('pppoe.name')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.name}
@@ -320,7 +322,7 @@ export default function PppoeProfilesScreen() {
 
               <View style={styles.gridRow}>
                 <View style={styles.gridCol}>
-                  <Text style={styles.label}>Local Address (Gateway)</Text>
+                  <Text style={styles.label}>{t('pppoe.localAddress')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.localAddress}
@@ -329,7 +331,7 @@ export default function PppoeProfilesScreen() {
                   />
                 </View>
                 <View style={styles.gridCol}>
-                  <Text style={styles.label}>Remote Address (Client)</Text>
+                  <Text style={styles.label}>{t('pppoe.remoteAddress')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.remoteAddress}
@@ -341,7 +343,7 @@ export default function PppoeProfilesScreen() {
 
               <View style={styles.gridRow}>
                 <View style={styles.gridCol}>
-                  <Text style={styles.label}>Download (Kbps)</Text>
+                  <Text style={styles.label}>{t('pppoe.download')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.speedDown}
@@ -350,7 +352,7 @@ export default function PppoeProfilesScreen() {
                   />
                 </View>
                 <View style={styles.gridCol}>
-                  <Text style={styles.label}>Upload (Kbps)</Text>
+                  <Text style={styles.label}>{t('pppoe.upload')}</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={formData.speedUp}
@@ -360,7 +362,7 @@ export default function PppoeProfilesScreen() {
                 </View>
               </View>
 
-              <Text style={styles.label}>Harga (IDR)</Text>
+              <Text style={styles.label}>{t('pppoe.price')}</Text>
               <TextInput
                 style={styles.modalInput}
                 value={formData.price}
@@ -382,7 +384,7 @@ export default function PppoeProfilesScreen() {
                 ) : (
                   <>
                     <Save size={20} color="#fff" />
-                    <Text style={styles.saveButtonText}>Simpan Profile</Text>
+                    <Text style={styles.saveButtonText}>{t('pppoe.saveBtn')}</Text>
                   </>
                 )}
               </TouchableOpacity>
