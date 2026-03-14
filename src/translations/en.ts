@@ -42,6 +42,12 @@ export const en = {
         logout: 'Logout',
         settings: 'Settings',
         ok: 'OK',
+        deleteError: 'Failed to Delete',
+        fetchError: 'Failed to Fetch Data',
+        info: 'Info',
+        locale: 'en-US',
+        saveError: 'Failed to Save',
+        system: 'System',
     },
     sidebar: {
         dashboard: 'Dashboard',
@@ -54,8 +60,10 @@ export const en = {
         allUsers: 'All Users',
         nas: 'Router (NAS)',
         reports: 'Reports',
-        billing: {
-            title: 'Billing & Payments',
+        pay: 'Pay',
+    },
+    billing: {
+        title: 'Billing & Payments',
             payBill: 'Pay Bill',
             payBillDesc: 'Cash payment reception form',
             history: 'Transaction History',
@@ -105,8 +113,6 @@ export const en = {
             november: 'November',
             december: 'December',
         },
-        pay: 'Pay',
-    },
     appSettings: {
         language: 'Language',
         selectLanguage: 'Select Language',
@@ -138,6 +144,7 @@ export const en = {
         systemUsers: 'Staff/Mitra',
         totalRouter: 'Total Router',
         mainMenu: 'Main Menu',
+        wifiUpdateError: 'Failed to Update WiFi',
         serverStatus: 'Main Server Status',
         ownerStats: 'Owner Stats (Partner)',
         seeAll: 'See All',
@@ -305,6 +312,11 @@ export const en = {
     },
     genieacs: {
         title: 'GenieACS Devices',
+        acsMissed: 'Disconnected',
+        acsOk: 'Connected',
+        router: 'Router',
+        ssid: 'SSID',
+        ssidPlaceholder: 'WiFi Name',
         rebootConfirm: 'Are you sure you want to reboot device {sn}?',
         rebootSuccess: 'Reboot task queued successfully.',
         rebootError: 'Failed to queue reboot.',
@@ -417,6 +429,9 @@ export const en = {
     },
     systemSettings: {
         title: 'System Settings',
+        addressPlaceholder: 'Address',
+        companyNamePlaceholder: 'Company Name',
+        invoiceFooterPlaceholder: 'Invoice Footer Note',
         companyInfo: 'Company Information',
         companyName: 'Company Name',
         companyContact: 'Contact Email',
@@ -489,6 +504,8 @@ export const en = {
     },
     pppoe: {
         title: 'PPPoE Profiles',
+        addProfileModal: 'Add Profile',
+        editProfileModal: 'Edit Profile',
         searchPlaceholder: 'Search profiles...',
         fetchError: 'Failed to fetch profiles.',
         nameRequired: 'Profile name is required',

@@ -14,10 +14,43 @@ const extractUsedKeys = () => {
 
 const extractDefinedKeys = (filePath) => {
     const content = fs.readFileSync(filePath, 'utf-8');
-    // a very basic regex to find keys like `  someKey: 'Value',`
-    // but the files are structured with nested objects.
-    // It's easier to just use the typescript compiler.
-    return content;
+    // Basic regex to find keys like `  someKey: '...`
+    // Since it's nested (e.g., users: { addUserModal: '...' }), we'll just extract all simple word keys
+    // A better approach with regex for the specific format:
+    // We can just look for word characters before a colon
+    const keys = new Set();
+    const lines = content.split('\n');
+    let currentObject = '';
+    
+    for (let line of lines) {
+        if (line.includes(': {')) {
+            currentObject = line.trim().split(':')[0] + '.';
+        } else if (line.includes('},')) {
+            currentObject = '';
+        } else if (currentObject && line.includes(':')) {
+            let key = line.trim().split(':')[0];
+            // Remove quotes if present
+            key = key.replace(/['"]/g, '');
+            if (key && !key.includes('//')) {
+                keys.add(currentObject + key);
+            }
+        }
+    }
+    return keys;
 }
 
-// Let's use tsx instead
+const main = () => {
+    const usedKeys = extractUsedKeys();
+    const enKeys = extractDefinedKeys('./src/translations/en.ts');
+    const idKeys = extractDefinedKeys('./src/translations/id.ts');
+
+    console.log("--- Missing in EN ---");
+    const missingEn = usedKeys.filter(k => !enKeys.has(k) && k.includes('.'));
+    console.log(missingEn.length > 0 ? missingEn.join('\n') : 'None');
+
+    console.log("\n--- Missing in ID ---");
+    const missingId = usedKeys.filter(k => !idKeys.has(k) && k.includes('.'));
+    console.log(missingId.length > 0 ? missingId.join('\n') : 'None');
+};
+
+main();
