@@ -37,11 +37,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Handle auto-logout if needed
-      await AsyncStorage.removeItem(CONFIG.TOKEN_KEY);
-      await AsyncStorage.removeItem(CONFIG.USER_KEY);
-    }
+    // If we get a 401, it means the token is invalid or expired.
+    // We let the caller (AuthContext or components) handle this.
+    // Silent storage clearing here often causes desync issues.
     return Promise.reject(error);
   }
 );

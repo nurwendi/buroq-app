@@ -22,13 +22,17 @@ import {
   Info
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { resolveUrl } from '../utils/url';
+import GradientHeader from '../components/GradientHeader';
+import { StatusBar } from 'react-native';
 
 export default function NasManagementScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [nasList, setNasList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -113,16 +117,20 @@ export default function NasManagementScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('nas.title')}</Text>
-        <TouchableOpacity onPress={() => { resetForm(); setModalVisible(true); }} style={styles.addButton}>
-          <Plus size={24} color="#2563eb" />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('nas.title')}
+        subtitle={nasList.length > 0 ? `${nasList.length} ${t('nas.countSuffix') || 'Routers'}` : t('nas.subtitle')}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity onPress={() => { resetForm(); setModalVisible(true); }} style={styles.iconButton}>
+            <Plus size={24} color="#2563eb" />
+          </TouchableOpacity>
+        }
+      />
 
       {loading ? (
         <View style={styles.centered}>
@@ -218,35 +226,24 @@ export default function NasManagementScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 60,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-  addButton: {
-    padding: 8,
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
   },
   centered: {
     flex: 1,
@@ -255,144 +252,185 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 20,
+    paddingBottom: 40,
   },
   nasCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 16,
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   nasHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   nasIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
   },
   nasInfo: {
     flex: 1,
   },
   nasName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   nasShortname: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#94a3b8',
+    fontWeight: '700',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   nasActions: {
     flexDirection: 'row',
   },
   actionButton: {
-    padding: 8,
-    marginLeft: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   nasFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#f8fafc',
   },
   secretBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   secretText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#2563eb',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
   },
   nasDescription: {
     flex: 1,
     fontSize: 12,
     color: '#94a3b8',
+    fontWeight: '500',
   },
   emptyContainer: {
-    paddingTop: 80,
+    paddingTop: 100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 14,
+    marginTop: 20,
+    fontSize: 15,
     color: '#94a3b8',
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     padding: 24,
-    maxHeight: '85%',
+    paddingTop: 32,
+    maxHeight: '90%',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 20,
+      },
+    }),
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 20,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginBottom: 24,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   formContent: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '800',
+    color: '#475569',
     marginBottom: 8,
     marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
     backgroundColor: '#f8fafc',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 15,
-    color: '#1e293b',
+    color: '#0f172a',
+    fontWeight: '600',
   },
   textArea: {
-    height: 80,
+    height: 100,
     textAlignVertical: 'top',
   },
   modalActions: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: Platform.OS === 'ios' ? 20 : 10,
   },
   modalButton: {
     flex: 1,
-    height: 50,
-    borderRadius: 12,
+    height: 56,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -400,14 +438,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
   },
   cancelButtonText: {
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#64748b',
+    fontSize: 16,
   },
   saveButton: {
     backgroundColor: '#2563eb',
   },
   saveButtonText: {
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#ffffff',
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
 });

@@ -32,7 +32,9 @@ import {
   MessageSquare,
   Plus,
   HelpCircle,
-  Clock
+  Clock,
+  LayoutDashboard,
+  PlusCircle
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -138,14 +140,6 @@ export default function CustomerDashboardView() {
     }
   };
 
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   if (!stats) {
     return (
       <View style={styles.loadingContainer}>
@@ -156,28 +150,28 @@ export default function CustomerDashboardView() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       <GradientHeader 
         title={stats?.name || user?.fullName || user?.username} 
         role={t('sidebar.users').toUpperCase()}
-        backgroundImage={resolveUrl(dashboardBgUrl)}
         userAvatar={resolveUrl(user?.avatar)}
       />
-
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        style={styles.fullScrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
         {/* Status Connection Card */}
         <View style={[styles.statusCard, stats?.session?.active ? styles.statusActive : styles.statusInactive]}>
            <View style={styles.statusInfo}>
-              <Activity size={20} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
+              <Activity size={18} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
               <Text style={[styles.statusLabel, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
-                {t('common.status')}: {stats?.session?.active ? t('users.online') : t('users.offline')}
+                {stats?.session?.active ? t('users.online').toUpperCase() : t('users.offline').toUpperCase()}
               </Text>
            </View>
            {stats?.session?.active && (
-             <Text style={styles.uptime}>{t('dashboard.uptime')}: {stats?.session?.uptime || '-'}</Text>
+             <Text style={styles.uptime}>{stats?.session?.uptime || '-'}</Text>
            )}
         </View>
 
@@ -196,17 +190,8 @@ export default function CustomerDashboardView() {
             title={t('dashboard.unpaidBills')} 
             value={stats?.unpaidBillsCount || 0} 
             icon={Bell} 
-            color="#10b981" 
+            color="#ef4444" 
             subtitle={t('dashboard.unpaidBillsSubtitle')}
-          />
-          </View>
-          <View style={{ width: '48%' }}>
-          <StatCard 
-            title={t('dashboard.subscriptionLength')} 
-            value={`${stats?.monthsActive || 0} ${t('dashboard.months')}`} 
-            icon={Clock} 
-            color="#f59e0b" 
-            subtitle={t('dashboard.subscriptionSubtitle')}
           />
           </View>
         </View>
@@ -217,14 +202,18 @@ export default function CustomerDashboardView() {
            onPress={() => navigation.navigate('PaymentHistory', { username: user?.username, name: stats?.name })}
         >
           <View style={styles.billingHeader}>
-             <CreditCard size={24} color={stats?.billing?.status === 'unpaid' ? '#ef4444' : '#10b981'} />
-             <Text style={styles.billingTitle}>{t('dashboard.billingStatus')}</Text>
+             <View style={styles.billingTitleRow}>
+                <CreditCard size={22} color={stats?.billing?.status === 'unpaid' ? '#ef4444' : '#10b981'} />
+                <Text style={styles.billingTitle}>{t('dashboard.billingStatus')}</Text>
+             </View>
+             <View style={[styles.billingStatusBadge, { backgroundColor: stats?.billing?.status === 'unpaid' ? '#fef2f2' : '#f0fdf4' }]}>
+                <Text style={[styles.billingStatusText, { color: stats?.billing?.status === 'unpaid' ? '#ef4444' : '#10b981' }]}>
+                   {stats?.billing?.status === 'unpaid' ? t('dashboard.unpaid') : t('dashboard.paid')}
+                </Text>
+             </View>
           </View>
           <View style={styles.billingBody}>
              <View>
-                <Text style={styles.billingStatus}>
-                  {stats?.billing?.status === 'unpaid' ? t('dashboard.unpaid') : t('dashboard.paid')}
-                </Text>
                 <Text style={styles.billingInvoice}>Invoice: {stats?.billing?.invoice || '-'}</Text>
              </View>
              <View style={styles.billingRight}>
@@ -238,39 +227,67 @@ export default function CustomerDashboardView() {
 
         {/* WiFi Management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('dashboard.routerSettings')}</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <Wifi size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.routerSettings')}</Text>
+            </View>
+          </View>
           <View style={styles.wifiCard}>
-            <View style={styles.wifiHeader}>
-              <View style={styles.wifiIcon}>
-                <Wifi size={24} color="#2563eb" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.ssidLabel}>{t('dashboard.wifiName')}</Text>
-                <Text style={styles.ssidValue}>{ssid || t('common.loading')}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => setWifiModalVisible(true)}
-              >
-                <Settings size={20} color="#64748b" />
-              </TouchableOpacity>
+             <View style={styles.wifiHeader}>
+                <View style={styles.wifiIconContainer}>
+                   <Wifi size={24} color="#2563eb" />
+                </View>
+                <View style={{ flex: 1 }}>
+                   <Text style={styles.ssidLabel}>{t('dashboard.wifiName')}</Text>
+                   <Text style={styles.ssidValue}>{ssid || t('common.loading')}</Text>
+                </View>
+                <TouchableOpacity
+                   style={styles.editButton}
+                   onPress={() => setWifiModalVisible(true)}
+                >
+                   <Settings size={20} color="#64748b" />
+                </TouchableOpacity>
+             </View>
+             <View style={styles.wifiFooter}>
+                <ShieldCheck size={16} color="#10b981" />
+                <Text style={styles.securityText}>{t('dashboard.securityWpa2')}</Text>
+             </View>
+          </View>
+        </View>
+
+        {/* Main Menu */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <LayoutDashboard size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.mainMenu')}</Text>
             </View>
-            <View style={styles.wifiFooter}>
-              <ShieldCheck size={16} color="#10b981" />
-              <Text style={styles.securityText}>{t('dashboard.securityWpa2')}</Text>
-            </View>
+          </View>
+          <View style={styles.menuGrid}>
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
+                   <Settings size={22} color="#475569" />
+                </View>
+                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
+             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('dashboard.supportCenter')}</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <HelpCircle size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.supportCenter')}</Text>
+            </View>
+          </View>
           <View style={styles.supportGrid}>
              <TouchableOpacity
                 style={styles.supportCard}
-                onPress={() => Linking.openURL('tel:08123456789')} // Needs real CS number
+                onPress={() => Linking.openURL('tel:08123456789')}
              >
-                <View style={[styles.supportIcon, { backgroundColor: '#fef3c7' }]}>
-                   <Phone size={24} color="#d97706" />
+                <View style={[styles.supportIcon, { backgroundColor: '#fdf4ff' }]}>
+                   <Phone size={22} color="#d946ef" />
                 </View>
                 <Text style={styles.supportLabel}>{t('dashboard.csPhone')}</Text>
              </TouchableOpacity>
@@ -279,15 +296,15 @@ export default function CustomerDashboardView() {
                 style={styles.supportCard}
                 onPress={() => Linking.openURL('https://wa.me/628123456789')}
              >
-                <View style={[styles.supportIcon, { backgroundColor: '#dcfce7' }]}>
-                   <MessageSquare size={24} color="#16a34a" />
+                <View style={[styles.supportIcon, { backgroundColor: '#ecfdf5' }]}>
+                   <MessageSquare size={22} color="#10b981" />
                 </View>
                 <Text style={styles.supportLabel}>{t('dashboard.whatsapp')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.supportCard}>
-                <View style={[styles.supportIcon, { backgroundColor: '#e0e7ff' }]}>
-                   <HelpCircle size={24} color="#4338ca" />
+                <View style={[styles.supportIcon, { backgroundColor: '#f1f5f9' }]}>
+                   <HelpCircle size={22} color="#475569" />
                 </View>
                 <Text style={styles.supportLabel}>{t('dashboard.guide')}</Text>
              </TouchableOpacity>
@@ -301,7 +318,7 @@ export default function CustomerDashboardView() {
             </Text>
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
 
       {/* WiFi Management Modal */}
       <Modal
@@ -371,49 +388,55 @@ export default function CustomerDashboardView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   scrollContent: {
-    padding: 24,
+    padding: 20,
     paddingTop: 10,
-    backgroundColor: '#f8fafc',
-    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  fullScrollView: {
+    width: '100%',
+    flex: 1,
   },
   statusCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 100,
     marginBottom: 24,
     borderWidth: 1,
   },
   statusActive: {
-    backgroundColor: '#ecfdf5',
-    borderColor: '#10b981',
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
   },
   statusInactive: {
     backgroundColor: '#fef2f2',
-    borderColor: '#ef4444',
+    borderColor: '#fecaca',
   },
   statusInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   statusLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
   uptime: {
     fontSize: 12,
-    color: '#065f46',
+    color: '#10b981',
+    fontWeight: '700',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -422,45 +445,98 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 24,
   },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  titleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  titleCardText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
   billingCard: {
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 24,
+    padding: 24,
+    borderRadius: 32,
+    marginBottom: 32,
     borderWidth: 1,
+    backgroundColor: '#ffffff',
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   billingPaid: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#bbf7d0',
+    borderColor: '#f1f5f9',
   },
   billingUnpaid: {
-    backgroundColor: '#fff1f2',
     borderColor: '#fecaca',
   },
   billingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  billingTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
-    marginBottom: 16,
   },
   billingTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.5,
+  },
+  billingStatusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  billingStatusText: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   billingBody: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 20,
   },
   billingStatus: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     marginBottom: 4,
   },
   billingInvoice: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#94a3b8',
-    marginTop: 2,
+    fontWeight: '600',
   },
   billingRight: {
     flexDirection: 'row',
@@ -469,110 +545,158 @@ const styles = StyleSheet.create({
   },
   billingAmount: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#ef4444',
   },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 16,
-  },
   wifiCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: '#ffffff',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   wifiHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: 16,
   },
-  wifiIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#f0f7ff',
+  wifiIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   ssidLabel: {
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 2,
+    fontSize: 13,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginBottom: 4,
   },
   ssidValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   editButton: {
-    padding: 8,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   wifiFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 20,
-    paddingTop: 15,
+    gap: 8,
+    marginTop: 24,
+    paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
   securityText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#10b981',
-    fontWeight: '500',
+    fontWeight: '700',
   },
-  infoBox: {
-    padding: 16,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    marginBottom: 40,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  supportGrid: {
+  menuGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 12,
   },
-  supportCard: {
-    backgroundColor: '#fff',
-    width: (width - 48 - 24) / 3,
-    padding: 16,
-    borderRadius: 20,
+  menuItem: {
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#ffffff',
+    paddingVertical: 24,
+    borderRadius: 28,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  supportIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  menuIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
   },
+  menuLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1e293b',
+    textAlign: 'center',
+  },
+  supportGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  supportCard: {
+    backgroundColor: '#ffffff',
+    flex: 1,
+    paddingVertical: 24,
+    borderRadius: 28,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  supportIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
   supportLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#475569',
+    fontWeight: '800',
+    color: '#1e293b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
@@ -581,77 +705,112 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     padding: 24,
-    minHeight: 450,
+    paddingBottom: 40,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.5,
   },
   cancelText: {
     color: '#94a3b8',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '700',
   },
   modalBody: {
-    gap: 20,
+    gap: 24,
   },
   modalInputGroup: {
-    gap: 8,
+    gap: 10,
   },
   modalLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#475569',
+    fontWeight: '800',
+    color: '#1e293b',
+    marginLeft: 4,
   },
   modalInput: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
-    height: 55,
-    paddingHorizontal: 16,
+    borderColor: '#f1f5f9',
+    borderRadius: 18,
+    height: 60,
+    paddingHorizontal: 20,
     fontSize: 16,
-    color: '#1e293b',
+    fontWeight: '600',
+    color: '#0f172a',
   },
   passwordHint: {
     fontSize: 12,
     color: '#94a3b8',
     marginTop: 4,
+    marginLeft: 4,
+    fontWeight: '600',
   },
   warningBox: {
     flexDirection: 'row',
     backgroundColor: '#fff7ed',
-    padding: 12,
-    borderRadius: 10,
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#ffedd5',
+    gap: 12,
   },
   warningText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 13,
     color: '#c2410c',
-    lineHeight: 18,
+    lineHeight: 20,
+    fontWeight: '600',
   },
   saveButton: {
     backgroundColor: '#2563eb',
-    height: 55,
-    borderRadius: 15,
+    height: 64,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2563eb',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  infoBox: {
+    padding: 20,
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#94a3b8',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '600',
   },
 });

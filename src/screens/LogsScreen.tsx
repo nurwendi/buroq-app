@@ -12,11 +12,16 @@ import {
 import { ClipboardList, Wifi, WifiOff, Clock, Search, Filter } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
+import { TextInput, StatusBar, Platform } from 'react-native';
 
 export default function LogsScreen() {
   const navigation = useNavigation();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,14 +87,29 @@ export default function LogsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t('logs.title')}</Text>
-          <Text style={styles.headerSub}>{t('logs.subtitle')}</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('logs.title')}
+        subtitle={t('logs.subtitle')}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+      />
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Search size={20} color="#94a3b8" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('systemUsers.searchPlaceholder')}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor="#94a3b8"
+          />
         </View>
         <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
-          <ClipboardList size={20} color="#2563eb" />
+          <ClipboardList size={22} color="#2563eb" />
         </TouchableOpacity>
       </View>
 
@@ -115,39 +135,47 @@ export default function LogsScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    height: 52,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 15,
     color: '#0f172a',
-  },
-  headerSub: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 2,
+    fontWeight: '600',
   },
   refreshBtn: {
-    padding: 10,
+    width: 52,
+    height: 52,
+    borderRadius: 18,
     backgroundColor: '#eff6ff',
-    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
   },
   center: {
     flex: 1,
@@ -161,21 +189,27 @@ const styles = StyleSheet.create({
   logItem: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1.2,
     borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   statusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -187,12 +221,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   username: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1e293b',
+    fontWeight: '800',
+    color: '#0f172a',
   },
   timeWrapper: {
     flexDirection: 'row',
@@ -200,36 +234,43 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timeText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#94a3b8',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   message: {
-    fontSize: 14,
-    color: '#475569',
-    marginBottom: 8,
+    fontSize: 13,
+    color: '#64748b',
+    marginBottom: 10,
+    lineHeight: 18,
+    fontWeight: '500',
   },
   dateText: {
     fontSize: 10,
     color: '#94a3b8',
-    fontStyle: 'italic',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 100,
+    marginTop: 120,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#1e293b',
-    marginTop: 16,
+    marginTop: 20,
+    letterSpacing: -0.5,
   },
   emptyText: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#94a3b8',
     textAlign: 'center',
     paddingHorizontal: 40,
-    marginTop: 8,
+    marginTop: 10,
+    lineHeight: 20,
+    fontWeight: '500',
   }
 });

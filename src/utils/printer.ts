@@ -36,8 +36,7 @@ export const printReceipt = async (data: ReceiptData) => {
     throw new Error('Printer belum disetting.');
   }
 
-  const payload = `
-[C]<b>BUROQ BILLING</b>
+  const payload = `[C]<b>BUROQ BILLING</b>
 [C]--------------------------------
 [C]<b>STRUK PEMBAYARAN</b>
 [C]--------------------------------
@@ -49,7 +48,7 @@ export const printReceipt = async (data: ReceiptData) => {
 [L]<b>TOTAL       : Rp ${data.amount.toLocaleString()}</b>
 [C]--------------------------------
 [C]Terima kasih telah berlangganan
-[C]Buroq Manager - Layanan Cepat & Handal
+[C]Buroq Sarana Informatika
 [C]
 [C]
 `;
@@ -121,6 +120,45 @@ export const printReport = async (monthName: string, year: number, data: any) =>
     });
   } catch (error) {
     console.error('PrintReport failed', error);
+    throw error;
+  }
+};
+
+export const printTest = async () => {
+  const mac = await getPrinterMac();
+  if (!mac) {
+    throw new Error('Printer belum disetting.');
+  }
+
+  const payload = `[C]<b>PRINTER TEST</b>
+[C]--------------------------------
+[C]Koneksi Berhasil!
+[C]Buroq Manager Mobile
+[C]--------------------------------
+[L]Tanggal : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+[L]Jam     : ${new Date().toLocaleTimeString('id-ID')}
+[C]--------------------------------
+[C]
+[C]
+`;
+
+  try {
+    await BLEPrinter.init();
+    await BLEPrinter.connectPrinter(mac);
+    
+    return new Promise((resolve, reject) => {
+      BLEPrinter.printBill(
+        payload,
+        { beep: true, tailingLine: true },
+        () => resolve(true),
+        (err: Error) => {
+          console.error('PrintTest error', err);
+          reject(err);
+        }
+      );
+    });
+  } catch (error) {
+    console.error('PrintTest failed', error);
     throw error;
   }
 };

@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { User, ChevronRight, Circle } from 'lucide-react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, Platform } from 'react-native';
+import { User, ChevronRight } from 'lucide-react-native';
+import { resolveUrl } from '../utils/url';
 
 interface CustomerItemProps {
   customer: any;
@@ -8,29 +9,41 @@ interface CustomerItemProps {
 }
 
 export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
-  // Simple heuristic for online status (e.g., if session active)
-  // In a real app, this might come from a separate 'online' field or similar
   const isOnline = customer.isOnline; 
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.left}>
-        <View style={styles.avatar}>
-          <User size={20} color="#64748b" />
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            {customer.avatar ? (
+              <Image 
+                source={{ uri: resolveUrl(customer.avatar) }} 
+                style={styles.avatarImage} 
+              />
+            ) : (
+              <User size={24} color="#64748b" />
+            )}
+          </View>
           <View style={[styles.statusIndicator, { backgroundColor: isOnline ? '#10b981' : '#cbd5e1' }]} />
         </View>
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
-          <Text style={styles.id}>{customer.customerId || customer.username}</Text>
+          <View style={styles.idContainer}>
+             <Text style={styles.idLabel}>ID: </Text>
+             <Text style={styles.id}>{customer.customerId || customer.username}</Text>
+          </View>
         </View>
       </View>
       <View style={styles.right}>
-        <View style={styles.addressContainer}>
-           <Text style={styles.address} numberOfLines={1}>
-             {isOnline ? (customer.ipAddress || 'Online') : (customer.address || 'Offline')}
+        <View style={styles.statusBadgeContainer}>
+           <Text style={[styles.statusText, { color: isOnline ? '#059669' : '#64748b' }]}>
+             {isOnline ? (customer.ipAddress || 'Online') : 'Offline'}
            </Text>
         </View>
-        <ChevronRight size={20} color="#cbd5e1" />
+        <View style={styles.arrowIcon}>
+          <ChevronRight size={18} color="#94a3b8" />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -41,44 +54,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: 20,
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    marginHorizontal: 24,
-    marginBottom: 12,
+    borderRadius: 32,
+    marginHorizontal: 20,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   left: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 16,
+  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
-    position: 'relative',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   statusIndicator: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
+    bottom: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 3,
     borderColor: '#ffffff',
   },
   info: {
@@ -86,28 +112,46 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#0f172a',
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  idContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  idLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
   },
   id: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#64748b',
-    marginTop: 4,
-    fontWeight: '500',
+    fontWeight: '800',
   },
   right: {
     flexDirection: 'row',
     alignItems: 'center',
-    maxWidth: '35%',
+    gap: 12,
   },
-  addressContainer: {
-    marginRight: 10,
-    flex: 1,
+  statusBadgeContainer: {
+    alignItems: 'flex-end',
   },
-  address: {
+  statusText: {
     fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'right',
-    fontWeight: '500',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  arrowIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });

@@ -3,17 +3,19 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  TextInput
+  TextInput,
+  Platform,
+  StatusBar
 } from 'react-native';
-import { Search, CreditCard, ChevronRight, AlertCircle, ArrowLeft, Clock } from 'lucide-react-native';
+import { Search, CreditCard, ChevronRight, AlertCircle, Clock, Banknote } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import GradientHeader from '../components/GradientHeader';
 
 export default function UnpaidBillsScreen() {
   const navigation = useNavigation<any>();
@@ -70,29 +72,37 @@ export default function UnpaidBillsScreen() {
       })}
     >
       <View style={styles.billIcon}>
-        <Clock size={24} color="#f59e0b" />
+        <Banknote size={24} color="#2563eb" />
       </View>
       <View style={styles.billInfo}>
         <View style={styles.billHeader}>
           <Text style={styles.username}>{item.username}</Text>
           <Text style={styles.amount}>Rp {item.amount.toLocaleString()}</Text>
         </View>
-        <Text style={styles.invoice}>{item.invoiceNumber}</Text>
-        <Text style={styles.period}>{t('users.period')}: {getMonthName(item.month)} {item.year}</Text>
+        <View style={styles.invoiceRow}>
+          <Text style={styles.invoiceLabel}>{t('billing.invoice')}: </Text>
+          <Text style={styles.invoice}>{item.invoiceNumber}</Text>
+        </View>
+        <View style={styles.periodRow}>
+          <View style={styles.periodBadge}>
+            <Clock size={12} color="#64748b" />
+            <Text style={styles.periodText}>{getMonthName(item.month)} {item.year}</Text>
+          </View>
+        </View>
       </View>
-      <ChevronRight size={20} color="#cbd5e1" />
+      <View style={styles.arrowContainer}>
+        <ChevronRight size={18} color="#94a3b8" />
+      </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('billing.unpaidBills')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <GradientHeader 
+        title={t('billing.unpaidBills')} 
+        onBackPress={() => navigation.goBack()}
+      />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
@@ -100,6 +110,7 @@ export default function UnpaidBillsScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder={t('billing.searchInvoicePlaceholder')}
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -116,64 +127,50 @@ export default function UnpaidBillsScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} />
           }
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <AlertCircle size={48} color="#94a3b8" />
+              <View style={styles.emptyIconContainer}>
+                <CreditCard size={48} color="#2563eb" />
+              </View>
               <Text style={styles.emptyTitle}>{t('billing.noBills')}</Text>
               <Text style={styles.emptyDesc}>{t('billing.noBillsDesc')}</Text>
             </View>
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backBtn: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
   },
   searchContainer: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1.5,
+    borderColor: '#f1f5f9',
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 15,
-    color: '#1e293b',
+    fontWeight: '700',
+    color: '#0f172a',
   },
   center: {
     flex: 1,
@@ -181,33 +178,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 0,
     paddingBottom: 40,
     flexGrow: 1,
   },
   billCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 32,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   billIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#fffbeb',
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
   },
   billInfo: {
     flex: 1,
@@ -215,45 +221,93 @@ const styles = StyleSheet.create({
   billHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 4,
   },
   username: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   amount: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '900',
     color: '#ef4444',
+  },
+  invoiceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  invoiceLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   invoice: {
     fontSize: 12,
     color: '#64748b',
-    marginBottom: 2,
+    fontWeight: '800',
   },
-  period: {
-    fontSize: 12,
-    color: '#94a3b8',
+  periodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  periodBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    gap: 6,
+  },
+  periodText: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  arrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 100,
+    paddingTop: 80,
+  },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 40,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#334155',
-    marginTop: 16,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0f172a',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   emptyDesc: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#64748b',
+    fontWeight: '600',
     textAlign: 'center',
     paddingHorizontal: 40,
+    lineHeight: 22,
   },
 });

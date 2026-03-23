@@ -8,6 +8,7 @@ import {
   Platform,
   Image
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -16,6 +17,7 @@ import Animated, {
   withDelay,
   runOnJS
 } from 'react-native-reanimated';
+import * as Notifications from 'expo-notifications';
 import { Bell, Info, AlertTriangle, CheckCircle, Wifi, Megaphone, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import apiClient from '../api/client';
@@ -23,8 +25,9 @@ import apiClient from '../api/client';
 const { width } = Dimensions.get('window');
 
 export default function NativeNotificationHandler() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const [notification, setNotification] = useState<any>(null);
+  const [notification, setNotification] = useState<any | null>(null);
   const translateY = useSharedValue(-200);
   const opacity = useSharedValue(0);
 
@@ -33,7 +36,7 @@ export default function NativeNotificationHandler() {
       opacity.value = 0;
       runOnJS(setNotification)(null);
     });
-  }, []);
+  }, [translateY, opacity]);
 
   const showNotification = useCallback((data: any) => {
     setNotification(data);
@@ -41,6 +44,18 @@ export default function NativeNotificationHandler() {
     translateY.value = withSpring(insets.top + 10, { 
       damping: 15,
       stiffness: 100
+    });
+
+    // Also trigger system notification
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: data.notification?.title || 'Pesan Baru',
+        body: data.notification?.message || '',
+        data: data,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: null, // show immediately
     });
 
     // Auto hide after 5 seconds
@@ -55,7 +70,7 @@ export default function NativeNotificationHandler() {
   useEffect(() => {
     let lastId = '';
     
-    const checkNotifications = async () => {
+    const checkNotifications = async (): Promise<void> => {
       try {
         const response = await apiClient.get('/api/notifications?limit=1');
         const latest = response.data[0];
@@ -64,12 +79,15 @@ export default function NativeNotificationHandler() {
           lastId = latest.id;
           showNotification(latest);
         }
-      } catch (error) {
+      } catch (error: any) {
         // Silent fail
       }
     };
 
-    const interval = setInterval(checkNotifications, 10000); // Check every 10s
+    const interval = setInterval(() => {
+      checkNotifications();
+    }, 10000); // Check every 10s
+    
     return () => clearInterval(interval);
   }, [showNotification]);
 
@@ -97,7 +115,10 @@ export default function NativeNotificationHandler() {
       <TouchableOpacity 
         activeOpacity={0.9} 
         style={styles.content}
-        onPress={hideNotification}
+        onPress={() => {
+          hideNotification();
+          navigation.navigate('Notification');
+        }}
       >
         <View style={styles.header}>
           <View style={styles.appInfo}>

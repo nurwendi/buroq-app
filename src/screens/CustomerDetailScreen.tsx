@@ -6,12 +6,13 @@ import {
   ScrollView, 
   TouchableOpacity, 
   ActivityIndicator, 
-  SafeAreaView,
   Linking,
   Alert,
   Platform,
   Modal,
-  TextInput
+  TextInput,
+  Image,
+  RefreshControl
 } from 'react-native';
 import {
   ArrowLeft,
@@ -35,14 +36,21 @@ import {
   Save,
   X as CloseIcon,
   Router,
-  Users
+  Users,
+  Banknote,
+  Globe
 } from 'lucide-react-native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { resolveUrl } from '../utils/url';
+import GradientHeader from '../components/GradientHeader';
+import { StatusBar } from 'react-native';
 
 export default function CustomerDetailScreen({ route, navigation }: any) {
   const { customer } = route.params;
   const { t } = useLanguage();
+  const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [acsDevice, setAcsDevice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -172,6 +180,14 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     );
   };
 
+  const handleOpenRouter = () => {
+    if (stats?.session?.ipAddress) {
+      Linking.openURL(`http://${stats.session.ipAddress}`);
+    } else {
+      Alert.alert(t('common.info'), t('users.onlineOnlyRouter'));
+    }
+  };
+
   const handleSaveWifi = async () => {
     if (!wifiForm.ssid) {
       Alert.alert(t('common.error'), t('users.wifiSsidRequired'));
@@ -204,91 +220,170 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('users.profileTitle')}</Text>
-        <TouchableOpacity
-           style={styles.editButton}
-           onPress={() => navigation.navigate('CustomerForm', { 
-             customer: stats ? { ...customer, ...stats } : customer, 
-             mode: 'edit' 
-           })}
-        >
-          <Edit size={22} color="#2563eb" />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('users.profileTitle')}
+        subtitle={customer.name || customer.username}
+        role={currentUser?.role?.toUpperCase()}
+        userAvatar={resolveUrl(currentUser?.avatar)}
+        onBackPress={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('CustomerForm', { 
+              customer: stats ? { ...customer, ...stats } : customer, 
+              mode: 'edit' 
+            })}
+          >
+            <Edit size={22} color="#2563eb" />
+          </TouchableOpacity>
+        }
+      />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading || loadingAcs}
+            onRefresh={() => {
+              fetchCustomerStats();
+              fetchAcsDevice();
+            }}
+            colors={['#2563eb']}
+          />
+        }
+      >
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{(customer.name || customer.username).charAt(0).toUpperCase()}</Text>
+            {customer.avatar ? (
+              <Image 
+                source={{ uri: resolveUrl(customer.avatar) }} 
+                style={styles.avatarImage} 
+              />
+            ) : (
+              <Text style={styles.avatarText}>{(customer.name || customer.username).charAt(0).toUpperCase()}</Text>
+            )}
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
-            <Text style={styles.customerId}>{t('users.id')}: {customer.customerId || customer.username}</Text>
+            <View style={styles.idBadge}>
+              <Text style={styles.idText}>{t('users.id')}: {customer.customerId || customer.username}</Text>
+            </View>
             {customer.address && (
               <View style={styles.addressRow}>
-                <MapPin size={14} color="#64748b" />
-                <Text style={styles.address}>{customer.address}</Text>
+                <MapPin size={12} color="#94a3b8" />
+                <Text style={styles.address} numberOfLines={1}>{customer.address}</Text>
               </View>
             )}
           </View>
           <TouchableOpacity
              style={styles.payButton}
-             onPress={() => navigation.navigate('PaymentForm', { customer: stats })}
+             onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
           >
-            <CreditCard size={20} color="#fff" />
-            <Text style={styles.payButtonText}>{t('sidebar.pay')}</Text>
+            <Banknote size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity style={[styles.actionBtn, styles.callBtn]} onPress={handleCall}>
-            <Phone size={20} color="#fff" />
+            <View style={styles.actionIconCircle}>
+              <Phone size={20} color="#fff" />
+            </View>
             <Text style={styles.actionBtnText}>{t('users.call')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.waBtn]} onPress={handleWhatsApp}>
-             <MessageCircle size={20} color="#fff" />
-             <Text style={styles.actionBtnText}>{t('users.whatsapp')}</Text>
+            <View style={styles.actionIconCircle}>
+              <MessageCircle size={20} color="#fff" />
+            </View>
+            <Text style={styles.actionBtnText}>{t('users.whatsapp')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionBtn, styles.routerBtnMain]} onPress={handleOpenRouter}>
+            <View style={styles.actionIconCircle}>
+              <Globe size={20} color="#fff" />
+            </View>
+            <Text style={styles.actionBtnText}>{t('users.openRouter')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('users.connectionStatusMk')}</Text>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>{t('users.connectionStatusMk')}</Text>
+          </View>
           <View style={styles.statusBox}>
             {loading ? (
               <ActivityIndicator color="#2563eb" />
             ) : (
-              <View style={styles.statusRow}>
-                 <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
-                    <Activity size={14} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
+              <View style={{ flex: 1 }}>
+                <View style={styles.statusRow}>
+                  <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
+                    <Activity size={12} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
                     <Text style={[styles.badgeText, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
                       {stats?.session?.active ? t('users.online') : t('users.offline')}
                     </Text>
-                 </View>
-                 {stats?.session?.active && (
-                   <Text style={styles.uptimeText}>{t('users.uptime')}: {stats.session.uptime}</Text>
-                 )}
+                  </View>
+                  {stats?.session?.active && (
+                    <Text style={styles.uptimeText}>{t('users.uptime')}: {stats.session.uptime}</Text>
+                  )}
+                </View>
+
                 {stats?.session?.active && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={styles.connectionActions}>
                     <Text style={styles.ipText}>{stats.session.ipAddress}</Text>
-                     <TouchableOpacity 
-                       style={styles.dropSessionBtn}
-                       onPress={handleDropSession}
-                     >
-                       <Power size={14} color="#ef4444" />
-                       <Text style={styles.dropSessionText}>{t('users.kick')}</Text>
-                     </TouchableOpacity>
-                     <TouchableOpacity 
-                       style={styles.openRouterBtn}
-                       onPress={() => Linking.openURL(`http://${stats.session.ipAddress}`)}
-                     >
-                       <ExternalLink size={14} color="#2563eb" />
-                       <Text style={styles.openRouterText}>{t('users.open')}</Text>
-                     </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.dropSessionBtn}
+                      onPress={handleDropSession}
+                    >
+                      <Power size={14} color="#ef4444" />
+                      <Text style={styles.dropSessionText}>{t('users.kick')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.openRouterBtn}
+                      onPress={() => Linking.openURL(`http://${stats.session.ipAddress}`)}
+                    >
+                      <ExternalLink size={14} color="#2563eb" />
+                      <Text style={styles.openRouterText}>{t('users.open')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('billing.billingStatus')}</Text>
+          <View style={styles.statusBox}>
+            {loading ? (
+              <ActivityIndicator color="#2563eb" />
+            ) : (
+              <View style={styles.billingCardContent}>
+                <View style={styles.billingMain}>
+                  <View style={[styles.billingBadge, stats?.billing?.status === 'unpaid' ? styles.badgeUnpaid : styles.badgePaid]}>
+                    <CreditCard size={14} color={stats?.billing?.status === 'unpaid' ? '#dc2626' : '#10b981'} />
+                    <Text style={[styles.billingBadgeText, { color: stats?.billing?.status === 'unpaid' ? '#991b1b' : '#065f46' }]}>
+                      {stats?.billing?.status === 'unpaid' ? t('billing.unpaidBills') : t('billing.paid')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.payNowBtn}
+                    onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
+                  >
+                    <Banknote size={16} color="#fff" />
+                    <Text style={styles.payNowText}>{t('billing.recordPayment')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {stats?.billing?.status === 'unpaid' && (
+                  <View style={styles.billingDetails}>
+                    <View style={styles.billingDetailRow}>
+                      <Text style={styles.billingDetailLabel}>{t('billing.unpaidAmount')}</Text>
+                      <Text style={styles.billingDetailValue}>Rp {stats.billing.amount?.toLocaleString()}</Text>
+                    </View>
+                    <View style={styles.billingDetailRow}>
+                      <Text style={styles.billingDetailLabel}>{t('billing.invoice')}</Text>
+                      <Text style={styles.billingDetailValue}>{stats.billing.invoice}</Text>
+                    </View>
                   </View>
                 )}
               </View>
@@ -298,7 +393,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
 
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
-             <Mail size={20} color="#64748b" />
+             <View style={styles.iconContainer}>
+               <Mail size={18} color="#64748b" />
+             </View>
              <View style={styles.infoContent}>
                <Text style={styles.infoLabel}>{t('users.emailPackage')}</Text>
                <Text style={styles.infoValue}>{customer.email || '-'} ({stats?.profile || '-'})</Text>
@@ -306,7 +403,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-             <Users size={20} color="#64748b" />
+             <View style={styles.iconContainer}>
+               <Users size={18} color="#64748b" />
+             </View>
              <View style={styles.infoContent}>
                <Text style={styles.infoLabel}>{t('users.salesAgent')}</Text>
                <Text style={styles.infoValue}>{stats?.agent?.fullName || stats?.agent?.username || '-'}</Text>
@@ -314,12 +413,43 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-             <Terminal size={20} color="#64748b" />
+             <View style={styles.iconContainer}>
+               <Terminal size={18} color="#64748b" />
+             </View>
              <View style={styles.infoContent}>
                <Text style={styles.infoLabel}>{t('users.technician')}</Text>
                <Text style={styles.infoValue}>{stats?.technician?.fullName || stats?.technician?.username || '-'}</Text>
              </View>
           </View>
+          {customer.coordinates && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                <View style={styles.iconContainer}>
+                  <MapPin size={18} color="#64748b" />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>{t('users.gpsCoordinates')}</Text>
+                  <Text style={styles.infoValue}>{customer.coordinates}</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.mapButton}
+                  onPress={() => {
+                    const coords = customer.coordinates.replace(/\s/g, '');
+                    const label = customer.name || customer.username;
+                    const url = Platform.select({
+                      ios: `maps:0,0?q=${label}@${coords}`,
+                      android: `geo:0,0?q=${coords}(${label})`
+                    });
+                    if (url) Linking.openURL(url);
+                  }}
+                >
+                  <Globe size={18} color="#2563eb" />
+                  <Text style={styles.mapButtonText}>{t('users.open')}</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
 
         <TouchableOpacity
@@ -357,29 +487,29 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
 
               <View style={styles.acsMetrics}>
                 <View style={styles.acsMetricItem}>
-                  <Wifi size={16} color="#2563eb" />
-                  <View style={styles.acsMetricContent}>
+                  <View style={styles.acsMetricHeader}>
+                    <Wifi size={14} color="#2563eb" />
                     <Text style={styles.acsMetricLabel}>{t('genieacs.ssid')}</Text>
-                    <Text style={styles.acsMetricValue} numberOfLines={1}>{acsDevice.ssid || '-'}</Text>
                   </View>
+                  <Text style={styles.acsMetricValue} numberOfLines={1}>{acsDevice.ssid || '-'}</Text>
                 </View>
 
                 <View style={styles.acsMetricItem}>
-                  <Activity size={16} color={parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981'} />
-                  <View style={styles.acsMetricContent}>
+                  <View style={styles.acsMetricHeader}>
+                    <Activity size={14} color={parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981'} />
                     <Text style={styles.acsMetricLabel}>{t('genieacs.signal')}</Text>
-                    <Text style={[styles.acsMetricValue, { color: parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981' }]}>
-                      {acsDevice.rx_power !== '-' ? `${acsDevice.rx_power} dBm` : '-'}
-                    </Text>
                   </View>
+                  <Text style={[styles.acsMetricValue, { color: parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981' }]}>
+                    {acsDevice.rx_power !== '-' ? `${acsDevice.rx_power} dBm` : '-'}
+                  </Text>
                 </View>
 
                 <View style={styles.acsMetricItem}>
-                  <Cpu size={16} color="#64748b" />
-                  <View style={styles.acsMetricContent}>
+                  <View style={styles.acsMetricHeader}>
+                    <Cpu size={14} color="#64748b" />
                     <Text style={styles.acsMetricLabel}>{t('genieacs.temp')}</Text>
-                    <Text style={styles.acsMetricValue}>{acsDevice.temp !== '-' ? `${acsDevice.temp}°C` : '-'}</Text>
                   </View>
+                  <Text style={styles.acsMetricValue}>{acsDevice.temp !== '-' ? `${acsDevice.temp}°C` : '-'}</Text>
                 </View>
               </View>
 
@@ -490,149 +620,154 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
             </View>
           </View>
         </View>
-      </Modal>
-    </SafeAreaView>
+      </Modal>    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
-  backButton: {
+  iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  editButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#ebf5ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 4,
-  },
-  address: {
-    fontSize: 13,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  payButton: {
-    backgroundColor: '#10b981',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    gap: 8,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  payButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 14,
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
   },
   content: {
-    padding: 24,
+    padding: 20,
+    paddingBottom: 40,
   },
   profileCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 32,
+    padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#dbeafe',
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
+    overflow: 'hidden',
+    borderWidth: 4,
+    borderColor: '#f8fafc',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   avatarText: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     color: '#2563eb',
   },
   profileInfo: {
     flex: 1,
   },
   name: {
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     color: '#0f172a',
-    fontSize: 18,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
-  customerId: {
-    fontSize: 14,
+  idBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  idText: {
+    fontSize: 10,
+    fontWeight: '800',
     color: '#64748b',
-    marginTop: 4,
-    marginBottom: 16,
-    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  address: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  payButton: {
+    backgroundColor: '#10b981',
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
-    width: '100%',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   actionBtn: {
     flex: 1,
-    flexDirection: 'row',
-    height: 52,
-    borderRadius: 16,
+    height: 90,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  actionIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   callBtn: {
     backgroundColor: '#2563eb',
@@ -640,33 +775,54 @@ const styles = StyleSheet.create({
   waBtn: {
     backgroundColor: '#10b981',
   },
+  routerBtnMain: {
+    backgroundColor: '#7c3aed',
+  },
   actionBtnText: {
     color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 15,
+    fontWeight: '900',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#94a3b8',
     marginBottom: 16,
+    marginLeft: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   statusBox: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    minHeight: 64,
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    minHeight: 80,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   statusRow: {
     flexDirection: 'row',
@@ -678,156 +834,365 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 12,
     gap: 6,
   },
   badgeOnline: {
-    backgroundColor: '#ecfdf5',
+    backgroundColor: '#f0fdf4',
     borderWidth: 1,
-    borderColor: '#a7f3d0',
+    borderColor: '#dcfce7',
   },
   badgeOffline: {
     backgroundColor: '#fef2f2',
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#fee2e2',
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   uptimeText: {
-    fontSize: 13,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  ipText: {
     fontSize: 12,
-    color: '#94a3b8',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontWeight: '600',
+    color: '#64748b',
+    fontWeight: '700',
   },
-  openRouterBtn: {
+  connectionActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#ccfbf1', // teal-100
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#99f6e4', // teal-200
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f8fafc',
+    gap: 12,
   },
-  openRouterText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0f766e', // teal-700
+  ipText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#0f172a',
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   dropSessionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#fee2e2',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: '#fff1f2',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 6,
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#ffe4e6',
   },
   dropSessionText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#991b1b',
+    fontWeight: '800',
+    color: '#ef4444',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
+  openRouterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  openRouterText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#2563eb',
+  },
+  billingCardContent: {
+    flex: 1,
+  },
+  billingMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  billingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  billingBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  badgeUnpaid: {
+    backgroundColor: '#fff1f2',
+    borderWidth: 1,
+    borderColor: '#ffe4e6',
+  },
+  badgePaid: {
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#dcfce7',
+  },
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+    gap: 8,
+  },
+  payNowText: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '900',
+  },
+  billingDetails: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  billingDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  billingDetailLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  billingDetailValue: {
+    fontSize: 14,
+    color: '#0f172a',
+    fontWeight: '800',
   },
   infoSection: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 32,
+    padding: 24,
     marginBottom: 24,
-    gap: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#f1f5f9',
   },
   infoRow: {
     flexDirection: 'row',
-    gap: 16,
     alignItems: 'center',
+    gap: 16,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 13,
+    fontSize: 10,
     color: '#94a3b8',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
     marginBottom: 4,
-    fontWeight: '500',
   },
   infoValue: {
     fontSize: 15,
-    color: '#0f172a',
-    fontWeight: '600',
+    fontWeight: '800',
+    color: '#1e293b',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f8fafc',
+    marginVertical: 16,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  mapButtonText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2563eb',
   },
   menuItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   menuLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   menuIcon: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuLabel: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#0f172a',
   },
-  usageBox: {
+  acsContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 28,
     padding: 20,
-    marginTop: 8,
-    marginBottom: 40,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+  },
+  acsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  acsModelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  acsModel: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  acsMetrics: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 20,
+    gap: 12,
+  },
+  acsMetricItem: {
+    flex: 1,
+    gap: 8,
+  },
+  acsMetricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  acsMetricLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+  },
+  acsMetricValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1e293b',
+  },
+  acsActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  acsActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    backgroundColor: '#eff6ff',
+    borderRadius: 14,
+    gap: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#dbeafe',
+  },
+  acsActionText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#2563eb',
+  },
+  acsRebootBtn: {
+    backgroundColor: '#fff1f2',
+    borderColor: '#ffe4e6',
+  },
+  acsRebootText: {
+    color: '#ef4444',
+  },
+  emptyAcs: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderStyle: 'dashed',
+  },
+  emptyAcsText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  refreshAcs: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  refreshAcsText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#2563eb',
+  },
+  usageBox: {
+    backgroundColor: '#0f172a',
+    borderRadius: 28,
+    padding: 24,
+    marginTop: 8,
+    marginBottom: 20,
   },
   usageTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '900',
+    color: 'rgba(255, 255, 255, 0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
     marginBottom: 20,
-    textAlign: 'center',
   },
   usageGrid: {
     flexDirection: 'row',
@@ -835,244 +1200,125 @@ const styles = StyleSheet.create({
   },
   usageItem: {
     flex: 1,
-    alignItems: 'center',
   },
   usageLabel: {
-    fontSize: 13,
-    color: '#94a3b8',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '700',
     marginBottom: 6,
-    fontWeight: '500',
   },
   usageValue: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: '900',
+    color: '#ffffff',
   },
   verticalDivider: {
     width: 1,
-    height: 48,
-    backgroundColor: '#f1f5f9',
-  },
-  acsContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  acsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  acsModelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  acsModel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  acsMetrics: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    gap: 8,
-  },
-  acsMetricItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#f8fafc',
-    padding: 8,
-    borderRadius: 12,
-  },
-  acsMetricContent: {
-    flex: 1,
-  },
-  acsMetricLabel: {
-    fontSize: 10,
-    color: '#94a3b8',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  acsMetricValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  acsActions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  acsActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#eff6ff',
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#dbeafe',
-  },
-  acsActionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#2563eb',
-  },
-  acsRebootBtn: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#fee2e2',
-  },
-  acsRebootText: {
-    color: '#ef4444',
-  },
-  emptyAcs: {
-    padding: 24,
-    backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    alignItems: 'center',
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-  },
-  emptyAcsText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 8,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  refreshAcs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  refreshAcsText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2563eb',
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 24,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'flex-end',
   },
   modalContentFixed: {
     backgroundColor: '#ffffff',
-    width: '100%',
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-    overflow: 'hidden',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    backgroundColor: '#f8fafc',
+    justifyContent: 'space-between',
+    paddingVertical: 32,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '900',
     color: '#0f172a',
+    letterSpacing: -0.5,
   },
   modalSubtitle: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 2,
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginTop: 4,
   },
   modalCloseBtn: {
-    padding: 4,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBody: {
-    padding: 20,
+    marginBottom: 32,
+  },
+  modalInput: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#0f172a',
+    fontWeight: '600',
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#475569',
+    marginBottom: 10,
+    marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoBox: {
     flexDirection: 'row',
     backgroundColor: '#f0f9ff',
-    padding: 12,
-    borderRadius: 12,
-    gap: 10,
-    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: '#e0f2fe',
   },
   infoText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 13,
     color: '#0369a1',
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#475569',
-    marginBottom: 8,
-  },
-  modalInput: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#1e293b',
-    marginBottom: 16,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   modalFooter: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 8,
   },
   saveButtonModal: {
     backgroundColor: '#2563eb',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 10,
+    height: 60,
+    borderRadius: 20,
+    gap: 12,
     shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   saveButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   }
 });

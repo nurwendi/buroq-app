@@ -151,139 +151,31 @@ export default function SuperadminDashboardView() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       <GradientHeader 
         title={user?.fullName || user?.username} 
         role="SUPERADMIN"
         backgroundImage={resolveUrl(dashboardBgUrl)}
         userAvatar={resolveUrl(user?.avatar)}
       />
-
       <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+        style={styles.fullScrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
-        <PppoePieChart 
-          active={stats?.pppoeActive || 0}
-          offline={stats?.pppoeOffline || 0}
-          total={stats?.totalCustomers || 0}
-          onPress={() => navigation.navigate('CustomerList')}
-        />
-
-        <View style={styles.statsGrid}>
-          <View style={{ width: '48%' }}>
-            <StatCard 
-              title={t('dashboard.totalAdmin')} 
-              value={stats?.adminCount || 0} 
-              icon={Shield} 
-              color="#2563eb" 
-              subtitle="Super & Admin"
-            />
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('CustomerList')} style={{ width: '48%' }}>
-            <StatCard 
-              title={t('dashboard.totalUsers')} 
-              value={stats?.totalCustomers || 0} 
-              icon={Users} 
-              color="#10b981" 
-              subtitle={t('dashboard.allMitra')}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('SystemUsers')} style={{ width: '48%' }}>
-            <StatCard 
-              title={t('dashboard.systemUsers')} 
-              value={stats?.systemUserCount || 0} 
-              icon={Users} 
-              color="#f59e0b" 
-              subtitle={t('dashboard.techSales')}
-            />
-          </TouchableOpacity>
-          <View style={{ width: '48%' }}>
-            <StatCard 
-              title={t('dashboard.totalRouter')} 
-              value={stats?.routers?.length || 0} 
-              icon={Wifi} 
-              color="#8b5cf6" 
-              subtitle={t('dashboard.nodeConnected')}
-            />
-          </View>
-        </View>
-
+        {/* Section: Server Status (Paling Atas) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
-          <View style={styles.menuGrid}>
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerList')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#e0f2fe' }]}>
-                   <Users size={24} color="#0ea5e9" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.users')}</Text>
-             </TouchableOpacity>
-
-
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <Settings size={24} color="#64748b" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
-             </TouchableOpacity>
-
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SystemUsers')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#dbeafe' }]}>
-                   <Shield size={24} color="#2563eb" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.pppoe')}</Text>
-             </TouchableOpacity>
-
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AllUsers')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
-                   <Users size={24} color="#10b981" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.allUsers')}</Text>
-             </TouchableOpacity>
-
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('NAT')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f3e8ff' }]}>
-                   <Server size={24} color="#a855f7" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.nas')}</Text>
-             </TouchableOpacity>
-
-
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('FinancialReport')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#ffe4e6' }]}>
-                   <Activity size={24} color="#e11d48" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.reports')}</Text>
-             </TouchableOpacity>
-             
-             <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={() => navigation.navigate('Broadcast')}
-            >
-              <View style={[styles.menuIconContainer, { backgroundColor: '#fdf2f8' }]}>
-                <Megaphone size={24} color="#db2777" />
-              </View>
-              <Text style={styles.menuLabel}>{t('sidebar.broadcast')}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={() => navigation.navigate('GenieACS')}
-            >
-              <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
-                <Router size={24} color="#f97316" />
-              </View>
-              <Text style={styles.menuLabel}>{t('sidebar.genieacs')}</Text>
-            </TouchableOpacity>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <Server size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.serverStatus')}</Text>
+            </View>
           </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('dashboard.serverStatus')}</Text>
           <View style={styles.serverCard}>
              <View style={styles.serverHeader}>
-                <Server size={20} color="#2563eb" />
-                <Text style={styles.serverTitle}>Buroq Backend Core</Text>
+                <Activity size={18} color="#475569" />
+                <Text style={styles.serverTitle}>Backend Core</Text>
              </View>
              
              <ProgressMeter 
@@ -305,25 +197,25 @@ export default function SuperadminDashboardView() {
                <View style={styles.systemSpecs}>
                  <View style={styles.specItem}>
                    <Text style={styles.specLabel}>{t('dashboard.platform')}</Text>
-                   <Text style={styles.specValue}>{systemInfo.platform} ({systemInfo.type})</Text>
+                   <Text style={styles.specValue}>{systemInfo.platform}</Text>
                  </View>
                  <View style={styles.specItem}>
                    <Text style={styles.specLabel}>{t('dashboard.processor')}</Text>
                    <Text style={styles.specValue} numberOfLines={1}>{systemInfo.cpu?.model}</Text>
-                 </View>
-                 <View style={styles.specItem}>
-                   <Text style={styles.specLabel}>{t('dashboard.coresSpeed')}</Text>
-                   <Text style={styles.specValue}>{systemInfo.cpu?.cores} Cores @ {systemInfo.cpu?.speed} MHz</Text>
                  </View>
                </View>
              )}
           </View>
         </View>
 
+        {/* Section: Owner Statistics */}
         {(ownerStats || []).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('dashboard.ownerStats')}</Text>
+              <View style={styles.titleCard}>
+                <Users size={18} color="#94a3b8" />
+                <Text style={styles.titleCardText}>{t('dashboard.ownerStats')}</Text>
+              </View>
               <TouchableOpacity onPress={() => navigation.navigate('SystemUsers')}>
                 <Text style={styles.seeAllText}>{t('dashboard.seeAll')}</Text>
               </TouchableOpacity>
@@ -345,11 +237,6 @@ export default function SuperadminDashboardView() {
                          <Text style={styles.ownerStatValue}>{stat.offline}</Text>
                          <Text style={[styles.ownerStatLabel, { color: '#ef4444' }]}>{t('dashboard.offline')}</Text>
                       </View>
-                      <View style={styles.ownerStatDivider} />
-                      <View style={styles.ownerStatItem}>
-                         <Text style={styles.ownerStatValue}>{stat.total}</Text>
-                         <Text style={styles.ownerStatLabel}>{t('dashboard.total')}</Text>
-                      </View>
                     </View>
                  </View>
                ))}
@@ -357,49 +244,66 @@ export default function SuperadminDashboardView() {
           </View>
         )}
 
+        {/* Section: Quick Stats */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('dashboard.routerHealth')}</Text>
-            <Activity size={18} color="#10b981" />
+            <View style={styles.titleCard}>
+              <Activity size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.customerStatus')}</Text>
+            </View>
           </View>
-          
-          <View style={styles.routerList}>
-            {(stats?.routers || []).map((router: any) => (
-              <View key={router.id || Math.random().toString()} style={styles.routerItem}>
-                <View style={styles.routerLeft}>
-                  <View style={[styles.statusDot, { backgroundColor: (router.status === 'online' || router.online) ? '#10b981' : '#ef4444' }]} />
-                  <View>
-                    <Text style={styles.routerName}>{router.name || t('dashboard.unknownRouter')}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={styles.routerHost}>{router.host || '-'}</Text>
-                      <View style={styles.ownerBadgeSmall}>
-                        <Text style={styles.ownerBadgeText}>
-                          {(ownerStats || []).find(o => o.id === router.ownerId)?.owner || t('dashboard.global')}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-                {(router.status === 'online' || router.online) ? (
-                  <View style={styles.routerStats}>
-                    <View style={styles.miniStat}>
-                       <Cpu size={12} color="#64748b" />
-                       <Text style={styles.miniStatText}>{router.cpuLoad || 0}%</Text>
-                    </View>
-                    <View style={styles.miniStat}>
-                       <Database size={12} color="#64748b" />
-                       <Text style={styles.miniStatText}>{router.memoryTotal > 0 ? Math.round(((router.memoryUsed || 0) / router.memoryTotal) * 100) : 0}%</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <Text style={styles.offlineText}>{t('dashboard.offline').toUpperCase()}</Text>
-                )}
-              </View>
-            ))}
+          <View style={styles.statsGrid}>
+            <View style={{ width: '48%' }}>
+              <StatCard 
+                title={t('dashboard.totalAdmin')} 
+                value={stats?.adminCount || 0} 
+                icon={Shield} 
+                color="#2563eb" 
+              />
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('CustomerList')} style={{ width: '48%' }}>
+              <StatCard 
+                title={t('dashboard.totalUsers')} 
+                value={stats?.totalCustomers || 0} 
+                icon={Users} 
+                color="#10b981" 
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
-  
+        {/* Section: Main Menu */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <PlusCircle size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('dashboard.mainMenu')}</Text>
+            </View>
+          </View>
+          <View style={styles.menuGrid}>
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
+                   <Settings size={22} color="#64748b" />
+                </View>
+                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
+             </TouchableOpacity>
+
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('AllUsers')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
+                   <PlusCircle size={22} color="#10b981" />
+                </View>
+                <Text style={styles.menuLabel}>{t('sidebar.allUsers')}</Text>
+             </TouchableOpacity>
+
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Broadcast')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#fdf2f8' }]}>
+                   <Megaphone size={22} color="#db2777" />
+                </View>
+                <Text style={styles.menuLabel}>{t('sidebar.broadcast')}</Text>
+             </TouchableOpacity>
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );
@@ -408,214 +312,123 @@ export default function SuperadminDashboardView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   scrollContent: {
-    padding: 24,
+    padding: 20,
     paddingTop: 10,
-    backgroundColor: '#f8fafc',
-    flexGrow: 1,
+    paddingBottom: 40,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 24,
+  fullScrollView: {
+    width: '100%',
+    flex: 1,
   },
   section: {
-    marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    paddingHorizontal: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 16,
-  },
-  menuGrid: {
+  titleCard: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 15, // Gap between items
-  },
-  menuItem: {
-    width: '30%', // 3 columns
-    backgroundColor: '#ffffff',
-    paddingVertical: 16,
-    borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
+    gap: 8,
   },
-  menuIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+  titleCardText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
-  menuLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#475569',
-    textAlign: 'center',
+  seeAllText: {
+    fontSize: 12,
+    color: '#2563eb',
+    fontWeight: '700',
   },
   serverCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: '#ffffff',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   serverHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    position: 'relative',
-    overflow: 'hidden',
+    marginBottom: 24,
   },
   serverTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#334155',
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginLeft: 12,
+    letterSpacing: -0.5,
   },
   meterContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   meterLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   meterLabel: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '700',
     color: '#64748b',
   },
   meterValue: {
-    fontSize: 13,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '900',
   },
   meterTrack: {
-    height: 8,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 5,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   meterFill: {
     height: '100%',
-    borderRadius: 4,
-  },
-  memDetails: {
-    fontSize: 11,
-    color: '#94a3b8',
-    textAlign: 'right',
-    marginTop: -8,
-  },
-  routerList: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 8,
-  },
-  routerItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  routerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
     borderRadius: 5,
   },
-  routerName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  routerHost: {
+  memDetails: {
     fontSize: 12,
     color: '#94a3b8',
-  },
-  routerStats: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  miniStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  miniStatText: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  offlineText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#ef4444',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  actionCircle: {
-    alignItems: 'center',
-    width: 80,
-  },
-  actionIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  actionLabel: {
-    fontSize: 11,
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
+    textAlign: 'right',
+    marginTop: -12,
+    fontWeight: '600',
   },
   systemSpecs: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 20,
+    paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
-    gap: 12,
+    gap: 14,
   },
   specItem: {
     flexDirection: 'row',
@@ -625,90 +438,199 @@ const styles = StyleSheet.create({
   specLabel: {
     fontSize: 12,
     color: '#94a3b8',
+    fontWeight: '600',
   },
   specValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e293b',
     maxWidth: '70%',
   },
-  seeAllText: {
-    fontSize: 13,
-    color: '#2563eb',
-    fontWeight: '600',
-  },
   ownerScroll: {
-    gap: 12,
-    paddingRight: 24,
+    gap: 16,
+    paddingRight: 20,
   },
   ownerCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    width: 180, // Slightly wider for 3 columns
+    borderRadius: 28,
+    padding: 20,
+    width: 220,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   ownerInitial: {
-    width: 40,
-    height: 40,
+    width: 56,
+    height: 56,
     borderRadius: 20,
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   ownerInitialText: {
     color: '#2563eb',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '900',
+    fontSize: 22,
   },
   ownerName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 12,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 16,
+    letterSpacing: -0.3,
   },
   ownerStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     justifyContent: 'space-around',
+    backgroundColor: '#f8fafc',
+    paddingVertical: 12,
+    borderRadius: 16,
   },
   ownerStatItem: {
     alignItems: 'center',
   },
   ownerStatValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '900',
     color: '#0f172a',
   },
   ownerStatLabel: {
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '700',
     color: '#94a3b8',
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
   ownerStatDivider: {
     width: 1,
-    height: 20,
+    height: 24,
     backgroundColor: '#e2e8f0',
   },
-  ownerBadgeSmall: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  ownerBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#64748b',
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  menuItem: {
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#ffffff',
+    paddingVertical: 24,
+    borderRadius: 28,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  menuIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  menuLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1e293b',
+    textAlign: 'center',
+  },
+  routerList: {
+    backgroundColor: '#ffffff',
+    borderRadius: 32,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  routerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+  },
+  routerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  routerName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  routerHost: {
+    fontSize: 13,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  miniStatText: {
+    fontSize: 13,
+    color: '#2563eb',
+    fontWeight: '800',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  offlineText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#ef4444',
+    backgroundColor: '#fef2f2',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
 });

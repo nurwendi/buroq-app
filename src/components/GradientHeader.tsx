@@ -1,61 +1,47 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ImageBackground, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View, Text, TouchableOpacity, Platform, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Bell } from 'lucide-react-native';
+import { Bell, ArrowLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
 interface GradientHeaderProps {
   title?: string;
   subtitle?: string;
   role?: string;
-  backgroundImage?: string;
+  backgroundImage?: string; // Kept for compatibility but unused
   userAvatar?: string;
   onProfilePress?: () => void;
+  onBackPress?: () => void;
+  rightElement?: React.ReactNode;
+  isFullBackground?: boolean; // Kept for compatibility but unused
   children?: React.ReactNode;
 }
 
-export default function GradientHeader({ title, subtitle, role, backgroundImage, userAvatar, onProfilePress, children }: GradientHeaderProps) {
+export default function GradientHeader({ 
+  title, 
+  subtitle, 
+  role, 
+  userAvatar, 
+  onProfilePress, 
+  onBackPress,
+  rightElement,
+  children 
+}: GradientHeaderProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
-  const headerHeight = 140 + insets.top;
+  const headerHeight = insets.top + 65;
 
   return (
     <View style={[styles.container, { height: headerHeight }]}>
-      {backgroundImage ? (
-        <ImageBackground 
-          source={{ uri: backgroundImage }} 
-          style={[styles.gradient, { height: headerHeight }]}
-          resizeMode="cover"
-        >
-          <LinearGradient
-            colors={['rgba(30, 58, 138, 0.8)', 'rgba(30, 58, 138, 0.5)', 'transparent']}
-            locations={[0, 0.6, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-        </ImageBackground>
-      ) : (
-        <LinearGradient
-          colors={['#1e3a8a', 'rgba(30, 58, 138, 0.8)', 'transparent']}
-          locations={[0, 0.7, 1]}
-          style={[styles.gradient, { height: headerHeight }]}
-        />
-      )}
-
-      {/* Top Buttons */}
-      <View style={[styles.topActions, { top: insets.top + 10 }]}>
-        <TouchableOpacity 
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('Notification')}
-        >
-          <Bell size={20} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={[styles.content, { paddingTop: insets.top }]}>
-        <View style={styles.centerSection}>
-           <TouchableOpacity onPress={onProfilePress} style={styles.avatarContainer}>
+      <View style={[styles.navbar, { paddingTop: insets.top }]}>
+        <View style={styles.navLeft}>
+            {onBackPress && (
+              <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+                <ArrowLeft size={22} color="#1e293b" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onProfilePress} style={[styles.compactAvatar, onBackPress && { marginLeft: 0 }]}>
               {userAvatar ? (
                  <Image source={{ uri: userAvatar }} style={styles.avatarImage} />
               ) : (
@@ -65,20 +51,27 @@ export default function GradientHeader({ title, subtitle, role, backgroundImage,
                     </Text>
                  </View>
               )}
-           </TouchableOpacity>
-           
-           <View style={styles.textContainer}>
-              <Text style={styles.welcomeText}>{subtitle || 'Selamat Datang,'}</Text>
+            </TouchableOpacity>
+            <View style={styles.titleContainer}>
               <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
-              {role && (
-                <View style={styles.roleBadge}>
-                  <Text style={styles.roleText}>{role.toUpperCase()}</Text>
-                </View>
-              )}
-           </View>
+              {role && <Text style={styles.roleText}>{role}</Text>}
+            </View>
         </View>
-        {children}
+
+        <View style={styles.navRight}>
+          {rightElement ? (
+            rightElement
+          ) : (
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Notification')}
+            >
+              <Bell size={20} color="#1e293b" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
+      {children}
     </View>
   );
 }
@@ -86,55 +79,45 @@ export default function GradientHeader({ title, subtitle, role, backgroundImage,
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#1e3a8a', // Dark blue background for safety
+    backgroundColor: '#ffffff',
     zIndex: 10,
-    height: 160, // Match headerHeight (excluding insets if we want, but let's be careful)
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
-  gradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0, // Fill the container
+  navbar: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
   },
-  content: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    zIndex: 20,
+  navLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    justifyContent: 'center',
   },
-  topActions: {
-    position: 'absolute',
-    right: 20,
-    zIndex: 30,
+  navRight: {
+    flexDirection: 'row',
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  centerSection: {
-    alignItems: 'center',
-    marginBottom: 0,
-  },
-  avatarContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    marginBottom: 10,
+  compactAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
   },
   avatarImage: {
     width: '100%',
@@ -143,44 +126,51 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitial: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '900',
     color: '#ffffff',
   },
-  textContainer: {
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '500',
+  titleContainer: {
+    marginLeft: 14,
   },
   titleText: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginTop: 2,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  roleBadge: {
-    alignSelf: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.5,
   },
   roleText: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 1.2,
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#2563eb',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
 });

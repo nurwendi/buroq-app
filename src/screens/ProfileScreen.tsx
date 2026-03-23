@@ -7,25 +7,24 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Alert
+  Alert,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { User, Shield, LogOut, ChevronRight, Phone, Mail, MapPin } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
   const { t } = useLanguage();
 
-  const resolveUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const baseUrl = apiClient.defaults.baseURL || '';
-    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
-  };
+  // Removed local resolveUrl function as it's now imported from '../utils/url'
 
   const handleLogout = () => {
     Alert.alert(
@@ -46,7 +45,15 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('sidebar.profile')}
+        subtitle={user?.fullName || user?.username}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.avatarWrapper}>
@@ -57,7 +64,7 @@ export default function ProfileScreen() {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <User size={40} color="#ffffff" />
+                <User size={48} color="#ffffff" />
               </View>
             )}
           </View>
@@ -72,7 +79,9 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>{t('profile.accountInfo')}</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <User size={20} color="#64748b" />
+              <View style={styles.infoIcon}>
+                <User size={18} color="#64748b" />
+              </View>
               <View style={styles.infoText}>
                 <Text style={styles.infoLabel}>{t('profile.username')}</Text>
                 <Text style={styles.infoValue}>{user?.username || '-'}</Text>
@@ -80,7 +89,9 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
-              <Phone size={20} color="#64748b" />
+              <View style={styles.infoIcon}>
+                <Phone size={18} color="#64748b" />
+              </View>
               <View style={styles.infoText}>
                 <Text style={styles.infoLabel}>{t('profile.phoneNumber')}</Text>
                 <Text style={styles.infoValue}>{user?.phone || '-'}</Text>
@@ -88,7 +99,9 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
-              <Mail size={20} color="#64748b" />
+              <View style={styles.infoIcon}>
+                <Mail size={18} color="#64748b" />
+              </View>
               <View style={styles.infoText}>
                 <Text style={styles.infoLabel}>{t('profile.email')}</Text>
                 <Text style={styles.infoValue}>{user?.email || '-'}</Text>
@@ -118,14 +131,14 @@ export default function ProfileScreen() {
 
         <Text style={styles.version}>{t('appSettings.version')} 1.0.6</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -133,25 +146,31 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#ffffff',
     alignItems: 'center',
-    paddingVertical: 40,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
   },
   avatarWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    borderColor: '#eff6ff',
-    marginBottom: 16,
+    width: 120,
+    height: 120,
+    borderRadius: 40,
+    backgroundColor: '#f8fafc',
+    marginBottom: 24,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 6,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   avatar: {
     width: '100%',
@@ -165,95 +184,129 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -1,
+    marginBottom: 10,
   },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#eff6ff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
   },
   roleText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '800',
     color: '#2563eb',
-    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
   section: {
-    marginTop: 32,
+    marginTop: 20,
     paddingHorizontal: 24,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94a3b8',
     marginBottom: 16,
+    marginLeft: 4,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   infoCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
+  infoIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
   infoText: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#94a3b8',
-    marginBottom: 2,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
   },
   infoValue: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1e293b',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
     marginVertical: 16,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   menuIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   menuLabel: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '800',
     color: '#1e293b',
   },
   logoutBtn: {
@@ -262,22 +315,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff1f2',
-    paddingVertical: 16,
-    borderRadius: 20,
-    gap: 10,
+    backgroundColor: '#ffffff',
+    paddingVertical: 18,
+    borderRadius: 24,
+    gap: 12,
     borderWidth: 1,
-    borderColor: '#fecdd3',
+    borderColor: '#fee2e2',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#ef4444',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   logoutText: {
     color: '#ef4444',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   version: {
     textAlign: 'center',
-    marginTop: 24,
+    color: '#cbd5e1',
     fontSize: 12,
-    color: '#94a3b8',
+    fontWeight: '600',
+    marginTop: 32,
+    marginBottom: 40,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   }
 });

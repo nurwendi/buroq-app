@@ -18,7 +18,7 @@ const PushTokenHandler = () => {
   useEffect(() => {
     if (user && token && expoPushToken?.data) {
       apiClient.post('/api/user/push-token', { expoPushToken: expoPushToken.data })
-        .catch(err => console.error('Failed to update push token', err));
+        .catch((err: any) => console.error('Failed to update push token', err));
     }
   }, [user, token, expoPushToken]);
 
@@ -38,7 +38,7 @@ export default function App() {
             <PushTokenHandler />
             <NavigationContainer>
               <Navigation />
-              <StatusBar style="light" />
+              <StatusBar style="auto" />
             </NavigationContainer>
           </LanguageProvider>
         </AuthProvider>

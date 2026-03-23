@@ -29,7 +29,7 @@ export default function ServerSettingsScreen() {
 
   const loadSettings = async () => {
     try {
-      const savedUrl = await AsyncStorage.getItem('API_BASE_URL');
+      const savedUrl = await AsyncStorage.getItem(CONFIG.SERVER_URL_KEY);
       setBaseUrl(savedUrl || CONFIG.API_BASE_URL);
     } catch (e) {
       console.error('Failed to load server settings', e);
@@ -52,7 +52,7 @@ export default function ServerSettingsScreen() {
     setSaving(true);
     try {
       // 1. Save to AsyncStorage
-      await AsyncStorage.setItem('API_BASE_URL', baseUrl.trim());
+      await AsyncStorage.setItem(CONFIG.SERVER_URL_KEY, baseUrl.trim());
       
       // 2. Update global apiClient
       updateApiBaseUrl(baseUrl.trim());

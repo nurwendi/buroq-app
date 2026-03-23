@@ -22,22 +22,23 @@ export default function BillingScreen() {
             <View style={[styles.iconContainer, { backgroundColor: '#dcfce7' }]}>
               <CreditCard size={32} color="#16a34a" />
             </View>
-            <Text style={styles.cardTitle}>{t('billing.payBill')}</Text>
-            <Text style={styles.cardDesc}>{t('billing.payBillDesc')}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{t('billing.payBill')}</Text>
+              <Text style={styles.cardDesc}>{t('billing.payBillDesc')}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.card}
-            onPress={() => {
-              // Usually expects username, we can leave this disabled or point to a list
-              // navigation.navigate('PaymentHistory', { username: '', name: 'Semua Transaksi' });
-            }}
+            onPress={() => navigation.navigate('PaymentHistory', { name: t('billing.history') })}
           >
             <View style={[styles.iconContainer, { backgroundColor: '#e0f2fe' }]}>
               <FileText size={32} color="#0284c7" />
             </View>
-            <Text style={styles.cardTitle}>{t('billing.history')}</Text>
-            <Text style={styles.cardDesc}>{t('billing.historyDesc')}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{t('billing.history')}</Text>
+              <Text style={styles.cardDesc}>{t('billing.historyDesc')}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -47,8 +48,10 @@ export default function BillingScreen() {
             <View style={[styles.iconContainer, { backgroundColor: '#fef3c7' }]}>
               <Clock size={32} color="#d97706" />
             </View>
-            <Text style={styles.cardTitle}>{t('billing.unpaidBills')}</Text>
-            <Text style={styles.cardDesc}>{t('billing.unpaidBillsDesc')}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{t('billing.unpaidBills')}</Text>
+              <Text style={styles.cardDesc}>{t('billing.unpaidBillsDesc')}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </ScrollView>

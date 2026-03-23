@@ -62,12 +62,11 @@ export default function LoginScreen() {
   }, []);
 
   const loadServerUrl = async () => {
-    const savedUrl = await AsyncStorage.getItem('buroq_server_url');
+    const savedUrl = await AsyncStorage.getItem(CONFIG.SERVER_URL_KEY);
     const currentUrl = savedUrl || CONFIG.API_BASE_URL;
-    if (savedUrl) {
-      setServerUrl(savedUrl);
-      updateApiBaseUrl(savedUrl);
-    }
+    
+    setServerUrl(currentUrl);
+    updateApiBaseUrl(currentUrl);
     
     // Fetch dynamic logo and background
     try {
@@ -91,8 +90,7 @@ export default function LoginScreen() {
 
     try {
       // Save server URL if changed
-      await AsyncStorage.setItem('buroq_server_url', serverUrl);
-      CONFIG.API_BASE_URL = serverUrl; // Update global config (primitive way)
+      await AsyncStorage.setItem(CONFIG.SERVER_URL_KEY, serverUrl);
       updateApiBaseUrl(serverUrl); // Update axios base URL
       
       await login(username, password);
@@ -188,24 +186,17 @@ export default function LoginScreen() {
             </View>
           ) : null}
 
-          <TouchableOpacity 
-            style={styles.loginButton} 
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <LinearGradient
-              colors={['#3B82F6', '#6366f1']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradientButton}
+            <TouchableOpacity 
+              style={styles.loginButton} 
+              onPress={handleLogin}
+              disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#f59e0b" />
               ) : (
-                <Text style={styles.loginButtonText}>{t('login.signIn')}</Text>
+                <Text style={styles.loginButtonText}>{t('login.signIn').toUpperCase()}</Text>
               )}
-            </LinearGradient>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
           <TouchableOpacity 
             onPress={() => setShowServerSetting(!showServerSetting)}
@@ -246,7 +237,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   defaultBg: {
     backgroundColor: '#0f172a',
@@ -264,18 +255,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 200,
-    height: 120,
-    tintColor: '#ffffff', // Force white if possible or just rely on image
+    width: 220,
+    height: 140,
   },
   form: {
     width: '100%',
     padding: 32,
     borderRadius: 40,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -283,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
+    borderRadius: 30,
     height: 60,
     paddingHorizontal: 16,
     marginBottom: 20,
@@ -292,10 +282,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
   },
   icon: {
     // Legacy mapping
@@ -325,29 +317,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: '#3b82f6',
     height: 60,
-    borderRadius: 10,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     marginTop: 10,
   },
   gradientButton: {
     width: '100%',
     height: '100%',
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loginButtonText: {
     color: '#ffffff',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   settingsToggle: {
     flexDirection: 'row',

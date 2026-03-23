@@ -25,8 +25,11 @@ import {
   ArrowLeft,
   ArrowUpCircle,
   ArrowDownCircle,
-  CreditCard,
-  MapPin
+  Hash,
+  MapPin,
+  ChevronRight,
+  PlusCircle,
+  AlertCircle
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
@@ -209,7 +212,7 @@ export default function PppoeProfilesScreen() {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
-          <Gauge size={24} color="#8b5cf6" />
+          <Gauge size={22} color="#2563eb" />
         </View>
         <View style={styles.nameContainer}>
           <Text style={styles.profileName}>{item.name}</Text>
@@ -219,34 +222,47 @@ export default function PppoeProfilesScreen() {
         </View>
         <View style={styles.actions}>
           <TouchableOpacity onPress={() => handleOpenModal(item)} style={styles.actionBtn}>
-            <Edit size={18} color="#2563eb" />
+            <Edit size={16} color="#64748b" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDelete(item)} style={styles.actionBtn}>
-            <Trash2 size={18} color="#ef4444" />
+          <TouchableOpacity onPress={() => handleDelete(item)} style={[styles.actionBtn, styles.deleteBtn]}>
+            <Trash2 size={16} color="#ef4444" />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.cardBody}>
-        <View style={styles.speedRow}>
+        <View style={styles.speedSection}>
           <View style={styles.speedItem}>
-            <ArrowDownCircle size={16} color="#10b981" />
-            <Text style={styles.speedText}>{item.speedDown} Kbps</Text>
+            <View style={[styles.miniIcon, { backgroundColor: '#f0fdf4' }]}>
+               <ArrowDownCircle size={14} color="#10b981" />
+            </View>
+            <View>
+               <Text style={styles.speedLabel}>Download</Text>
+               <Text style={styles.speedValue}>{item.speedDown} Kbps</Text>
+            </View>
           </View>
+          <View style={styles.speedDivider} />
           <View style={styles.speedItem}>
-            <ArrowUpCircle size={16} color="#3b82f6" />
-            <Text style={styles.speedText}>{item.speedUp} Kbps</Text>
+            <View style={[styles.miniIcon, { backgroundColor: '#eff6ff' }]}>
+               <ArrowUpCircle size={14} color="#3b82f6" />
+            </View>
+            <View>
+               <Text style={styles.speedLabel}>Upload</Text>
+               <Text style={styles.speedValue}>{item.speedUp} Kbps</Text>
+            </View>
           </View>
         </View>
         
-        <View style={styles.poolRow}>
-          <View style={styles.poolItem}>
-            <MapPin size={14} color="#64748b" />
-            <Text style={styles.poolText}>Local: {item.localAddress || '-'}</Text>
+        <View style={styles.poolSection}>
+          <View style={styles.poolEntry}>
+            <MapPin size={12} color="#94a3b8" />
+            <Text style={styles.poolLabel}>Local:</Text>
+            <Text style={styles.poolValue}>{item.localAddress || '-'}</Text>
           </View>
-          <View style={styles.poolItem}>
-            <MapPin size={14} color="#64748b" />
-            <Text style={styles.poolText}>Remote: {item.remoteAddress || '-'}</Text>
+          <View style={styles.poolEntry}>
+            <MapPin size={12} color="#94a3b8" />
+            <Text style={styles.poolLabel}>Remote:</Text>
+            <Text style={styles.poolValue}>{item.remoteAddress || '-'}</Text>
           </View>
         </View>
       </View>
@@ -267,7 +283,7 @@ export default function PppoeProfilesScreen() {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Search size={20} color="#94a3b8" />
+          <Search size={18} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
             placeholder={t('pppoe.searchPlaceholder')}
@@ -405,33 +421,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
+    paddingBottom: 16,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    paddingTop: Platform.OS === 'android' ? 40 : 12,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#f1f5f9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#8b5cf6',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  title: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2563eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
   searchContainer: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
@@ -441,14 +468,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     height: 48,
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
     fontSize: 15,
-    color: '#1e293b',
+    color: '#0f172a',
+    fontWeight: '500',
   },
   center: {
     flex: 1,
@@ -456,32 +484,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#f5f3ff',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -491,13 +525,14 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1e293b',
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   priceText: {
     fontSize: 14,
-    color: '#8b5cf6',
-    fontWeight: '600',
+    color: '#2563eb',
+    fontWeight: '700',
     marginTop: 2,
   },
   actions: {
@@ -507,46 +542,79 @@ const styles = StyleSheet.create({
   actionBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+  },
+  deleteBtn: {
+     backgroundColor: '#fff1f2',
+     borderColor: '#ffe4e6',
   },
   cardBody: {
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 12,
+    borderTopColor: '#f8fafc',
+    paddingTop: 16,
   },
-  speedRow: {
+  speedSection: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
   },
   speedItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
   },
-  speedText: {
+  miniIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  speedLabel: {
+    fontSize: 10,
+    color: '#64748b',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  speedValue: {
     fontSize: 13,
+    color: '#1e293b',
+    fontWeight: '700',
+  },
+  speedDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#e2e8f0',
+    marginHorizontal: 4,
+  },
+  poolSection: {
+    gap: 8,
+  },
+  poolEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  poolLabel: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '600',
+    width: 50,
+  },
+  poolValue: {
+    fontSize: 12,
     color: '#475569',
     fontWeight: '500',
-  },
-  poolRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  poolItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  poolText: {
-    fontSize: 11,
-    color: '#64748b',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -556,71 +624,92 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#94a3b8',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    height: '80%',
+    height: '85%',
     padding: 24,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 20,
+      },
+    }),
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#1e293b',
+    color: '#0f172a',
+    letterSpacing: -0.5,
   },
   modalBody: {
     flex: 1,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '700',
+    color: '#334155',
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 20,
   },
   modalInput: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
     paddingHorizontal: 16,
-    height: 52,
+    height: 56,
     fontSize: 15,
-    color: '#1e293b',
+    color: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    fontWeight: '500',
   },
   gridRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
   },
   gridCol: {
     flex: 1,
   },
   modalFooter: {
-    marginTop: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   saveButton: {
-    backgroundColor: '#8b5cf6',
-    height: 56,
-    borderRadius: 16,
+    backgroundColor: '#2563eb',
+    height: 60,
+    borderRadius: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   saveButtonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   }
 });

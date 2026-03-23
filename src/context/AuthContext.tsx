@@ -26,9 +26,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const storedToken = await AsyncStorage.getItem(CONFIG.TOKEN_KEY);
       const storedUser = await AsyncStorage.getItem(CONFIG.USER_KEY);
+      
       if (storedToken && storedUser) {
+        // Pre-emptively set state so UI feels fast
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        
+        // Background verification to ensure token hasn't expired or been revoked
+        try {
+          const response = await apiClient.get('/api/auth/me');
+          if (response.data && response.data.user) {
+            setUser(response.data.user);
+            await AsyncStorage.setItem(CONFIG.USER_KEY, JSON.stringify(response.data.user));
+          }
+        } catch (verifyError: any) {
+          console.log('Session verification failed on startup:', verifyError.message);
+          if (verifyError.response?.status === 401) {
+             // Token is truly invalid, clear everything
+             await logout();
+          }
+        }
       }
     } catch (e) {
       console.error('Failed to load auth', e);

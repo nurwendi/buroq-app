@@ -37,7 +37,13 @@ export default function PaymentFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { t } = useLanguage();
-  const { customer: initialCustomer } = route.params || {};
+  const { 
+    customer: initialCustomer, 
+    amount: initialAmount, 
+    month: initialMonth, 
+    year: initialYear,
+    username: initialUsername
+  } = route.params || {};
 
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -48,19 +54,51 @@ export default function PaymentFormScreen() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Form State
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(
+    initialAmount ? String(initialAmount) : 
+    (initialCustomer?.billing?.amount ? String(initialCustomer.billing.amount) : '')
+  );
   const [method, setMethod] = useState('cash');
   const [notes, setNotes] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(
+    initialMonth !== undefined ? initialMonth : 
+    (initialCustomer?.billing?.month !== undefined ? initialCustomer.billing.month : new Date().getMonth())
+  );
+  const [selectedYear, setSelectedYear] = useState(
+    initialYear || 
+    (initialCustomer?.billing?.year || new Date().getFullYear())
+  );
 
   // Printer State
   const [printerModalVisible, setPrinterModalVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastPayment, setLastPayment] = useState<any>(null);
 
+  // Resolve customer if only username is provided
   useEffect(() => {
-    if (selectedCustomer) {
+    if (!selectedCustomer && initialUsername) {
+       resolveCustomer(initialUsername);
+    }
+  }, [initialUsername]);
+
+  const resolveCustomer = async (username: string) => {
+    try {
+      setSearching(true);
+      const response = await apiClient.get(`/api/customers?lite=true`);
+      const all = Object.values(response.data);
+      const found = all.find((c: any) => c.username === username);
+      if (found) {
+        setSelectedCustomer(found);
+      }
+    } catch (e) {
+      console.error('Failed to resolve customer', e);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCustomer && !initialAmount) {
       fetchCustomerBilling(selectedCustomer.username);
     }
   }, [selectedCustomer]);
@@ -69,10 +107,18 @@ export default function PaymentFormScreen() {
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/customer/stats?customerId=${username}`);
-      if (response.data?.billing?.amount) {
+      if (response.data?.billing?.amount !== undefined) {
         setAmount(String(response.data.billing.amount));
       } else {
         setAmount('0');
+      }
+      
+      // Also reset period to current unless explicitly passed from initial params
+      if (!initialMonth && initialMonth !== 0) {
+        setSelectedMonth(new Date().getMonth());
+      }
+      if (!initialYear) {
+        setSelectedYear(new Date().getFullYear());
       }
     } catch (e) {
       console.error('Failed to fetch billing stats', e);
@@ -357,12 +403,10 @@ export default function PaymentFormScreen() {
                 </View>
 
                 <View style={styles.successActions}>
-                   {method === 'cash' && (
-                     <TouchableOpacity style={styles.printBtnAction} onPress={handlePrint}>
-                        <Printer size={20} color="#fff" />
-                        <Text style={styles.printBtnText}>{t('billing.printReceipt')}</Text>
-                     </TouchableOpacity>
-                   )}
+                   <TouchableOpacity style={styles.printBtnAction} onPress={handlePrint}>
+                      <Printer size={20} color="#fff" />
+                      <Text style={styles.printBtnText}>{t('billing.printReceipt')}</Text>
+                   </TouchableOpacity>
                    
                    <TouchableOpacity 
                      style={styles.doneBtn} 
@@ -594,6 +638,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
+    marginHorizontal: 4,
   },
   methodBtnActive: {
     backgroundColor: '#ffffff',
@@ -622,12 +667,12 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 10,
-    marginRight: 8,
+    borderRadius: 12,
+    marginRight: 10,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    height: 38,
+    minHeight: 44,
     justifyContent: 'center',
   },
   chipActive: {

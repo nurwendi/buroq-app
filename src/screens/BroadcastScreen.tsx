@@ -12,11 +12,13 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { Send, Megaphone, Users, User, ArrowLeft, Info, AlertTriangle, CheckCircle, AlertCircle, UserCog } from 'lucide-react-native';
+import { Send, Megaphone, Users, User, Info, AlertTriangle, CheckCircle, AlertCircle, UserCog } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 type TargetType = 'all' | 'customers' | 'staff' | 'specific';
 type NotificationType = 'info' | 'success' | 'alert' | 'error';
@@ -84,23 +86,18 @@ export default function BroadcastScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
+      <GradientHeader 
+        title={t('broadcast.title')}
+        role={role.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+      />
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <ArrowLeft size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Megaphone size={20} color="#2563eb" />
-            <Text style={styles.headerTitle}>{t('broadcast.title')}</Text>
-          </View>
-          <View style={{ width: 40 }} />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <Text style={styles.label}>{t('broadcast.targetRecipient')}</Text>
             <View style={styles.targetGrid}>
@@ -197,159 +194,163 @@ export default function BroadcastScreen() {
           
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backBtn: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 24,
+    paddingBottom: 60,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 28,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-    marginBottom: 10,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94a3b8',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginLeft: 4,
   },
   targetGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
   },
   targetCard: {
     flex: 1,
     minWidth: '45%',
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 24,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 8,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    gap: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   targetCardActive: {
     borderColor: '#2563eb',
     backgroundColor: '#eff6ff',
   },
   targetLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   targetLabelActive: {
     color: '#2563eb',
   },
   hintText: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#94a3b8',
-    marginTop: 6,
-    marginLeft: 4,
+    marginTop: 8,
+    marginLeft: 8,
+    fontWeight: '500',
   },
   typeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
   },
   typeBtn: {
     flex: 1,
     minWidth: '22%',
-    height: 40,
-    borderRadius: 10,
+    height: 48,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: 'transparent',
     backgroundColor: '#f1f5f9',
-    gap: 6,
+    gap: 8,
   },
   typeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   typeLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '800',
     color: '#64748b',
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    padding: 16,
     fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    color: '#1e293b',
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    color: '#0f172a',
+    fontWeight: '500',
   },
   textArea: {
-    height: 120,
+    height: 140,
+    paddingTop: 16,
   },
   sendBtn: {
     backgroundColor: '#2563eb',
-    borderRadius: 14,
-    paddingVertical: 16,
+    borderRadius: 24,
+    paddingVertical: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    marginTop: 10,
+    gap: 12,
+    marginTop: 12,
     shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   sendBtnDisabled: {
-    backgroundColor: '#94a3b8',
+    backgroundColor: '#e2e8f0',
     shadowOpacity: 0,
     elevation: 0,
   },
   sendBtnText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 24,
-    gap: 10,
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 20,
+    marginTop: 32,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   infoText: {
-    fontSize: 11,
-    color: '#64748b',
+    fontSize: 12,
+    color: '#94a3b8',
     flex: 1,
-    lineHeight: 16,
+    lineHeight: 18,
+    fontWeight: '500',
   }
 });

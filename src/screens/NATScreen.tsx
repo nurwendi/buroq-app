@@ -46,6 +46,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 export default function NATScreen() {
   const { user } = useAuth();
@@ -398,42 +400,48 @@ export default function NATScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('nat.title')}</Text>
-        {activeTab !== 'isolir' ? (
-          <TouchableOpacity onPress={activeTab === 'mikrotik' ? handleOpenAddMikrotik : handleOpenAddNas} style={styles.addButton}>
-            <Plus size={24} color="#2563eb" />
-          </TouchableOpacity>
-        ) : <View style={{ width: 40 }} />}
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('nat.title')}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+      />
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'mikrotik' && styles.tabActive]} 
-          onPress={() => setActiveTab('mikrotik')}
-        >
-          <Server size={18} color={activeTab === 'mikrotik' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'mikrotik' && styles.tabTextActive]}>{t('nat.mikrotik')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'nas' && styles.tabActive]} 
-          onPress={() => setActiveTab('nas')}
-        >
-          <Shield size={18} color={activeTab === 'nas' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'nas' && styles.tabTextActive]}>{t('nat.radius')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'isolir' && styles.tabActive]} 
-          onPress={() => setActiveTab('isolir')}
-        >
-          <Wifi size={18} color={activeTab === 'isolir' ? '#2563eb' : '#64748b'} />
-          <Text style={[styles.tabText, activeTab === 'isolir' && styles.tabTextActive]}>{t('nat.isolir')}</Text>
-        </TouchableOpacity>
+      <View style={styles.tabContainer}>
+        <View style={styles.tabBar}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'mikrotik' && styles.tabActive]} 
+            onPress={() => setActiveTab('mikrotik')}
+          >
+            <Server size={18} color={activeTab === 'mikrotik' ? '#2563eb' : '#64748b'} />
+            <Text style={[styles.tabText, activeTab === 'mikrotik' && styles.tabTextActive]}>{t('nat.mikrotik')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'nas' && styles.tabActive]} 
+            onPress={() => setActiveTab('nas')}
+          >
+            <Shield size={18} color={activeTab === 'nas' ? '#2563eb' : '#64748b'} />
+            <Text style={[styles.tabText, activeTab === 'nas' && styles.tabTextActive]}>{t('nat.radius')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'isolir' && styles.tabActive]} 
+            onPress={() => setActiveTab('isolir')}
+          >
+            <Wifi size={18} color={activeTab === 'isolir' ? '#2563eb' : '#64748b'} />
+            <Text style={[styles.tabText, activeTab === 'isolir' && styles.tabTextActive]}>{t('nat.isolir')}</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {activeTab !== 'isolir' && (
+          <TouchableOpacity 
+            onPress={activeTab === 'mikrotik' ? handleOpenAddMikrotik : handleOpenAddNas} 
+            style={styles.floatingAddBtn}
+          >
+            <Plus size={24} color="#ffffff" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading && !refreshing ? (
@@ -576,106 +584,240 @@ export default function NATScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#ffffff',
-    borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingTop: Platform.OS === 'android' ? 40 : 12,
+  container: { flex: 1, backgroundColor: '#ffffff' },
+  tabContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  backButton: { padding: 8, borderRadius: 12, backgroundColor: '#f1f5f9' },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
-  addButton: { padding: 8 },
   tabBar: {
-    flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 8, gap: 8,
-    borderBottomWidth: 1, borderBottomColor: '#f1f5f9'
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    padding: 6,
+    borderRadius: 20,
+    gap: 4,
   },
   tab: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 10, borderRadius: 12, backgroundColor: '#f1f5f9', gap: 8
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 14,
+    gap: 8,
   },
-  tabActive: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#2563eb30' },
-  tabText: { fontSize: 13, fontWeight: '600', color: '#64748b' },
+  tabActive: {
+    backgroundColor: '#ffffff',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  tabText: { fontSize: 13, fontWeight: '700', color: '#64748b' },
   tabTextActive: { color: '#2563eb' },
+  floatingAddBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#2563eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  listContent: { padding: 16, paddingBottom: 40 },
-  scrollContent: { padding: 16 },
+  listContent: { padding: 20, paddingBottom: 40 },
+  scrollContent: { padding: 20 },
   card: {
-    backgroundColor: '#ffffff', borderRadius: 20, padding: 16, marginBottom: 12,
-    borderWidth: 1, borderColor: '#f1f5f9', elevation: 2, shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   activeCard: {
-    borderColor: '#10b981', backgroundColor: '#f0fdf4'
+    borderColor: '#10b98120',
+    backgroundColor: '#f0fdf450',
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center' },
-  iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  iconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
-  cardSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  cardName: { fontSize: 16, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3 },
+  cardSub: { fontSize: 13, color: '#94a3b8', marginTop: 2, fontWeight: '500' },
   activeBadge: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#dcfce7',
-    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 8, gap: 4
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 10,
+    gap: 6,
   },
-  activeBadgeText: { fontSize: 9, fontWeight: '900', color: '#059669', letterSpacing: 0.5 },
-  cardActions: { flexDirection: 'row', gap: 6 },
-  actionBtn: { padding: 8, backgroundColor: '#f8fafc', borderRadius: 10, borderWidth: 1, borderColor: '#f1f5f9' },
-  statsRow: { flexDirection: 'row', gap: 12, marginTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 12 },
+  activeBadgeText: { fontSize: 10, fontWeight: '900', color: '#059669', letterSpacing: 0.5, textTransform: 'uppercase' },
+  cardActions: { flexDirection: 'row', gap: 8 },
+  actionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    paddingTop: 16,
+  },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statValue: { fontSize: 11, fontWeight: '600', color: '#64748b' },
-  cardFooter: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 12 },
-  footerText: { fontSize: 11, color: '#64748b' },
-  mono: { fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#2563eb', fontWeight: 'bold' },
-  footerDesc: { fontSize: 11, color: '#94a3b8', marginTop: 4, fontStyle: 'italic' },
+  statValue: { fontSize: 11, fontWeight: '800', color: '#64748b' },
+  cardFooter: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 16 },
+  footerText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
+  mono: { fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#2563eb', fontWeight: '800' },
+  footerDesc: { fontSize: 11, color: '#94a3b8', marginTop: 6, fontStyle: 'italic', fontWeight: '500' },
   isolirHeader: { 
-    alignItems: 'center', paddingVertical: 24, backgroundColor: '#fff', borderRadius: 24, 
-    marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9' 
+    alignItems: 'center',
+    paddingVertical: 32,
+    backgroundColor: '#ffffff',
+    borderRadius: 32, 
+    marginBottom: 20,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
   },
-  isolirHeaderTexts: { alignItems: 'center', paddingHorizontal: 20 },
-  isolirTitle: { fontSize: 18, fontWeight: '800', color: '#1e293b', marginBottom: 8 },
-  isolirDesc: { fontSize: 13, color: '#64748b', textAlign: 'center' },
+  isolirHeaderTexts: { alignItems: 'center', paddingHorizontal: 24 },
+  isolirTitle: { fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 10, letterSpacing: -0.5 },
+  isolirDesc: { fontSize: 13, color: '#64748b', textAlign: 'center', lineHeight: 20, fontWeight: '500' },
   runBtn: {
-    backgroundColor: '#ef4444', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    padding: 16, borderRadius: 16, gap: 12, marginBottom: 20, elevation: 4, shadowColor: '#ef4444', 
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8
+    backgroundColor: '#ef4444', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 18, 
+    borderRadius: 24, 
+    gap: 12, 
+    marginBottom: 24, 
+    elevation: 6,
+    shadowColor: '#ef4444', 
+    shadowOffset: { width: 0, height: 8 }, 
+    shadowOpacity: 0.25, 
+    shadowRadius: 12,
   },
-  runBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
-  formSection: { padding: 20, backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#f1f5f9' },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#1e293b' },
-  gridForm: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  runBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
+  formSection: { 
+    padding: 24, 
+    backgroundColor: '#ffffff', 
+    borderRadius: 32, 
+    borderWidth: 1.2, 
+    borderColor: '#f1f5f9',
+    marginBottom: 20,
+  },
+  sectionTitleRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 12, 
+    marginBottom: 20, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#f8fafc', 
+    paddingBottom: 12 
+  },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: 1 },
+  gridForm: { flexDirection: 'row', gap: 16, marginTop: 4 },
   inputCol: { flex: 1 },
-  label: { fontSize: 13, fontWeight: '700', color: '#64748b', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, paddingHorizontal: 16, height: 48, fontSize: 14, color: '#1e293b' },
-  saveBtn: {
-    backgroundColor: '#2563eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    padding: 16, borderRadius: 16, gap: 12, marginTop: 24
+  label: { fontSize: 12, fontWeight: '800', color: '#94a3b8', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 1.2, marginLeft: 4 },
+  input: { 
+    backgroundColor: '#f8fafc', 
+    borderWidth: 1.2, 
+    borderColor: '#f1f5f9', 
+    borderRadius: 16, 
+    paddingHorizontal: 16, 
+    height: 56, 
+    fontSize: 15, 
+    color: '#0f172a',
+    fontWeight: '600',
   },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  saveBtn: {
+    backgroundColor: '#2563eb', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 18, 
+    borderRadius: 24, 
+    gap: 12, 
+    marginTop: 32,
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  saveBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
   scriptPreviewContainer: {
-    backgroundColor: '#0f172a', borderRadius: 16, marginTop: 10, overflow: 'hidden'
+    backgroundColor: '#0f172a', borderRadius: 24, marginTop: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293b'
   },
   scriptHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155'
+    paddingHorizontal: 20, paddingVertical: 12, backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155'
   },
-  scriptHeaderText: { fontSize: 11, fontWeight: '700', color: '#94a3b8', letterSpacing: 0.5 },
-  copyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#334155', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
-  copyBtnText: { fontSize: 11, fontWeight: '700', color: '#cbd5e1' },
+  scriptHeaderText: { fontSize: 11, fontWeight: '800', color: '#94a3b8', letterSpacing: 1, textTransform: 'uppercase' },
+  copyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#334155', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  copyBtnText: { fontSize: 11, fontWeight: '800', color: '#cbd5e1' },
   scriptText: { 
-    padding: 16, color: '#10b981', fontSize: 12, 
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', lineHeight: 20 
+    padding: 24, color: '#10b981', fontSize: 13, 
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', lineHeight: 22 
   },
-  scriptNote: { fontSize: 11, color: '#94a3b8', marginTop: 10, fontStyle: 'italic' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '85%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b' },
-  modalBody: { padding: 24 },
-  emptyContainer: { alignItems: 'center', marginTop: 100 },
-  emptyText: { marginTop: 16, fontSize: 16, color: '#94a3b8', fontWeight: '500' }
+  scriptNote: { fontSize: 11, color: '#94a3b8', marginTop: 12, fontStyle: 'italic', fontWeight: '500', textAlign: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#ffffff', borderTopLeftRadius: 40, borderTopRightRadius: 40, height: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 28, borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: '#0f172a', letterSpacing: -0.5 },
+  modalBody: { padding: 28 },
+  emptyContainer: { alignItems: 'center', marginTop: 120 },
+  emptyText: { marginTop: 20, fontSize: 16, color: '#94a3b8', fontWeight: '700' }
 });

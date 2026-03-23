@@ -9,13 +9,14 @@ import {
   ActivityIndicator, 
   RefreshControl,
   Platform,
-  SafeAreaView,
-  ScrollView
+  ScrollView,
+  StatusBar
 } from 'react-native';
-import { Search, ArrowLeft, Filter, Users } from 'lucide-react-native';
+import { Search, Users } from 'lucide-react-native';
 import apiClient from '../api/client';
 import CustomerItem from '../components/CustomerItem';
 import { useLanguage } from '../context/LanguageContext';
+import GradientHeader from '../components/GradientHeader';
 
 export default function CustomerListScreen({ navigation }: any) {
   const { t } = useLanguage();
@@ -37,7 +38,6 @@ export default function CustomerListScreen({ navigation }: any) {
       const activeData = Array.isArray(activeRes.data) ? activeRes.data : [];
       const activeMap = new Map(activeData.map((conn: any) => [conn.name, conn['address'] || conn['remote-address']]));
       
-      // API returns an object with username as key, convert to array
       const rawData = custRes.data || {};
       const data = Object.values(rawData).map((c: any) => ({
         ...c,
@@ -70,7 +70,6 @@ export default function CustomerListScreen({ navigation }: any) {
   useEffect(() => {
     let filtered = [...customers];
 
-    // Search filter
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(c => 
@@ -81,7 +80,6 @@ export default function CustomerListScreen({ navigation }: any) {
       );
     }
 
-    // Type filter
     if (filterType === 'online') {
       filtered = filtered.filter(c => c.isOnline);
     } else if (filterType === 'offline') {
@@ -100,17 +98,14 @@ export default function CustomerListScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <GradientHeader 
+        title={t('users.listTitle')} 
+        onBackPress={() => navigation.goBack()}
+      />
 
       <View style={styles.topSection}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.title}>{t('users.listTitle')}</Text>
-          <View style={{ width: 44 }} />
-        </View>
-
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Search size={20} color="#94a3b8" />
@@ -139,7 +134,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'online' && styles.filterChipActive]}
               onPress={() => setFilterType('online')}
             >
-              <View style={[styles.statusDot, { backgroundColor: '#10b981' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'online' ? '#ffffff' : '#10b981' }]} />
               <Text style={[styles.filterChipText, filterType === 'online' && styles.filterChipTextActive]}>
                 {t('users.online')} ({counts.online})
               </Text>
@@ -149,7 +144,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'offline' && styles.filterChipActive]}
               onPress={() => setFilterType('offline')}
             >
-              <View style={[styles.statusDot, { backgroundColor: '#cbd5e1' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'offline' ? '#ffffff' : '#cbd5e1' }]} />
               <Text style={[styles.filterChipText, filterType === 'offline' && styles.filterChipTextActive]}>
                 {t('users.offline')} ({counts.offline})
               </Text>
@@ -159,7 +154,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'isolir' && styles.filterChipActive]}
               onPress={() => setFilterType('isolir')}
             >
-              <View style={[styles.statusDot, { backgroundColor: '#ef4444' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'isolir' ? '#ffffff' : '#ef4444' }]} />
               <Text style={[styles.filterChipText, filterType === 'isolir' && styles.filterChipTextActive]}>
                 {t('users.isolir')} ({counts.isolir})
               </Text>
@@ -179,105 +174,96 @@ export default function CustomerListScreen({ navigation }: any) {
           renderItem={({ item }) => (
             <CustomerItem 
               customer={item} 
-              onPress={() => navigation.navigate('CustomerDetail', { customer: item })} 
+              onPress={() => navigation.navigate('CustomerDetail', { username: item.username })} 
             />
           )}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Users size={48} color="#cbd5e1" />
+              <View style={styles.emptyIconContainer}>
+                <Users size={48} color="#2563eb" />
+              </View>
               <Text style={styles.emptyText}>{t('users.notFound')}</Text>
             </View>
           }
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} />
           }
-          contentContainerStyle={filteredCustomers.length === 0 ? { flex: 1 } : null}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.listContent,
+            filteredCustomers.length === 0 && { flex: 1 }
+          ]}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
   },
   topSection: {
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
     zIndex: 10,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 10 : 20,
-    paddingBottom: 8,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
   searchContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
     backgroundColor: '#ffffff',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1.5,
+    borderColor: '#f1f5f9',
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
     fontSize: 15,
+    fontWeight: '700',
     color: '#0f172a',
   },
   filterContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   filterScroll: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: 20,
+    gap: 10,
     paddingBottom: 4,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 100,
     backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderWidth: 1.5,
+    borderColor: '#f1f5f9',
   },
   filterChipActive: {
     backgroundColor: '#2563eb',
     borderColor: '#2563eb',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   filterChipText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   filterChipTextActive: {
     color: '#ffffff',
@@ -286,23 +272,35 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
+    marginRight: 8,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  listContent: {
+    paddingBottom: 40,
+  },
   empty: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 100,
+    paddingTop: 80,
+  },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 40,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#94a3b8',
-    fontWeight: '500',
+    fontSize: 18,
+    color: '#0f172a',
+    fontWeight: '900',
+    letterSpacing: -0.5,
   }
 });

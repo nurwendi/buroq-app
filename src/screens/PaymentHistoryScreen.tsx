@@ -9,9 +9,12 @@ import {
   RefreshControl,
   SafeAreaView
 } from 'react-native';
-import { ArrowLeft, CreditCard, ChevronRight, Filter, Calendar } from 'lucide-react-native';
+import { ArrowLeft, CreditCard, ChevronRight, Filter, Calendar, Printer } from 'lucide-react-native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { printReceipt } from '../utils/printer';
+import PrinterSettingsModal from '../components/PrinterSettingsModal';
+import { Alert } from 'react-native';
 
 export default function PaymentHistoryScreen({ route, navigation }: any) {
   const { username, name } = route.params;
@@ -19,10 +22,13 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [printerModalVisible, setPrinterModalVisible] = useState(false);
 
   const fetchPayments = async () => {
     try {
-      const response = await apiClient.get(`/api/billing/payments?username=${username}`);
+      setLoading(true);
+      const url = username ? `/api/billing/payments?username=${username}` : '/api/billing/payments';
+      const response = await apiClient.get(url);
       setPayments(response.data);
     } catch (e) {
       console.error('Failed to fetch payments', e);
@@ -41,6 +47,25 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
     setRefreshing(false);
   };
 
+  const handlePrint = async (item: any) => {
+    try {
+      await printReceipt({
+        invoiceNumber: item.invoiceNumber,
+        customerName: name || username || item.customerName,
+        date: new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+        amount: item.amount,
+        paymentMethod: item.method === 'cash' ? (t('billing.cash') || 'Tunai') : (t('billing.transfer') || 'Transfer')
+      });
+      Alert.alert(t('common.success'), t('billing.printingReceipt'));
+    } catch (e: any) {
+      if (e.message?.includes('belum disetting')) {
+        setPrinterModalVisible(true);
+      } else {
+        Alert.alert(t('common.error'), e.message || t('billing.printReceiptError'));
+      }
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed': return '#10b981';
@@ -55,6 +80,9 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
       <View style={styles.paymentHeader}>
         <View style={styles.invoiceInfo}>
           <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
+          {(!username) && (
+             <Text style={styles.customerNameInList}>{item.customerName || item.username}</Text>
+          )}
           <Text style={styles.paymentDate}>
             {new Date(item.date).toLocaleDateString(t('common.locale') === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
           </Text>
@@ -79,6 +107,14 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
           <Text style={styles.notesText} numberOfLines={1}>{item.notes}</Text>
         </View>
       ) : null}
+
+      <TouchableOpacity 
+        style={styles.printButton}
+        onPress={() => handlePrint(item)}
+      >
+        <Printer size={16} color="#2563eb" />
+        <Text style={styles.printButtonText}>{t('billing.printReceipt')}</Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -90,7 +126,11 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title}>{t('billing.paymentHistory')}</Text>
-          <Text style={styles.subtitle}>{name || username}</Text>
+          {username ? (
+            <Text style={styles.subtitle}>{name || username}</Text>
+          ) : (
+            <Text style={styles.subtitle}>{t('billing.allTransactions') || 'Semua Transaksi'}</Text>
+          )}
         </View>
         <TouchableOpacity style={styles.filterButton}>
           <Calendar size={20} color="#64748b" />
@@ -118,6 +158,11 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
           }
         />
       )}
+
+      <PrinterSettingsModal 
+        visible={printerModalVisible} 
+        onClose={() => setPrinterModalVisible(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -204,9 +249,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   paymentDate: {
-    fontSize: 13,
-    color: '#64748b',
+    fontSize: 12,
+    color: '#94a3b8',
     fontWeight: '500',
+  },
+  customerNameInList: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 2,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -266,5 +317,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94a3b8',
     fontWeight: '500',
+  },
+  printButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    gap: 8,
+  },
+  printButtonText: {
+    fontSize: 14,
+    color: '#2563eb',
+    fontWeight: '700',
   }
 });

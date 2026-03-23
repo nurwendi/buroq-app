@@ -12,7 +12,8 @@ import {
   Platform,
   Alert,
   Modal,
-  ScrollView
+  ScrollView,
+  StatusBar
 } from 'react-native';
 import { 
   Users, 
@@ -31,6 +32,8 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 export default function SystemUsersScreen() {
   const { user: currentUser } = useAuth();
@@ -269,20 +272,14 @@ export default function SystemUsersScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('systemUsers.title')}</Text>
-        {(currentUser?.role === 'superadmin' || currentUser?.role === 'admin') ? (
-          <TouchableOpacity onPress={() => handleOpenModal()} style={styles.addButton}>
-            <Plus size={24} color="#ffffff" />
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('systemUsers.title')}
+        role={currentUser?.role?.toUpperCase()}
+        userAvatar={resolveUrl(currentUser?.avatar)}
+        onBackPress={() => navigation.goBack()}
+      />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
@@ -295,6 +292,11 @@ export default function SystemUsersScreen() {
             placeholderTextColor="#94a3b8"
           />
         </View>
+        {(currentUser?.role === 'superadmin' || currentUser?.role === 'admin') && (
+          <TouchableOpacity onPress={() => handleOpenModal()} style={styles.floatingAddBtn}>
+            <Plus size={24} color="#ffffff" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
@@ -471,58 +473,53 @@ export default function SystemUsersScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingTop: Platform.OS === 'android' ? 40 : 12,
-  },
-  backButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#f1f5f9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  row: {
-    flexDirection: 'row',
   },
   searchContainer: {
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   searchBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
     paddingHorizontal: 16,
-    borderRadius: 12,
-    height: 48,
+    borderRadius: 20,
+    height: 52,
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
     fontSize: 15,
-    color: '#1e293b',
+    color: '#0f172a',
+    fontWeight: '600',
+  },
+  floatingAddBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#2563eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  row: {
+    flexDirection: 'row',
   },
   center: {
     flex: 1,
@@ -530,21 +527,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
   },
   userCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1.2,
     borderColor: '#f1f5f9',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   userHeader: {
     flexDirection: 'row',
@@ -552,58 +555,63 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   userInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1e293b',
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   userUsername: {
     fontSize: 13,
-    color: '#64748b',
+    color: '#94a3b8',
     marginTop: 2,
+    fontWeight: '600',
   },
   roleBadge: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   roleText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
   userFooter: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
-    paddingTop: 12,
+    paddingTop: 16,
     gap: 16,
+    alignItems: 'flex-end',
   },
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flex: 1,
   },
   contactText: {
     fontSize: 12,
     color: '#64748b',
+    fontWeight: '600',
   },
   roleCapabilities: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    paddingLeft: 20,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+    paddingLeft: 22,
   },
   capabilityBadge: {
     paddingHorizontal: 8,
@@ -612,30 +620,22 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 120,
   },
   emptyText: {
-    marginTop: 16,
+    marginTop: 20,
     fontSize: 16,
     color: '#94a3b8',
-    fontWeight: '500',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#2563eb',
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontWeight: '700',
   },
   actions: {
     flexDirection: 'row',
     gap: 8,
   },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
@@ -644,74 +644,85 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: '90%',
-    padding: 24,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    height: '92%',
+    padding: 28,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1e293b',
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0f172a',
+    letterSpacing: -0.5,
   },
   modalBody: {
     flex: 1,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94a3b8',
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginLeft: 4,
   },
   modalInput: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
     paddingHorizontal: 16,
-    height: 52,
+    height: 56,
     fontSize: 15,
-    color: '#1e293b',
+    color: '#0f172a',
+    fontWeight: '600',
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
   },
   modalFooter: {
     marginTop: 24,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
   },
   saveButton: {
     backgroundColor: '#2563eb',
-    height: 56,
-    borderRadius: 16,
+    height: 60,
+    borderRadius: 24,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
+    elevation: 4,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   saveButtonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
-  rolePicker: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 10,
+  rolePickerContainer: {
+    marginBottom: 12,
   },
   roleOption: {
-    paddingHorizontal: 16,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    paddingHorizontal: 20,
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#f1f5f9',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ffffff',
@@ -721,102 +732,60 @@ const styles = StyleSheet.create({
     borderColor: '#2563eb',
   },
   roleOptionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: '#64748b',
   },
   roleOptionTextActive: {
     color: '#ffffff',
   },
-  capabilitiesContainer: {
-    marginTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 16,
-  },
-  capabilityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  checkboxActive: {
-    borderColor: '#2563eb',
-    backgroundColor: '#2563eb',
-  },
-  checkboxInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    backgroundColor: '#ffffff',
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '600',
-  },
-  rolePickerContainer: {
-    marginBottom: 8,
-  },
   roleHint: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#94a3b8',
     marginTop: 8,
+    fontWeight: '500',
+    fontStyle: 'italic',
   },
   businessRoleContainer: {
-    marginTop: 24,
-    paddingTop: 16,
+    marginTop: 32,
+    paddingTop: 24,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
   businessRoleTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 20,
   },
   businessRoleOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    gap: 12,
   },
   customCheckbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#cbd5e1',
+    borderColor: '#e2e8f0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
   customCheckboxActive: {
     borderColor: '#2563eb',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#2563eb',
   },
   customCheckboxInner: {
     width: 10,
     height: 10,
     borderRadius: 2,
-    backgroundColor: '#2563eb',
+    backgroundColor: '#ffffff',
   },
   businessRoleLabel: {
-    fontSize: 14,
-    color: '#334155',
-    fontWeight: '600',
+    fontSize: 15,
+    color: '#475569',
+    fontWeight: '700',
   },
 });

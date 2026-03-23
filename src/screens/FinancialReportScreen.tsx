@@ -237,13 +237,13 @@ export default function FinancialReportScreen() {
         <Text style={styles.headerTitle}>{t('financial.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
-            <ShareIcon size={20} color="#1e293b" />
+            <ShareIcon size={18} color="#475569" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handlePrint} style={styles.actionButton} disabled={printing}>
+          <TouchableOpacity onPress={handlePrint} style={[styles.actionButton, printing && { opacity: 0.5 }]} disabled={printing}>
             {printing ? (
-              <ActivityIndicator size="small" color="#1e293b" />
+              <ActivityIndicator size="small" color="#2563eb" />
             ) : (
-              <Printer size={20} color="#1e293b" />
+              <Printer size={18} color="#475569" />
             )}
           </TouchableOpacity>
         </View>
@@ -304,31 +304,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
+    paddingBottom: 16,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    paddingTop: Platform.OS === 'android' ? 40 : 12,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0f172a',
   },
   headerActions: {
     flexDirection: 'row',
     gap: 8,
   },
   actionButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterBar: {
     backgroundColor: '#ffffff',
@@ -337,7 +347,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   filterScroll: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     alignItems: 'center',
     gap: 16,
   },
@@ -352,7 +362,7 @@ const styles = StyleSheet.create({
   },
   selectorLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1e293b',
   },
   monthPills: {
@@ -373,7 +383,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#64748b',
   },
   pillTextActive: {
@@ -385,53 +395,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
   },
   summaryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   summaryCard: {
-    width: (width - 44) / 2,
+    width: (width - 52) / 2,
     backgroundColor: '#ffffff',
-    padding: 16,
+    padding: 20,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
+    letterSpacing: 0.8,
+    marginBottom: 6,
   },
   cardAmount: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0f172a',
   },
   subValueRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 8,
+    marginTop: 10,
   },
   subValueText: {
     fontSize: 11,
@@ -441,63 +458,66 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     marginBottom: 16,
     marginTop: 8,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1e293b',
+    color: '#0f172a',
+    letterSpacing: -0.3,
   },
   tableCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   tableHeader: {
     flexDirection: 'row',
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   tableHeadText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: '#94a3b8',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#f8fafc',
     alignItems: 'center',
   },
   tableCellName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1e293b',
   },
   tableCellText: {
     fontSize: 13,
     color: '#64748b',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   tableCellProfit: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#10b981',
   },
   paymentCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#f1f5f9',
   },
@@ -505,45 +525,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   paymentLeft: {
     flex: 1,
   },
   customerName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 2,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 4,
   },
   customerUser: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748b',
+    fontWeight: '500',
   },
   paymentRight: {
     alignItems: 'flex-end',
   },
   paymentAmount: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     color: '#2563eb',
-    marginBottom: 6,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   statusText: {
     fontSize: 10,
     fontWeight: '800',
+    letterSpacing: 0.5,
   },
   paymentFooter: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#f8fafc',
-    paddingTop: 12,
-    gap: 16,
+    paddingTop: 16,
+    justifyContent: 'space-between',
   },
   footerItem: {
     flexDirection: 'row',
@@ -553,16 +576,16 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 11,
     color: '#94a3b8',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 80,
+    gap: 20,
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 15,
+    fontSize: 16,
     color: '#94a3b8',
-    fontWeight: '500',
+    fontWeight: '600',
   }
 });

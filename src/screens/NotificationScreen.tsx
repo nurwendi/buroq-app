@@ -28,10 +28,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 export default function NotificationScreen() {
   const navigation = useNavigation<any>();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -113,21 +117,22 @@ export default function NotificationScreen() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('notifications.title')}</Text>
-        <View style={{ width: 44 }}>
-           {unreadCount > 0 && (
-             <TouchableOpacity onPress={markAllRead} style={styles.markAllIcon}>
-               <CheckCheck size={20} color="#2563eb" />
-             </TouchableOpacity>
-           )}
-        </View>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('notifications.title')}
+        subtitle={unreadCount > 0 ? `${unreadCount} ${t('notifications.unreadSuffix') || 'unread'}` : t('notifications.allCaughtUp')}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+        rightElement={
+          unreadCount > 0 ? (
+            <TouchableOpacity onPress={markAllRead} style={styles.iconButton}>
+              <CheckCheck size={22} color="#2563eb" />
+            </TouchableOpacity>
+          ) : undefined
+        }
+      />
 
       <View style={styles.filtersWrapper}>
         <View style={styles.searchContainer}>
@@ -240,93 +245,71 @@ export default function NotificationScreen() {
           })}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
-    paddingBottom: 20,
     backgroundColor: '#ffffff',
   },
-  backButton: {
+  iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f1f5f9',
+    borderRadius: 14,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  markAllIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
   },
   filtersWrapper: {
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 16,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 44,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 52,
+    marginBottom: 16,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
+    marginLeft: 12,
+    fontSize: 15,
     color: '#0f172a',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#f1f5f9',
     padding: 4,
-    borderRadius: 10,
+    borderRadius: 16,
   },
   tab: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 12,
   },
   activeTab: {
     backgroundColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
   },
   tabText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#64748b',
+    letterSpacing: 0.2,
   },
   activeTabText: {
     color: '#2563eb',
@@ -337,28 +320,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 10,
-    color: '#64748b',
-    fontWeight: '500',
+    marginTop: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 100,
+    paddingTop: 60,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#0f172a',
     marginTop: 20,
+    letterSpacing: -0.5,
   },
   emptySubtitle: {
     fontSize: 14,
     color: '#94a3b8',
-    marginTop: 5,
+    marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 40,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   list: {
     flex: 1,
@@ -368,35 +355,42 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 5,
-    elevation: 1,
+    borderWidth: 1.2,
+    borderColor: '#f1f5f9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 1.5,
+      },
+    }),
   },
   unreadCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#2563eb',
-    backgroundColor: '#f8fafc',
+    borderColor: '#dbeafe',
+    backgroundColor: '#f8faff',
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   cardIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   cardInfo: {
     flex: 1,
@@ -411,20 +405,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#475569',
     flex: 1,
-    marginRight: 8,
+    marginRight: 10,
+    letterSpacing: -0.2,
   },
   unreadText: {
     color: '#0f172a',
+    fontWeight: '800',
   },
   typeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   typeBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '900',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   timeRow: {
     flexDirection: 'row',
@@ -435,19 +432,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94a3b8',
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   message: {
     fontSize: 14,
     color: '#64748b',
-    lineHeight: 20,
-    marginBottom: 15,
+    lineHeight: 22,
+    marginBottom: 20,
+    fontWeight: '500',
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
@@ -456,38 +454,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   initialsMini: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#e2e8f0',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
   },
   initialsMiniText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748b',
+    color: '#2563eb',
   },
   avatarMini: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#e2e8f0',
-    marginRight: 8,
+    marginRight: 10,
   },
   senderName: {
     fontSize: 12,
     color: '#94a3b8',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   markReadBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    backgroundColor: '#2563eb',
+    borderRadius: 12,
   },
   markReadText: {
     fontSize: 12,
-    color: '#2563eb',
-    fontWeight: '700',
+    color: '#ffffff',
+    fontWeight: '800',
   }
 });

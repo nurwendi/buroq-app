@@ -5,7 +5,6 @@ import SuperadminDashboardView from './Dashboard/SuperadminDashboardView';
 import StaffDashboardView from './Dashboard/StaffDashboardView';
 import CustomerDashboardView from './Dashboard/CustomerDashboardView';
 import { View, ActivityIndicator } from 'react-native';
-import NativeNotificationHandler from '../components/NativeNotificationHandler';
 
 export default function DashboardScreen() {
   const { user, loading } = useAuth();
@@ -23,7 +22,6 @@ export default function DashboardScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <NativeNotificationHandler />
       {role === 'superadmin' ? (
         <SuperadminDashboardView />
       ) : role === 'admin' ? (

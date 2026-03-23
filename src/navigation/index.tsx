@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import MainStack from './MainStack';
 import { ActivityIndicator, View } from 'react-native';
+import NativeNotificationHandler from '../components/NativeNotificationHandler';
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ export default function Navigation() {
   }
 
   return (
+    <>
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
@@ -31,5 +33,7 @@ export default function Navigation() {
         <Stack.Screen name="Login" component={LoginScreen} />
       )}
     </Stack.Navigator>
+    <NativeNotificationHandler />
+    </>
   );
 }
