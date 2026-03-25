@@ -16,33 +16,22 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   Users, 
-  CreditCard, 
   Activity, 
-  TrendingUp,
-  FileText,
-  DollarSign,
-  UserPlus,
-  Settings,
-  Bell,
-  ChevronRight,
-  Plus,
-  Wifi,
-  Search,
   PlusCircle,
-  CreditCard as CreditCardIcon,
-  LayoutDashboard,
-  Shield,
-  Server,
+  Settings,
+  UserPlus,
+  Megaphone,
+  CreditCard,
   Clock,
-  Megaphone
+  ChevronRight
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
-import PppoePieChart from '../../components/PppoePieChart';
 import { useLanguage } from '../../context/LanguageContext';
+import { COLORS } from '../../constants/theme';
 
 export default function AdminDashboardView() {
   const { user } = useAuth();
@@ -85,11 +74,6 @@ export default function AdminDashboardView() {
       const statsData = statsRes.data || {};
       setStats(statsData);
       
-      // Calculate real online status
-      // Priority: 
-      // 1. Real-time activeRes data length if > 0
-      // 2. statsRes.data.pppoeActive if > 0
-      // 3. Fallback to 0
       const realTimeCount = Array.isArray(activeRes.data) ? activeRes.data.length : 0;
       const proxyCount = statsData.pppoeActive || 0;
 
@@ -139,7 +123,7 @@ export default function AdminDashboardView() {
       />
       <ScrollView 
         style={styles.fullScrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: 10 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
@@ -147,7 +131,7 @@ export default function AdminDashboardView() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.titleCard}>
-              <Activity size={18} color="#94a3b8" />
+              <Activity size={18} color={COLORS.slate[400]} />
               <Text style={styles.titleCardText}>{t('dashboard.customerStatus')}</Text>
             </View>
           </View>
@@ -157,7 +141,7 @@ export default function AdminDashboardView() {
                 title={t('users.all')} 
                 value={stats?.totalCustomers || 0} 
                 icon={Users} 
-                color="#0ea5e9" 
+                color={COLORS.accent} 
               />
             </View>
             <View style={{ width: '48%' }}>
@@ -165,52 +149,52 @@ export default function AdminDashboardView() {
                 title={t('users.online')} 
                 value={onlineCount} 
                 icon={Activity} 
-                color="#10b981" 
+                color={COLORS.success} 
               />
             </View>
           </View>
         </View>
 
-        {/* Section: Main Menu (Focus on CRUD/Approval) */}
+        {/* Section: Main Menu */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.titleCard}>
-              <PlusCircle size={18} color="#94a3b8" />
+              <PlusCircle size={18} color={COLORS.slate[400]} />
               <Text style={styles.titleCardText}>{t('dashboard.mainMenu')}</Text>
             </View>
           </View>
           <View style={styles.menuGrid}>
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f8fafc' }]}>
-                   <Settings size={22} color="#64748b" />
+                <View style={[styles.menuIconContainer, { backgroundColor: COLORS.slate[50] }]}>
+                   <Settings size={22} color={COLORS.slate[500]} />
                 </View>
                 <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <UserPlus size={22} color="#475569" />
+                <View style={[styles.menuIconContainer, { backgroundColor: COLORS.slate[100] }]}>
+                   <UserPlus size={22} color={COLORS.slate[700]} />
                 </View>
                 <Text style={styles.menuLabel}>{t('common.add')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CustomerList')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <Users size={22} color="#475569" />
+                <View style={[styles.menuIconContainer, { backgroundColor: COLORS.slate[100] }]}>
+                   <Users size={22} color={COLORS.slate[700]} />
                 </View>
                 <Text style={styles.menuLabel}>{t('sidebar.users')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Broadcast')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <Megaphone size={22} color="#475569" />
+                <View style={[styles.menuIconContainer, { backgroundColor: COLORS.slate[100] }]}>
+                   <Megaphone size={22} color={COLORS.slate[700]} />
                 </View>
                 <Text style={styles.menuLabel}>{t('sidebar.broadcast')}</Text>
              </TouchableOpacity>
 
              <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BillingTab')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <CreditCard size={22} color="#475569" />
+                <View style={[styles.menuIconContainer, { backgroundColor: COLORS.slate[100] }]}>
+                   <CreditCard size={22} color={COLORS.slate[700]} />
                 </View>
                 <Text style={styles.menuLabel}>{t('sidebar.billing')}</Text>
              </TouchableOpacity>
@@ -222,7 +206,7 @@ export default function AdminDashboardView() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.titleCard}>
-                <Clock size={18} color="#94a3b8" />
+                <Clock size={18} color={COLORS.slate[400]} />
                 <Text style={styles.titleCardText}>{t('dashboard.pendingApproval')}</Text>
               </View>
             </View>
@@ -235,14 +219,14 @@ export default function AdminDashboardView() {
                 >
                    <View style={styles.pendingItemLeft}>
                       <View style={styles.pendingIcon}>
-                         <Clock size={16} color="#64748b" />
+                         <Clock size={16} color={COLORS.slate[500]} />
                       </View>
                       <View>
                          <Text style={styles.pendingName}>{item.customerName || item.name}</Text>
                          <Text style={styles.pendingInfo}>{t('dashboard.waitingPayment')}</Text>
                       </View>
                    </View>
-                    <ChevronRight size={18} color="#94a3b8" />
+                    <ChevronRight size={18} color={COLORS.slate[400]} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -257,13 +241,7 @@ export default function AdminDashboardView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     padding: 20,
@@ -292,14 +270,9 @@ const styles = StyleSheet.create({
   titleCardText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-  },
-  seeAll: {
-    fontSize: 12,
-    color: '#2563eb',
-    fontWeight: '700',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -315,15 +288,15 @@ const styles = StyleSheet.create({
   menuItem: {
     flex: 1,
     minWidth: '30%',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     paddingVertical: 24,
     borderRadius: 28,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.border,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
         shadowRadius: 10,
@@ -344,18 +317,18 @@ const styles = StyleSheet.create({
   menuLabel: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1e293b',
+    color: COLORS.slate[800],
     textAlign: 'center',
   },
   pendingListLight: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 32,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.border,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
         shadowRadius: 12,
@@ -381,79 +354,24 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.border,
   },
   pendingName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.3,
   },
   pendingInfo: {
     fontSize: 13,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '600',
     marginTop: 2,
-  },
-  routerList: {
-    backgroundColor: '#ffffff',
-    borderRadius: 32,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  routerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 20,
-  },
-  routerInfoMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 14,
-  },
-  routerStatus: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  routerName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0f172a',
-    letterSpacing: -0.3,
-  },
-  routerHost: {
-    fontSize: 13,
-    color: '#94a3b8',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  routerPercent: {
-    fontSize: 13,
-    fontWeight: '800',
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
   },
 });
+
 

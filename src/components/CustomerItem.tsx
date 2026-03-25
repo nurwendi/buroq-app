@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image, Platform } from 'react-native';
 import { User, ChevronRight } from 'lucide-react-native';
 import { resolveUrl } from '../utils/url';
+import { COLORS } from '../constants/theme';
 
 interface CustomerItemProps {
   customer: any;
@@ -22,10 +23,10 @@ export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
                 style={styles.avatarImage} 
               />
             ) : (
-              <User size={24} color="#64748b" />
+              <User size={24} color={COLORS.slate[400]} />
             )}
           </View>
-          <View style={[styles.statusIndicator, { backgroundColor: isOnline ? '#10b981' : '#cbd5e1' }]} />
+          <View style={[styles.statusIndicator, { backgroundColor: isOnline ? COLORS.success : COLORS.slate[300] }]} />
         </View>
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
@@ -37,12 +38,12 @@ export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
       </View>
       <View style={styles.right}>
         <View style={styles.statusBadgeContainer}>
-           <Text style={[styles.statusText, { color: isOnline ? '#059669' : '#64748b' }]}>
+           <Text style={[styles.statusText, { color: isOnline ? COLORS.success : COLORS.slate[500] }]}>
              {isOnline ? (customer.ipAddress || 'Online') : 'Offline'}
            </Text>
         </View>
         <View style={styles.arrowIcon}>
-          <ChevronRight size={18} color="#94a3b8" />
+          <ChevronRight size={18} color={COLORS.slate[400]} />
         </View>
       </View>
     </TouchableOpacity>
@@ -55,12 +56,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 32,
     marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -86,9 +87,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 20,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 3,
-    borderColor: '#ffffff',
+    borderColor: COLORS.white,
   },
   info: {
     flex: 1,
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     marginBottom: 4,
     letterSpacing: -0.3,
   },
@@ -124,12 +125,12 @@ const styles = StyleSheet.create({
   idLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     textTransform: 'uppercase',
   },
   id: {
     fontSize: 12,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '800',
   },
   right: {
@@ -150,8 +151,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
   }
 });
+

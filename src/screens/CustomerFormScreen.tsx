@@ -37,6 +37,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
+import { COLORS } from '../constants/theme';
 
 export default function CustomerFormScreen() {
   const navigation = useNavigation<any>();
@@ -285,7 +286,7 @@ export default function CustomerFormScreen() {
   if (fetchingData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>{t('users.loadingForm')}</Text>
       </View>
     );
@@ -296,7 +297,7 @@ export default function CustomerFormScreen() {
       <Text style={styles.label}>{label}</Text>
       <View style={[styles.inputWrapper, !editable && styles.inputWrapperDisabled, multiline && styles.inputWrapperMultiline]}>
         <View style={[styles.iconBox, multiline && { height: 56, justifyContent: 'center' }]}>
-          <Icon size={20} color={editable ? "#64748b" : "#94a3b8"} />
+          <Icon size={20} color={editable ? COLORS.slate[500] : COLORS.slate[400]} />
         </View>
         <TextInput 
           style={[styles.input, !editable && styles.inputDisabled, multiline && { height: 100, paddingTop: 16, textAlignVertical: 'top' }]}
@@ -305,7 +306,7 @@ export default function CustomerFormScreen() {
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
-          placeholderTextColor="#94a3b8"
+          placeholderTextColor={COLORS.slate[400]}
           editable={editable}
           multiline={multiline}
         />
@@ -314,7 +315,7 @@ export default function CustomerFormScreen() {
             style={styles.rightIconBox} 
             onPress={onRightIconPress}
           >
-            <RightIcon size={20} color="#2563eb" />
+            <RightIcon size={20} color={COLORS.primary} />
           </TouchableOpacity>
         )}
       </View>
@@ -324,7 +325,7 @@ export default function CustomerFormScreen() {
   const SectionHeader = ({ title, icon: Icon }: any) => (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionIcon}>
-        <Icon size={18} color="#2563eb" />
+        <Icon size={18} color={COLORS.primary} />
       </View>
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
@@ -446,7 +447,7 @@ export default function CustomerFormScreen() {
                       onPress={() => setFormData({ ...formData, profileId: p.id })}
                    >
                       <Text style={[styles.chipText, formData.profileId === p.id && styles.chipTextActive]}>{p.name}</Text>
-                      {formData.profileId === p.id && <Check size={14} color="#fff" style={{ marginLeft: 4 }} />}
+                      {formData.profileId === p.id && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
                    </TouchableOpacity>
                  ))}
               </ScrollView>
@@ -462,7 +463,7 @@ export default function CustomerFormScreen() {
                       onPress={() => setFormData({ ...formData, service: s })}
                    >
                       <Text style={[styles.chipText, formData.service === s && styles.chipTextActive]}>{s.toUpperCase()}</Text>
-                      {formData.service === s && <Check size={14} color="#fff" style={{ marginLeft: 4 }} />}
+                      {formData.service === s && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
                    </TouchableOpacity>
                  ))}
               </ScrollView>
@@ -500,7 +501,7 @@ export default function CustomerFormScreen() {
                       }}
                    >
                       <Text style={[styles.chipText, formData.routerIds?.includes(r.id) && styles.chipTextActive]}>{r.name}</Text>
-                      {formData.routerIds?.includes(r.id) && <Check size={14} color="#fff" style={{ marginLeft: 4 }} />}
+                      {formData.routerIds?.includes(r.id) && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
                    </TouchableOpacity>
                  ))}
               </ScrollView>
@@ -559,7 +560,7 @@ export default function CustomerFormScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
               <Text style={styles.saveButtonText}>{t('users.saveCustomerData')}</Text>
             )}
@@ -574,28 +575,28 @@ export default function CustomerFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   loadingText: {
     marginTop: 12,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '700',
   },
   scrollContent: {
     padding: 24,
   },
   formCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 32,
     padding: 24,
     borderWidth: 1.5,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -618,17 +619,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: COLORS.slate[100],
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#1e40af',
+    color: COLORS.primaryDark,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -641,7 +642,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     marginBottom: 10,
     marginLeft: 4,
     textTransform: 'uppercase',
@@ -650,9 +651,9 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderWidth: 1.5,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     borderRadius: 16,
     height: 56,
   },
@@ -661,8 +662,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   inputWrapperDisabled: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#e2e8f0',
+    backgroundColor: COLORS.slate[100],
+    borderColor: COLORS.slate[200],
   },
   iconBox: {
     width: 56,
@@ -670,7 +671,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1.5,
-    borderRightColor: '#f1f5f9',
+    borderRightColor: COLORS.slate[100],
   },
   rightIconBox: {
     width: 56,
@@ -678,17 +679,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderLeftWidth: 1.5,
-    borderLeftColor: '#f1f5f9',
+    borderLeftColor: COLORS.slate[100],
   },
   input: {
     flex: 1,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: '#0f172a',
+    color: COLORS.slate[900],
     fontWeight: '700',
   },
   inputDisabled: {
-    color: '#94a3b8',
+    color: COLORS.slate[400],
   },
   row: {
     flexDirection: 'row',
@@ -700,56 +701,57 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     marginRight: 10,
     flexDirection: 'row',
     alignItems: 'center',
     height: 44,
   },
   chipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   chipActiveIsolir: {
-    backgroundColor: '#ef4444',
-    borderColor: '#ef4444',
+    backgroundColor: COLORS.error,
+    borderColor: COLORS.error,
   },
   chipText: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[600],
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   chipTextActive: {
-    color: '#ffffff',
+    color: COLORS.white,
   },
   divider: {
     height: 1.5,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.slate[100],
     marginVertical: 32,
     marginHorizontal: -24,
   },
   saveButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     height: 64,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 32,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 15,
     elevation: 8,
   },
   saveButtonText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
 });
+

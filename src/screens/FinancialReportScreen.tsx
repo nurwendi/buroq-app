@@ -9,8 +9,9 @@ import {
   RefreshControl,
   SafeAreaView,
   Platform,
-  ScrollView,
-  Dimensions
+  Dimensions,
+  StatusBar,
+  ScrollView
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -33,6 +34,8 @@ import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { printReport } from '../utils/printer';
+import { COLORS } from '../constants/theme';
+import GradientHeader from '../components/GradientHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -123,7 +126,7 @@ export default function FinancialReportScreen() {
       <Text style={[styles.cardAmount, { color: color }]}>{formatCurrency(amount)}</Text>
       {subValue && (
         <View style={styles.subValueRow}>
-          <TrendingUp size={12} color="#94a3b8" />
+          <TrendingUp size={12} color={COLORS.slate[400]} />
           <Text style={styles.subValueText}>{subValue}</Text>
         </View>
       )}
@@ -137,32 +140,32 @@ export default function FinancialReportScreen() {
         <SummaryCard 
           title={t('financial.revenue')} 
           amount={data?.summary?.totalRevenue} 
-          color="#2563eb" 
+          color={COLORS.primary} 
           icon={DollarSign}
         />
         <SummaryCard 
           title={t('financial.unpaid')} 
           amount={data?.summary?.totalUnpaid} 
-          color="#f59e0b" 
+          color={COLORS.warning} 
           icon={AlertCircle}
         />
         <SummaryCard 
           title={t('financial.expenses')} 
           amount={data?.summary?.totalCommissions} 
-          color="#ef4444" 
+          color={COLORS.error} 
           icon={ArrowDownRight}
         />
         <SummaryCard 
           title={t('financial.netIncome')} 
           amount={data?.summary?.netIncome} 
-          color="#10b981" 
+          color={COLORS.success} 
           icon={TrendingUp}
         />
       </View>
 
       {/* Staff Performance */}
       <View style={styles.sectionHeader}>
-        <Users size={18} color="#1e293b" />
+        <Users size={18} color={COLORS.slate[800]} />
         <Text style={styles.sectionTitle}>{t('financial.staffPerformance')}</Text>
       </View>
       
@@ -185,7 +188,7 @@ export default function FinancialReportScreen() {
 
       {/* All Payments */}
       <View style={styles.sectionHeader}>
-        <FileText size={18} color="#1e293b" />
+        <FileText size={18} color={COLORS.slate[800]} />
         <Text style={styles.sectionTitle}>{t('financial.allPayments')}</Text>
       </View>
     </View>
@@ -199,11 +202,11 @@ export default function FinancialReportScreen() {
           <Text style={styles.customerUser}>@{item.username}</Text>
         </View>
         <View style={styles.paymentRight}>
-          <Text style={[styles.paymentAmount, item.status !== 'completed' && { color: '#ef4444' }]}>
+          <Text style={[styles.paymentAmount, item.status !== 'completed' && { color: COLORS.error }]}>
             {formatCurrency(item.amount)}
           </Text>
           <View style={[styles.statusBadge, { backgroundColor: item.status === 'completed' ? '#dcfce7' : '#fee2e2' }]}>
-            <Text style={[styles.statusText, { color: item.status === 'completed' ? '#10b981' : '#ef4444' }]}>
+            <Text style={[styles.statusText, { color: item.status === 'completed' ? COLORS.success : COLORS.error }]}>
               {item.status?.toUpperCase()}
             </Text>
           </View>
@@ -211,17 +214,17 @@ export default function FinancialReportScreen() {
       </View>
       <View style={styles.paymentFooter}>
         <View style={styles.footerItem}>
-          <Calendar size={12} color="#94a3b8" />
+          <Calendar size={12} color={COLORS.slate[400]} />
           <Text style={styles.footerText}>
             {new Date(item.date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short' })}
           </Text>
         </View>
         <View style={styles.footerItem}>
-          <Users size={12} color="#94a3b8" />
+          <Users size={12} color={COLORS.slate[400]} />
           <Text style={styles.footerText}>{item.agentName}</Text>
         </View>
         <View style={styles.footerItem}>
-          <PieChart size={12} color="#94a3b8" />
+          <PieChart size={12} color={COLORS.slate[400]} />
           <Text style={styles.footerText}>{item.method || 'Cash'}</Text>
         </View>
       </View>
@@ -229,31 +232,18 @@ export default function FinancialReportScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('financial.title')}</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
-            <ShareIcon size={18} color="#475569" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handlePrint} style={[styles.actionButton, printing && { opacity: 0.5 }]} disabled={printing}>
-            {printing ? (
-              <ActivityIndicator size="small" color="#2563eb" />
-            ) : (
-              <Printer size={18} color="#475569" />
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <GradientHeader 
+        title={t('financial.title')}
+        onBackPress={() => navigation.goBack()}
+      />
 
       {/* Filter Bar */}
       <View style={styles.filterBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           <View style={styles.selectorWrapper}>
-            <Calendar size={16} color="#64748b" />
+            <Calendar size={16} color={COLORS.slate[500]} />
             <Text style={styles.selectorLabel}>{months[selectedMonth]} {selectedYear}</Text>
           </View>
           
@@ -271,9 +261,22 @@ export default function FinancialReportScreen() {
         </ScrollView>
       </View>
 
+      <View style={styles.headerRightActions}>
+          <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
+            <ShareIcon size={18} color={COLORS.slate[500]} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handlePrint} style={[styles.actionButton, printing && { opacity: 0.5 }]} disabled={printing}>
+            {printing ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Printer size={18} color={COLORS.slate[500]} />
+            )}
+          </TouchableOpacity>
+      </View>
+
       {loading && !refreshing ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
@@ -282,68 +285,44 @@ export default function FinancialReportScreen() {
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <PieChart size={64} color="#cbd5e1" />
+              <PieChart size={64} color={COLORS.slate[200]} />
               <Text style={styles.emptyText}>{t('financial.noData')}</Text>
             </View>
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.white,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 20,
-    paddingBottom: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  headerActions: {
+  headerRightActions: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    right: 20,
     flexDirection: 'row',
     gap: 8,
+    zIndex: 10,
   },
   actionButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   filterBar: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.slate[100],
     paddingVertical: 12,
   },
   filterScroll: {
@@ -355,7 +334,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.slate[50],
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
@@ -363,7 +342,7 @@ const styles = StyleSheet.create({
   selectorLabel: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1e293b',
+    color: COLORS.slate[700],
   },
   monthPills: {
     flexDirection: 'row',
@@ -373,21 +352,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[100],
   },
   pillActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   pillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#64748b',
+    color: COLORS.slate[400],
   },
   pillTextActive: {
-    color: '#ffffff',
+    color: COLORS.white,
   },
   center: {
     flex: 1,
@@ -406,16 +385,16 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     width: (width - 52) / 2,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     padding: 20,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.04,
         shadowRadius: 8,
       },
       android: {
@@ -433,7 +412,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -442,7 +421,7 @@ const styles = StyleSheet.create({
   cardAmount: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
   },
   subValueRow: {
     flexDirection: 'row',
@@ -452,7 +431,7 @@ const styles = StyleSheet.create({
   },
   subValueText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '500',
   },
   sectionHeader: {
@@ -466,28 +445,28 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.3,
   },
   tableCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     marginBottom: 32,
   },
   tableHeader: {
     flexDirection: 'row',
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.slate[100],
     marginBottom: 8,
   },
   tableHeadText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -495,31 +474,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f8fafc',
+    borderBottomColor: COLORS.slate[50],
     alignItems: 'center',
   },
   tableCellName: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1e293b',
+    color: COLORS.slate[800],
   },
   tableCellText: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[600],
     fontWeight: '600',
   },
   tableCellProfit: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#10b981',
+    color: COLORS.success,
   },
   paymentCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   paymentMain: {
     flexDirection: 'row',
@@ -533,12 +512,12 @@ const styles = StyleSheet.create({
   customerName: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     marginBottom: 4,
   },
   customerUser: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '500',
   },
   paymentRight: {
@@ -547,7 +526,7 @@ const styles = StyleSheet.create({
   paymentAmount: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#2563eb',
+    color: COLORS.primary,
     marginBottom: 8,
     letterSpacing: -0.5,
   },
@@ -564,7 +543,7 @@ const styles = StyleSheet.create({
   paymentFooter: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#f8fafc',
+    borderTopColor: COLORS.slate[50],
     paddingTop: 16,
     justifyContent: 'space-between',
   },
@@ -575,7 +554,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '700',
   },
   emptyContainer: {
@@ -585,7 +564,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '600',
   }
 });
+

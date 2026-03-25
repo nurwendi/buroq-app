@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, Image } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, ArrowLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { COLORS } from '../constants/theme';
 
 interface GradientHeaderProps {
   title?: string;
@@ -38,7 +39,7 @@ export default function GradientHeader({
         <View style={styles.navLeft}>
             {onBackPress && (
               <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-                <ArrowLeft size={22} color="#1e293b" />
+                <ArrowLeft size={22} color={COLORS.slate[800]} />
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={onProfilePress} style={[styles.compactAvatar, onBackPress && { marginLeft: 0 }]}>
@@ -66,7 +67,7 @@ export default function GradientHeader({
               style={styles.iconButton}
               onPress={() => navigation.navigate('Notification')}
             >
-              <Bell size={20} color="#1e293b" />
+              <Bell size={20} color={COLORS.slate[800]} />
             </TouchableOpacity>
           )}
         </View>
@@ -79,13 +80,13 @@ export default function GradientHeader({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     zIndex: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.border,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
@@ -116,8 +117,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#f8fafc',
+    borderColor: COLORS.slate[200],
+    backgroundColor: COLORS.surface,
   },
   avatarImage: {
     width: '100%',
@@ -126,14 +127,14 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitial: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#ffffff',
+    color: COLORS.white,
   },
   titleContainer: {
     marginLeft: 14,
@@ -141,13 +142,13 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.5,
   },
   roleText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#2563eb',
+    color: COLORS.primary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: 2,
@@ -156,21 +157,22 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.border,
   },
 });
+

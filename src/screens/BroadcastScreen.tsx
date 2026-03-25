@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
+import { COLORS } from '../constants/theme';
 
 type TargetType = 'all' | 'customers' | 'staff' | 'specific';
 type NotificationType = 'info' | 'success' | 'alert' | 'error';
@@ -107,7 +108,7 @@ export default function BroadcastScreen() {
                   style={[styles.targetCard, targetType === opt.id && styles.targetCardActive]}
                   onPress={() => setTargetType(opt.id as TargetType)}
                 >
-                  <opt.icon size={20} color={targetType === opt.id ? '#2563eb' : '#64748b'} />
+                  <opt.icon size={20} color={targetType === opt.id ? COLORS.primary : COLORS.slate[400]} />
                   <Text style={[styles.targetLabel, targetType === opt.id && styles.targetLabelActive]}>{opt.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -132,10 +133,10 @@ export default function BroadcastScreen() {
             <Text style={styles.label}>{t('broadcast.notifType')}</Text>
             <View style={styles.typeGrid}>
               {[
-                { id: 'info', color: '#3b82f6', icon: Info },
-                { id: 'success', color: '#10b981', icon: CheckCircle },
-                { id: 'alert', color: '#f59e0b', icon: AlertTriangle },
-                { id: 'error', color: '#ef4444', icon: AlertCircle },
+                { id: 'info', color: COLORS.primary, icon: Info },
+                { id: 'success', color: COLORS.success, icon: CheckCircle },
+                { id: 'alert', color: COLORS.warning, icon: AlertTriangle },
+                { id: 'error', color: COLORS.error, icon: AlertCircle },
               ].map((t) => (
                 <TouchableOpacity 
                   key={t.id}
@@ -201,7 +202,7 @@ export default function BroadcastScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   content: {
     padding: 24,
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
@@ -227,17 +228,17 @@ const styles = StyleSheet.create({
   targetCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.2,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     gap: 12,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.03,
         shadowRadius: 8,
@@ -248,16 +249,16 @@ const styles = StyleSheet.create({
     }),
   },
   targetCardActive: {
-    borderColor: '#2563eb',
-    backgroundColor: '#eff6ff',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
   },
   targetLabel: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '700',
   },
   targetLabelActive: {
-    color: '#2563eb',
+    color: COLORS.primary,
   },
   hintText: {
     fontSize: 12,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   sendBtn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     borderRadius: 24,
     paddingVertical: 18,
     flexDirection: 'row',
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
     marginTop: 12,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 12,

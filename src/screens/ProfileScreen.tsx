@@ -18,6 +18,7 @@ import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
+import { COLORS } from '../constants/theme';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -64,13 +65,13 @@ export default function ProfileScreen() {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <User size={48} color="#ffffff" />
+                <User size={48} color={COLORS.white} />
               </View>
             )}
           </View>
           <Text style={styles.name}>{user?.fullName || user?.username}</Text>
           <View style={styles.roleBadge}>
-            <Shield size={14} color="#2563eb" />
+            <Shield size={14} color={COLORS.primary} />
             <Text style={styles.roleText}>{user?.role?.toUpperCase() || t('sidebar.users').toUpperCase()}</Text>
           </View>
         </View>
@@ -125,7 +126,7 @@ export default function ProfileScreen() {
         </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-          <LogOut size={20} color="#ef4444" />
+          <LogOut size={20} color={COLORS.error} />
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
@@ -138,7 +139,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
   roleText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#2563eb',
+    color: COLORS.primary,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
   },
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
     }),
   },
   logoutText: {
-    color: '#ef4444',
+    color: COLORS.error,
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: -0.5,

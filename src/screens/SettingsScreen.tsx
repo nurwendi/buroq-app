@@ -11,6 +11,7 @@ import { Languages } from 'lucide-react-native';
 import { resolveUrl } from '../utils/url';
 import GradientHeader from '../components/GradientHeader';
 import { StatusBar } from 'react-native';
+import { COLORS } from '../constants/theme';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
@@ -67,7 +68,7 @@ export default function SettingsScreen() {
         onBackPress={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
@@ -95,22 +96,22 @@ export default function SettingsScreen() {
             style={styles.settingItem}
             onPress={() => navigation.navigate('Profile')}
           >
-            <View style={[styles.settingIcon, { backgroundColor: '#eff6ff' }]}>
-              <User size={20} color="#2563eb" />
+            <View style={[styles.settingIcon, { backgroundColor: COLORS.primary + '10' }]}>
+              <User size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.settingLabel}>{t('appSettings.editProfile')}</Text>
-            <ChevronRight size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.settingItem}
             onPress={() => navigation.navigate('ChangePassword')}
           >
-            <View style={[styles.settingIcon, { backgroundColor: '#fff7ed' }]}>
-              <Shield size={20} color="#f97316" />
+            <View style={[styles.settingIcon, { backgroundColor: COLORS.warning + '10' }]}>
+              <Shield size={20} color={COLORS.warning} />
             </View>
             <Text style={styles.settingLabel}>{t('appSettings.changePassword')}</Text>
-            <ChevronRight size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
         </View>
 
@@ -124,7 +125,7 @@ export default function SettingsScreen() {
               <SettingsIcon size={20} color="#7c3aed" />
             </View>
             <Text style={styles.settingLabel}>{t('appSettings.serverSettings')}</Text>
-            <ChevronRight size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -139,7 +140,7 @@ export default function SettingsScreen() {
               <Text style={styles.languageValue}>
                 {language === 'id' ? 'Bahasa Indonesia' : 'English'}
               </Text>
-              <ChevronRight size={20} color="#cbd5e1" />
+              <ChevronRight size={20} color={COLORS.slate[300]} />
             </View>
           </TouchableOpacity>
           
@@ -147,19 +148,19 @@ export default function SettingsScreen() {
             style={styles.settingItem}
             onPress={() => navigation.navigate('About')}
           >
-            <View style={[styles.settingIcon, { backgroundColor: '#f0fdf4' }]}>
-              <Info size={20} color="#10b981" />
+            <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '10' }]}>
+              <Info size={20} color={COLORS.success} />
             </View>
             <Text style={styles.settingLabel}>{t('appSettings.aboutApp')}</Text>
-            <ChevronRight size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.settingItem}
             onPress={() => setPrinterModalVisible(true)}
           >
-            <View style={[styles.settingIcon, { backgroundColor: '#ecfdf5' }]}>
-              <Printer size={20} color="#10b981" />
+            <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '10' }]}>
+              <Printer size={20} color={COLORS.success} />
             </View>
             <Text style={styles.settingLabel}>
               {(() => {
@@ -170,7 +171,7 @@ export default function SettingsScreen() {
                 return 'Printer Settings';
               })()}
             </Text>
-            <ChevronRight size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
         </View>
 
@@ -183,11 +184,11 @@ export default function SettingsScreen() {
                   style={styles.settingItem}
                   onPress={() => navigation.navigate('SystemSettings')}
                 >
-                  <View style={[styles.settingIcon, { backgroundColor: '#eff6ff' }]}>
-                    <Cog size={20} color="#2563eb" />
+                  <View style={[styles.settingIcon, { backgroundColor: COLORS.primary + '10' }]}>
+                    <Cog size={20} color={COLORS.primary} />
                   </View>
                   <Text style={styles.settingLabel}>{t('appSettings.systemSettings')}</Text>
-                  <ChevronRight size={20} color="#cbd5e1" />
+                  <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
               )}
 
@@ -199,7 +200,7 @@ export default function SettingsScreen() {
                   <Server size={20} color="#7c3aed" />
                 </View>
                 <Text style={styles.settingLabel}>{t('appSettings.nasManagement')}</Text>
-                <ChevronRight size={20} color="#cbd5e1" />
+                <ChevronRight size={20} color={COLORS.slate[300]} />
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -210,7 +211,7 @@ export default function SettingsScreen() {
                   <CreditCard size={20} color="#db2777" />
                 </View>
                 <Text style={styles.settingLabel}>{t('appSettings.paymentGateway')}</Text>
-                <ChevronRight size={20} color="#cbd5e1" />
+                <ChevronRight size={20} color={COLORS.slate[300]} />
               </TouchableOpacity>
 
               {user?.role === 'superadmin' && (
@@ -219,11 +220,11 @@ export default function SettingsScreen() {
                   onPress={handleBackup}
                   disabled={backingUp}
                 >
-                  <View style={[styles.settingIcon, { backgroundColor: '#ecfdf5' }]}>
-                    {backingUp ? <ActivityIndicator size="small" color="#10b981" /> : <Database size={20} color="#10b981" />}
+                  <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '10' }]}>
+                    {backingUp ? <ActivityIndicator size="small" color={COLORS.success} /> : <Database size={20} color={COLORS.success} />}
                   </View>
                   <Text style={styles.settingLabel}>{t('appSettings.backupTitle')}</Text>
-                  <ChevronRight size={20} color="#cbd5e1" />
+                  <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
               )}
             </View>
@@ -231,7 +232,7 @@ export default function SettingsScreen() {
         )}
 
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-          <LogOut size={20} color="#ef4444" />
+          <LogOut size={20} color={COLORS.error} />
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
@@ -250,20 +251,20 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 20,
     paddingBottom: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.slate[100],
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -1,
   },
   content: {
@@ -273,12 +274,12 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     padding: 24,
     borderRadius: 32,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -295,13 +296,13 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
     overflow: 'hidden',
     borderWidth: 4,
-    borderColor: '#f8fafc',
+    borderColor: COLORS.slate[50],
   },
   avatarImage: {
     width: '100%',
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#ffffff',
+    color: COLORS.white,
   },
   profileInfo: {
     flex: 1,
@@ -318,42 +319,42 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   roleBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.slate[50],
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: COLORS.slate[200],
   },
   roleText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#2563eb',
+    color: COLORS.primary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     marginBottom: 16,
     marginLeft: 8,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
   settingGroup: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 28,
     padding: 10,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -384,10 +385,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.slate[800],
   },
   languageValue: {
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontSize: 14,
     fontWeight: '600',
     marginRight: 8,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     height: 64,
     borderRadius: 24,
     borderWidth: 1,
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
     gap: 12,
     ...Platform.select({
       ios: {
-        shadowColor: '#ef4444',
+        shadowColor: COLORS.error,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
@@ -416,14 +417,14 @@ const styles = StyleSheet.create({
     }),
   },
   logoutText: {
-    color: '#ef4444',
+    color: COLORS.error,
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: -0.5,
   },
   versionText: {
     textAlign: 'center',
-    color: '#cbd5e1',
+    color: COLORS.slate[300],
     fontSize: 12,
     fontWeight: '600',
     marginTop: 32,
@@ -432,3 +433,5 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   }
 });
+
+

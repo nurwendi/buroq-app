@@ -8,10 +8,10 @@ import {
   TouchableOpacity, 
   ActivityIndicator, 
   Alert,
-  SafeAreaView,
-  KeyboardAvoidingView,
   Platform,
-  FlatList
+  FlatList,
+  StatusBar,
+  KeyboardAvoidingView
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -30,8 +30,12 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import { printReceipt } from '../utils/printer';
+import { COLORS } from '../constants/theme';
+import GradientHeader from '../components/GradientHeader';
+import { resolveUrl } from '../utils/url';
 
 export default function PaymentFormScreen() {
   const navigation = useNavigation<any>();
@@ -214,21 +218,28 @@ export default function PaymentFormScreen() {
     t('billing.october') || 'Oktober', t('billing.november') || 'November', t('billing.december') || 'Desember'
   ];
 
+  const { user } = useAuth();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <GradientHeader 
+        title={t('billing.recordPayment')}
+        subtitle={selectedCustomer ? `${t('billing.selected')}: ${selectedCustomer.name}` : t('billing.selectCustomer')}
+        role={user?.role?.toUpperCase()}
+        userAvatar={resolveUrl(user?.avatar)}
+        onBackPress={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity onPress={() => setPrinterModalVisible(true)} style={styles.headerBtn}>
+            <Settings size={22} color={COLORS.primary} />
+          </TouchableOpacity>
+        }
+      />
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.title}>{t('billing.recordPayment')}</Text>
-          <TouchableOpacity onPress={() => setPrinterModalVisible(true)} style={styles.settingsButton}>
-            <Settings size={22} color="#64748b" />
-          </TouchableOpacity>
-        </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Customer Selection */}
@@ -237,28 +248,28 @@ export default function PaymentFormScreen() {
             {selectedCustomer ? (
               <View style={styles.selectedCustomerCard}>
                  <View style={styles.customerIcon}>
-                   <User size={24} color="#2563eb" />
+                   <User size={24} color={COLORS.primary} />
                  </View>
                  <View style={{ flex: 1 }}>
                     <Text style={styles.customerName}>{selectedCustomer.name}</Text>
                     <Text style={styles.customerUser}>@{selectedCustomer.username}</Text>
                  </View>
-                 <TouchableOpacity onPress={() => setSelectedCustomer(null)}>
+                 <TouchableOpacity onPress={() => setSelectedCustomer(null)} style={styles.changeBtn}>
                     <Text style={styles.changeText}>{t('billing.changeCustomer')}</Text>
                  </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.searchContainer}>
                 <View style={styles.searchInputWrapper}>
-                  <Search size={20} color="#64748b" style={{ marginLeft: 15 }} />
+                  <Search size={20} color={COLORS.slate[500]} style={{ marginLeft: 15 }} />
                   <TextInput 
                     style={styles.searchInput}
                     placeholder={t('billing.searchCustomerPlaceholder')}
                     value={searchText}
                     onChangeText={setSearchText}
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={COLORS.slate[400]}
                   />
-                  {searching && <ActivityIndicator size="small" color="#2563eb" style={{ marginRight: 15 }} />}
+                  {searching && <ActivityIndicator size="small" color={COLORS.primary} style={{ marginRight: 15 }} />}
                 </View>
                 {searchResults.length > 0 && (
                   <View style={styles.resultsList}>
@@ -276,7 +287,7 @@ export default function PaymentFormScreen() {
                            <Text style={styles.resultName}>{item.name}</Text>
                            <Text style={styles.resultUser}>{item.username}</Text>
                         </View>
-                        <ChevronRight size={18} color="#94a3b8" />
+                        <ChevronRight size={18} color={COLORS.slate[400]} />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -293,7 +304,7 @@ export default function PaymentFormScreen() {
               <Text style={styles.label}>{t('billing.paymentAmount')}</Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.iconBox}>
-                  <Banknote size={20} color="#64748b" />
+                  <Banknote size={20} color={COLORS.slate[500]} />
                 </View>
                 <TextInput 
                   style={styles.input}
@@ -301,7 +312,7 @@ export default function PaymentFormScreen() {
                   onChangeText={setAmount}
                   placeholder="Contoh: 150000"
                   keyboardType="numeric"
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={COLORS.slate[400]}
                 />
               </View>
             </View>
@@ -329,7 +340,7 @@ export default function PaymentFormScreen() {
               <View style={styles.periodRow}>
                  <View style={[styles.inputWrapper, { flex: 1.5, marginRight: 10 }]}>
                     <View style={styles.iconBox}>
-                      <Calendar size={20} color="#64748b" />
+                      <Calendar size={20} color={COLORS.slate[500]} />
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
                        {months.map((m, idx) => (
@@ -358,7 +369,7 @@ export default function PaymentFormScreen() {
               <Text style={styles.label}>{t('billing.notesOptional')}</Text>
               <View style={[styles.inputWrapper, { height: 100, alignItems: 'flex-start', paddingTop: 10 }]}>
                 <View style={[styles.iconBox, { height: 40 }]}>
-                  <FileText size={20} color="#64748b" />
+                  <FileText size={20} color={COLORS.slate[500]} />
                 </View>
                 <TextInput 
                   style={[styles.input, { height: '100%', textAlignVertical: 'top' }]}
@@ -366,7 +377,7 @@ export default function PaymentFormScreen() {
                   onChangeText={setNotes}
                   placeholder="Contoh: Titipan tetangga"
                   multiline
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={COLORS.slate[400]}
                 />
               </View>
             </View>
@@ -378,7 +389,7 @@ export default function PaymentFormScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
               <Text style={styles.saveButtonText}>{t('billing.confirmPayment')}</Text>
             )}
@@ -390,7 +401,7 @@ export default function PaymentFormScreen() {
         {showSuccess && (
           <View style={styles.successOverlay}>
              <View style={styles.successCard}>
-                <CheckCircle2 size={70} color="#10b981" />
+                <CheckCircle2 size={70} color={COLORS.success} />
                 <Text style={styles.successTitle}>{t('billing.paymentSuccess')}</Text>
                 <Text style={styles.successSub}>{t('billing.dataSavedServer')}</Text>
                 
@@ -404,7 +415,7 @@ export default function PaymentFormScreen() {
 
                 <View style={styles.successActions}>
                    <TouchableOpacity style={styles.printBtnAction} onPress={handlePrint}>
-                      <Printer size={20} color="#fff" />
+                      <Printer size={20} color={COLORS.white} />
                       <Text style={styles.printBtnText}>{t('billing.printReceipt')}</Text>
                    </TouchableOpacity>
                    
@@ -427,14 +438,14 @@ export default function PaymentFormScreen() {
           onClose={() => setPrinterModalVisible(false)} 
         />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
   },
   header: {
     flexDirection: 'row',
@@ -443,34 +454,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.border,
   },
   backButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#0f172a',
+    color: COLORS.slate[900],
   },
-  settingsButton: {
+  headerBtn: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#dbeafe',
   },
   scrollContent: {
     padding: 24,
@@ -481,11 +492,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     marginBottom: 16,
   },
   selectedCustomerCard: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.primaryLight,
     borderRadius: 20,
     padding: 20,
     flexDirection: 'row',
@@ -498,10 +509,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -510,19 +521,21 @@ const styles = StyleSheet.create({
   customerName: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1e3a8a',
+    color: COLORS.primaryDark,
   },
   customerUser: {
     fontSize: 13,
-    color: '#2563eb',
+    color: COLORS.primary,
     marginTop: 2,
     fontWeight: '500',
   },
+  changeBtn: {
+    padding: 8,
+  },
   changeText: {
-    color: '#2563eb',
+    color: COLORS.primary,
     fontWeight: '700',
     fontSize: 14,
-    padding: 8,
   },
   searchContainer: {
     zIndex: 10,
@@ -530,12 +543,12 @@ const styles = StyleSheet.create({
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     height: 56,
-    shadowColor: '#64748b',
+    shadowColor: COLORS.slate[500],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -545,21 +558,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: '#0f172a',
+    color: COLORS.slate[900],
   },
   resultsList: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     marginTop: 8,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     overflow: 'hidden',
     position: 'absolute',
     top: 60,
     left: 0,
     right: 0,
     elevation: 5,
-    shadowColor: '#64748b',
+    shadowColor: COLORS.slate[500],
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -570,25 +583,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: COLORS.border,
   },
   resultName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0f172a',
+    color: COLORS.slate[900],
   },
   resultUser: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[500],
     marginTop: 2,
   },
   formCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#64748b',
+    borderColor: COLORS.slate[200],
+    shadowColor: COLORS.slate[500],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -600,15 +613,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#475569',
+    color: COLORS.slate[600],
     marginBottom: 10,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     borderRadius: 16,
     height: 56,
   },
@@ -617,18 +630,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#e2e8f0',
+    borderRightColor: COLORS.slate[200],
   },
   input: {
     flex: 1,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: '#0f172a',
+    color: COLORS.slate[900],
     fontWeight: '500',
   },
   methodToggle: {
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.slate[100],
     padding: 6,
     borderRadius: 16,
   },
@@ -641,8 +654,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   methodBtnActive: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#64748b',
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.slate[500],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -650,11 +663,11 @@ const styles = StyleSheet.create({
   },
   methodText: {
     fontSize: 14,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '600',
   },
   methodTextActive: {
-    color: '#2563eb',
+    color: COLORS.primary,
     fontWeight: '700',
   },
   periodRow: {
@@ -669,39 +682,39 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     marginRight: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
     minHeight: 44,
     justifyContent: 'center',
   },
   chipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   chipText: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '600',
   },
   chipTextActive: {
-    color: '#ffffff',
+    color: COLORS.white,
   },
   saveButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     height: 60,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
   },
   saveButtonText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '800',
   },
@@ -716,12 +729,12 @@ const styles = StyleSheet.create({
   successCard: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 32,
     padding: 32,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
+    borderColor: COLORS.slate[200],
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -730,83 +743,83 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     marginTop: 24,
   },
   successSub: {
     fontSize: 15,
-    color: '#64748b',
+    color: COLORS.slate[500],
     marginTop: 8,
     marginBottom: 32,
   },
   invoicePreview: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.surface,
     width: '100%',
     padding: 24,
     borderRadius: 20,
     marginBottom: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[200],
   },
   previewLabel: {
     fontSize: 13,
-    color: '#64748b',
+    color: COLORS.slate[500],
     marginBottom: 4,
     fontWeight: '500',
   },
   previewValue: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     marginBottom: 16,
   },
   previewDivider: {
     height: 1,
     width: '100%',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: COLORS.slate[200],
     marginBottom: 16,
   },
   previewAmount: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#10b981',
+    color: COLORS.success,
   },
   successActions: {
     width: '100%',
     gap: 12,
   },
   printBtnAction: {
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     height: 56,
     borderRadius: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    shadowColor: '#10b981',
+    shadowColor: COLORS.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   printBtnText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '700',
   },
   doneBtn: {
     height: 56,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.slate[200],
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
+    marginTop: 10,
   },
   doneBtnText: {
-    color: '#475569',
+    color: COLORS.slate[600],
     fontSize: 16,
-    fontWeight: '600',
-  }
+    fontWeight: '700',
+  },
 });

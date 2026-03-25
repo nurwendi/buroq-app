@@ -48,6 +48,7 @@ import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../api/client';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
+import { COLORS } from '../constants/theme';
 
 export default function NATScreen() {
   const { user } = useAuth();
@@ -227,6 +228,18 @@ export default function NATScreen() {
     setModalVisible(true);
   };
 
+  const handleOpenEditNas = (nas: any) => {
+    setModalType('nas');
+    setEditingItem(nas);
+    setNasForm({
+      nasname: nas.nasname,
+      shortname: nas.shortname || '',
+      secret: nas.secret,
+      description: nas.description || ''
+    });
+    setModalVisible(true);
+  };
+
   const handleSaveNas = async () => {
     if (!nasForm.nasname || !nasForm.secret) {
       Alert.alert('Error', 'NAS IP and Secret are required');
@@ -384,11 +397,11 @@ export default function NATScreen() {
           <Text style={styles.cardSub}>{item.shortname || 'RADIUS Client'}</Text>
         </View>
         <View style={styles.cardActions}>
-          <TouchableOpacity onPress={() => Alert.alert('Edit', 'RADIUS edit segera hadir')} style={styles.actionBtn}>
-            <Edit2 size={18} color="#2563eb" />
+          <TouchableOpacity onPress={() => handleOpenEditNas(item)} style={styles.actionBtn}>
+            <Edit2 size={18} color={COLORS.primary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDeleteNas(item)} style={styles.actionBtn}>
-            <Trash2 size={18} color="#ef4444" />
+            <Trash2 size={18} color={COLORS.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -439,19 +452,19 @@ export default function NATScreen() {
             onPress={activeTab === 'mikrotik' ? handleOpenAddMikrotik : handleOpenAddNas} 
             style={styles.floatingAddBtn}
           >
-            <Plus size={24} color="#ffffff" />
+            <Plus size={24} color={COLORS.white} />
           </TouchableOpacity>
         )}
       </View>
 
       {loading && !refreshing ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : activeTab === 'isolir' ? (
         <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.isolirHeader}>
-             <AlertTriangle size={48} color="#f59e0b" style={{ marginBottom: 12 }} />
+             <AlertTriangle size={48} color={COLORS.warning} style={{ marginBottom: 12 }} />
              <View style={styles.isolirHeaderTexts}>
                 <Text style={styles.isolirTitle}>{t('nat.autoIsolirTitle')}</Text>
                 <Text style={styles.isolirDesc}>{t('nat.autoIsolirDesc')}</Text>
@@ -459,13 +472,13 @@ export default function NATScreen() {
           </View>
           
           <TouchableOpacity style={styles.runBtn} onPress={handleRunAutoDrop}>
-             <RefreshCw size={20} color="#fff" />
+             <RefreshCw size={20} color={COLORS.white} />
              <Text style={styles.runBtnText}>{t('nat.runAutoIsolir')}</Text>
           </TouchableOpacity>
 
           <View style={styles.formSection}>
             <View style={styles.sectionTitleRow}>
-               <Settings size={20} color="#1e293b" />
+               <Settings size={20} color={COLORS.primaryDark} />
                <Text style={styles.sectionTitle}>{t('nat.configParameters')}</Text>
             </View>
 
@@ -498,25 +511,25 @@ export default function NATScreen() {
             </View>
 
             <TouchableOpacity style={styles.saveBtn} onPress={handleSaveIsolir} disabled={savingIsolir}>
-               {savingIsolir ? <ActivityIndicator color="#fff" /> : <Save size={20} color="#fff" />}
+               {savingIsolir ? <ActivityIndicator color={COLORS.white} /> : <Save size={20} color={COLORS.white} />}
                <Text style={styles.saveBtnText}>{t('nat.saveSettings')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={[styles.formSection, { marginTop: 20, marginBottom: 40 }]}>
              <View style={styles.sectionTitleRow}>
-                <Code size={20} color="#1e293b" />
+                <Code size={20} color={COLORS.primaryDark} />
                 <Text style={styles.sectionTitle}>{t('nat.generateScript')}</Text>
              </View>
              
              <View style={styles.scriptPreviewContainer}>
-                <View style={styles.scriptHeader}>
-                   <Text style={styles.scriptHeaderText}>{t('nat.terminalPreview')}</Text>
-                   <TouchableOpacity onPress={copyScript} style={styles.copyBtn}>
-                      {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#64748b" />}
-                      <Text style={[styles.copyBtnText, copied && { color: '#10b981' }]}>{copied ? t('nat.scriptCopied') : t('nat.copyScript')}</Text>
-                   </TouchableOpacity>
-                </View>
+                 <View style={styles.scriptHeader}>
+                    <Text style={styles.scriptHeaderText}>{t('nat.terminalPreview')}</Text>
+                    <TouchableOpacity onPress={copyScript} style={styles.copyBtn}>
+                       {copied ? <Check size={14} color={COLORS.success} /> : <Copy size={14} color={COLORS.slate[400]} />}
+                       <Text style={[styles.copyBtnText, copied && { color: COLORS.success }]}>{copied ? t('nat.scriptCopied') : t('nat.copyScript')}</Text>
+                    </TouchableOpacity>
+                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                    <Text style={styles.scriptText}>{generateScript()}</Text>
                 </ScrollView>
@@ -589,7 +602,7 @@ export default function NATScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: COLORS.white },
   tabContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -600,7 +613,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.slate[100],
     padding: 6,
     borderRadius: 20,
     gap: 4,
@@ -615,10 +628,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tabActive: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -628,17 +641,17 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  tabText: { fontSize: 13, fontWeight: '700', color: '#64748b' },
-  tabTextActive: { color: '#2563eb' },
+  tabText: { fontSize: 13, fontWeight: '700', color: COLORS.slate[500] },
+  tabTextActive: { color: COLORS.primary },
   floatingAddBtn: {
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -647,12 +660,12 @@ const styles = StyleSheet.create({
   listContent: { padding: 20, paddingBottom: 40 },
   scrollContent: { padding: 20 },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1.2,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -679,8 +692,8 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 16, fontWeight: '800', color: '#0f172a', letterSpacing: -0.3 },
-  cardSub: { fontSize: 13, color: '#94a3b8', marginTop: 2, fontWeight: '500' },
+  cardName: { fontSize: 16, fontWeight: '800', color: COLORS.slate[900], letterSpacing: -0.3 },
+  cardSub: { fontSize: 13, color: COLORS.slate[400], marginTop: 2, fontWeight: '500' },
   activeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -697,11 +710,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   statsRow: {
     flexDirection: 'row',

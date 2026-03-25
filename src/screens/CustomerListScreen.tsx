@@ -17,6 +17,7 @@ import apiClient from '../api/client';
 import CustomerItem from '../components/CustomerItem';
 import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
+import { COLORS } from '../constants/theme';
 
 export default function CustomerListScreen({ navigation }: any) {
   const { t } = useLanguage();
@@ -108,13 +109,13 @@ export default function CustomerListScreen({ navigation }: any) {
       <View style={styles.topSection}>
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Search size={20} color="#94a3b8" />
+            <Search size={20} color={COLORS.slate[400]} />
             <TextInput
               style={styles.searchInput}
               placeholder={t('users.searchPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={COLORS.slate[400]}
             />
           </View>
         </View>
@@ -134,7 +135,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'online' && styles.filterChipActive]}
               onPress={() => setFilterType('online')}
             >
-              <View style={[styles.statusDot, { backgroundColor: filterType === 'online' ? '#ffffff' : '#10b981' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'online' ? COLORS.white : COLORS.success }]} />
               <Text style={[styles.filterChipText, filterType === 'online' && styles.filterChipTextActive]}>
                 {t('users.online')} ({counts.online})
               </Text>
@@ -144,7 +145,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'offline' && styles.filterChipActive]}
               onPress={() => setFilterType('offline')}
             >
-              <View style={[styles.statusDot, { backgroundColor: filterType === 'offline' ? '#ffffff' : '#cbd5e1' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'offline' ? COLORS.white : COLORS.slate[300] }]} />
               <Text style={[styles.filterChipText, filterType === 'offline' && styles.filterChipTextActive]}>
                 {t('users.offline')} ({counts.offline})
               </Text>
@@ -154,7 +155,7 @@ export default function CustomerListScreen({ navigation }: any) {
               style={[styles.filterChip, filterType === 'isolir' && styles.filterChipActive]}
               onPress={() => setFilterType('isolir')}
             >
-              <View style={[styles.statusDot, { backgroundColor: filterType === 'isolir' ? '#ffffff' : '#ef4444' }]} />
+              <View style={[styles.statusDot, { backgroundColor: filterType === 'isolir' ? COLORS.white : COLORS.error }]} />
               <Text style={[styles.filterChipText, filterType === 'isolir' && styles.filterChipTextActive]}>
                 {t('users.isolir')} ({counts.isolir})
               </Text>
@@ -165,7 +166,7 @@ export default function CustomerListScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
@@ -180,13 +181,13 @@ export default function CustomerListScreen({ navigation }: any) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <View style={styles.emptyIconContainer}>
-                <Users size={48} color="#2563eb" />
+                <Users size={48} color={COLORS.primary} />
               </View>
               <Text style={styles.emptyText}>{t('users.notFound')}</Text>
             </View>
           }
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -202,34 +203,34 @@ export default function CustomerListScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   topSection: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     zIndex: 10,
   },
   searchContainer: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderRadius: 20,
     paddingHorizontal: 16,
     height: 56,
     borderWidth: 1.5,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
     fontSize: 15,
     fontWeight: '700',
-    color: '#0f172a',
+    color: COLORS.slate[900],
   },
   filterContainer: {
     marginBottom: 20,
@@ -245,14 +246,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderWidth: 1.5,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   filterChipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
-    shadowColor: '#2563eb',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -261,12 +262,12 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   filterChipTextActive: {
-    color: '#ffffff',
+    color: COLORS.white,
   },
   statusDot: {
     width: 8,
@@ -292,15 +293,16 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 40,
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
   },
   emptyText: {
     fontSize: 18,
-    color: '#0f172a',
+    color: COLORS.slate[900],
     fontWeight: '900',
     letterSpacing: -0.5,
   }
 });
+

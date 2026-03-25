@@ -34,6 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
+import { COLORS } from '../constants/theme';
 
 export default function SystemUsersScreen() {
   const { user: currentUser } = useAuth();
@@ -201,14 +202,14 @@ export default function SystemUsersScreen() {
 
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
-      case 'superadmin': return '#ef4444';
-      case 'admin': return '#2563eb';
-      case 'owner': return '#2563eb';
-      case 'manager': return '#8b5cf6';
-      case 'staff': return '#10b981';
-      case 'agent': return '#f59e0b';
-      case 'technician': return '#6366f1';
-      default: return '#64748b';
+      case 'superadmin': return COLORS.error;
+      case 'admin': return COLORS.primary;
+      case 'owner': return COLORS.primary;
+      case 'manager': return '#8b5cf6'; // Violet-500
+      case 'staff': return COLORS.success;
+      case 'agent': return COLORS.warning;
+      case 'technician': return '#6366f1'; // Indigo-500
+      default: return COLORS.slate[500];
     }
   };
 
@@ -294,7 +295,7 @@ export default function SystemUsersScreen() {
         </View>
         {(currentUser?.role === 'superadmin' || currentUser?.role === 'admin') && (
           <TouchableOpacity onPress={() => handleOpenModal()} style={styles.floatingAddBtn}>
-            <Plus size={24} color="#ffffff" />
+            <Plus size={24} color={COLORS.white} />
           </TouchableOpacity>
         )}
       </View>
@@ -480,7 +481,7 @@ export default function SystemUsersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -493,27 +494,29 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: COLORS.slate[50],
     paddingHorizontal: 16,
     borderRadius: 20,
     height: 52,
+    borderWidth: 1.5,
+    borderColor: COLORS.slate[100],
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
     fontSize: 15,
-    color: '#0f172a',
+    color: COLORS.slate[900],
     fontWeight: '600',
   },
   floatingAddBtn: {
     width: 52,
     height: 52,
     borderRadius: 18,
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -531,15 +534,15 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   userCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1.2,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
         shadowRadius: 10,
@@ -603,7 +606,7 @@ const styles = StyleSheet.create({
   },
   contactText: {
     fontSize: 12,
-    color: '#64748b',
+    color: COLORS.slate[500],
     fontWeight: '600',
   },
   roleCapabilities: {
@@ -636,11 +639,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   modalOverlay: {
     flex: 1,
@@ -648,7 +651,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     height: '92%',
@@ -663,7 +666,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.5,
   },
   modalBody: {
@@ -672,7 +675,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     marginBottom: 8,
     marginTop: 20,
     textTransform: 'uppercase',
@@ -680,22 +683,22 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   modalInput: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.slate[50],
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 56,
     fontSize: 15,
-    color: '#0f172a',
+    color: COLORS.slate[900],
     fontWeight: '600',
     borderWidth: 1.2,
-    borderColor: '#f1f5f9',
+    borderColor: COLORS.slate[100],
   },
   modalFooter: {
     marginTop: 24,
     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
   },
   saveButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.primary,
     height: 60,
     borderRadius: 24,
     flexDirection: 'row',
@@ -703,13 +706,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     elevation: 4,
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   saveButtonText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 0.5,

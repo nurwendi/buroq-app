@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
+import { COLORS } from '../constants/theme';
 
 interface StatCardProps {
   title: string;
@@ -30,7 +31,7 @@ export default function StatCard({ title, value, icon: Icon, color, subtitle }: 
   return (
     <View style={styles.cardContainer}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={20} tint="dark" style={styles.blurWrapper}>
+        <BlurView intensity={20} tint="light" style={styles.blurWrapper}>
           {CardContent}
         </BlurView>
       ) : (
@@ -48,11 +49,11 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#f1f5f9',
-    backgroundColor: '#ffffff',
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 10,
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   androidGlass: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     width: '100%',
   },
   cardInner: {
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#64748b',
+    color: COLORS.slate[500],
     flex: 1,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
@@ -97,13 +98,14 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -1,
   },
   subtitle: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     marginTop: 6,
     fontWeight: '600',
   },
 });
+

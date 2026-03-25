@@ -10,16 +10,17 @@ import {
   FlatList,
   Modal,
   TextInput,
-  Platform
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView
 } from 'react-native';
 import { 
-  ArrowLeft, 
   Plus, 
   Server, 
-  Trash2, 
   Edit2, 
   Shield,
-  Info
+  X as CloseIcon,
+  Save
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
@@ -27,7 +28,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { resolveUrl } from '../utils/url';
 import GradientHeader from '../components/GradientHeader';
-import { StatusBar } from 'react-native';
+import { COLORS } from '../constants/theme';
 
 export default function NasManagementScreen() {
   const navigation = useNavigation<any>();
@@ -94,21 +95,24 @@ export default function NasManagementScreen() {
     <View style={styles.nasCard}>
       <View style={styles.nasHeader}>
         <View style={styles.nasIconContainer}>
-          <Server size={20} color="#2563eb" />
+          <Server size={20} color={COLORS.primary} />
         </View>
         <View style={styles.nasInfo}>
           <Text style={styles.nasName}>{item.nasname}</Text>
           <Text style={styles.nasShortname}>{item.shortname || '-'}</Text>
         </View>
         <View style={styles.nasActions}>
-          <TouchableOpacity onPress={() => { setForm(item); setModalVisible(true); }} style={styles.actionButton}>
-            <Edit2 size={18} color="#64748b" />
+          <TouchableOpacity 
+            onPress={() => { setForm(item); setModalVisible(true); }} 
+            style={styles.actionButton}
+          >
+            <Edit2 size={18} color={COLORS.slate[500]} />
           </TouchableOpacity>
         </View>
       </View>
       <View style={styles.nasFooter}>
         <View style={styles.secretBadge}>
-          <Shield size={12} color="#2563eb" style={{ marginRight: 4 }} />
+          <Shield size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
           <Text style={styles.secretText}>{item.secret}</Text>
         </View>
         <Text style={styles.nasDescription} numberOfLines={1}>{item.description || t('nas.noDesc')}</Text>
@@ -126,15 +130,18 @@ export default function NasManagementScreen() {
         userAvatar={resolveUrl(user?.avatar)}
         onBackPress={() => navigation.goBack()}
         rightElement={
-          <TouchableOpacity onPress={() => { resetForm(); setModalVisible(true); }} style={styles.iconButton}>
-            <Plus size={24} color="#2563eb" />
+          <TouchableOpacity 
+            onPress={() => { resetForm(); setModalVisible(true); }} 
+            style={styles.headerAddBtn}
+          >
+            <Plus size={24} color={COLORS.primary} />
           </TouchableOpacity>
         }
       />
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
@@ -142,9 +149,10 @@ export default function NasManagementScreen() {
           keyExtractor={(item: any) => item.id?.toString()}
           renderItem={renderNasItem}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Server size={48} color="#cbd5e1" />
+              <Server size={48} color={COLORS.slate[300]} />
               <Text style={styles.emptyText}>{t('nas.emptyList')}</Text>
             </View>
           }
@@ -158,17 +166,28 @@ export default function NasManagementScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{form.id ? t('nas.editTitle') : t('nas.addTitle')}</Text>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+            style={styles.modalContent}
+          >
+            <View style={styles.modalTopHeader}>
+              <Text style={styles.modalTitle}>
+                {form.id ? t('nas.editTitle') : t('nas.addTitle')}
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <CloseIcon size={24} color={COLORS.slate[400]} />
+              </TouchableOpacity>
+            </View>
             
-            <ScrollView style={styles.formContent}>
+            <ScrollView style={styles.formContent} showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{t('nas.ipAddress')}</Text>
                 <TextInput
                   style={styles.input}
                   value={form.nasname}
                   onChangeText={(text) => setForm({ ...form, nasname: text })}
-                  placeholder={t('nas.placeholderIp') || "192.168.88.1"}
+                  placeholder="192.168.88.1"
+                  placeholderTextColor={COLORS.slate[400]}
                 />
               </View>
 
@@ -178,7 +197,8 @@ export default function NasManagementScreen() {
                   style={styles.input}
                   value={form.secret}
                   onChangeText={(text) => setForm({ ...form, secret: text })}
-                  placeholder={t('nas.placeholderSecret') || "radius-secret"}
+                  placeholder="radius-secret"
+                  placeholderTextColor={COLORS.slate[400]}
                 />
               </View>
 
@@ -188,7 +208,8 @@ export default function NasManagementScreen() {
                   style={styles.input}
                   value={form.shortname}
                   onChangeText={(text) => setForm({ ...form, shortname: text })}
-                  placeholder={t('nas.placeholderShortname') || "mikrotik-pusat"}
+                  placeholder="mikrotik-pusat"
+                  placeholderTextColor={COLORS.slate[400]}
                 />
               </View>
 
@@ -198,32 +219,31 @@ export default function NasManagementScreen() {
                   style={[styles.input, styles.textArea]}
                   value={form.description}
                   onChangeText={(text) => setForm({ ...form, description: text })}
-                  placeholder={t('nas.placeholderDesc') || "Keterangan router..."}
+                  placeholder="Keterangan router..."
+                  placeholderTextColor={COLORS.slate[400]}
                   multiline
                 />
               </View>
+              <View style={{ height: 20 }} />
             </ScrollView>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity 
-                onPress={() => setModalVisible(false)} 
-                style={[styles.modalButton, styles.cancelButton]}
-              >
-                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
+            <View style={styles.modalFooter}>
               <TouchableOpacity 
                 onPress={handleSave} 
                 disabled={saving}
-                style={[styles.modalButton, styles.saveButton]}
+                style={[styles.saveBtnFull, saving && { opacity: 0.7 }]}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
-                  <Text style={styles.saveButtonText}>{t('nas.saveBtn')}</Text>
+                  <>
+                    <Save size={20} color={COLORS.white} />
+                    <Text style={styles.saveBtnText}>{t('nas.saveBtn')}</Text>
+                  </>
                 )}
               </TouchableOpacity>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>
@@ -233,13 +253,13 @@ export default function NasManagementScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
-  iconButton: {
+  headerAddBtn: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
@@ -251,38 +271,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 20,
+    padding: 24,
     paddingBottom: 40,
   },
   nasCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1.2,
-    borderColor: '#f1f5f9',
+    backgroundColor: COLORS.white,
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: COLORS.slate[100],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.03,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
       },
       android: {
-        elevation: 1.5,
+        elevation: 2,
       },
     }),
   },
   nasHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   nasIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#eff6ff',
+    backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -295,12 +315,12 @@ const styles = StyleSheet.create({
   nasName: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#0f172a',
+    color: COLORS.slate[900],
     letterSpacing: -0.3,
   },
   nasShortname: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: COLORS.slate[400],
     fontWeight: '700',
     marginTop: 2,
     textTransform: 'uppercase',
@@ -310,44 +330,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#f8fafc',
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[100],
   },
   nasFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f8fafc',
+    borderTopWidth: 1.5,
+    borderTopColor: COLORS.slate[50],
   },
   secretBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: COLORS.slate[50],
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 10,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[100],
   },
   secretText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#475569',
+    color: COLORS.slate[600],
     letterSpacing: 0.5,
   },
   nasDescription: {
     flex: 1,
     fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: COLORS.slate[400],
+    fontWeight: '600',
   },
   emptyContainer: {
     paddingTop: 100,
@@ -357,8 +377,8 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 20,
     fontSize: 15,
-    color: '#94a3b8',
-    fontWeight: '600',
+    color: COLORS.slate[400],
+    fontWeight: '700',
   },
   modalOverlay: {
     flex: 1,
@@ -366,12 +386,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    padding: 24,
+    padding: 28,
     paddingTop: 32,
-    maxHeight: '90%',
+    maxHeight: '92%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -384,71 +404,70 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  modalTopHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
   modalTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0f172a',
-    marginBottom: 24,
-    textAlign: 'center',
+    color: COLORS.slate[900],
     letterSpacing: -0.5,
   },
   formContent: {
     marginBottom: 24,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#475569',
-    marginBottom: 8,
+    color: COLORS.slate[400],
+    marginBottom: 10,
     marginLeft: 4,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   input: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
+    backgroundColor: COLORS.slate[50],
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    height: 56,
     fontSize: 15,
-    color: '#0f172a',
-    fontWeight: '600',
+    color: COLORS.slate[900],
+    fontWeight: '700',
+    borderWidth: 1.5,
+    borderColor: COLORS.slate[100],
   },
   textArea: {
     height: 100,
+    paddingTop: 16,
     textAlignVertical: 'top',
   },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: Platform.OS === 'ios' ? 20 : 10,
+  modalFooter: {
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
   },
-  modalButton: {
-    flex: 1,
-    height: 56,
-    borderRadius: 18,
+  saveBtnFull: {
+    backgroundColor: COLORS.primary,
+    height: 64,
+    borderRadius: 20,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  cancelButton: {
-    backgroundColor: '#f1f5f9',
-  },
-  cancelButtonText: {
-    fontWeight: '800',
-    color: '#64748b',
+  saveBtnText: {
+    color: COLORS.white,
     fontSize: 16,
-  },
-  saveButton: {
-    backgroundColor: '#2563eb',
-  },
-  saveButtonText: {
     fontWeight: '900',
-    color: '#ffffff',
-    fontSize: 16,
     letterSpacing: 0.5,
   },
 });
