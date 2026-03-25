@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { User, Lock, Eye, EyeOff, Settings } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Reanimated, { SlideInDown } from 'react-native-reanimated';
 import { CONFIG } from '../api/config';
 import { updateApiBaseUrl } from '../api/client';
 import { COLORS } from '../constants/theme';
@@ -36,7 +37,7 @@ export default function LoginScreen() {
   const [showServerSetting, setShowServerSetting] = useState(false);
   const [serverUrl, setServerUrl] = useState(CONFIG.API_BASE_URL);
   const [logoUrl, setLogoUrl] = useState('https://raw.githubusercontent.com/nurwendi/buroqmanager/master/public/logo.png');
-  const [loginBgUrl, setLoginBgUrl] = useState('');
+  const [loginBgUrl, setLoginBgUrl] = useState('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop');
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -92,20 +93,27 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      // Save server URL if changed
-      await AsyncStorage.setItem(CONFIG.SERVER_URL_KEY, serverUrl);
-      updateApiBaseUrl(serverUrl); // Update axios base URL
+      // Validate server URL format before saving
+      let finalUrl = serverUrl.trim();
+      if (!finalUrl.startsWith('http')) {
+        finalUrl = `http://${finalUrl}`;
+      }
+      
+      await AsyncStorage.setItem(CONFIG.SERVER_URL_KEY, finalUrl);
+      updateApiBaseUrl(finalUrl); // Update axios base URL
       
       await login(username, password);
     } catch (e: any) {
-      console.error('Login Error:', e);
+      console.error('Login Error Detailed:', e);
       let msg = t('login.loginFailed');
       
       if (e.message) {
-        if (e.message.includes('Network Error')) {
-          msg = t('login.networkError');
-        } else if (e.message.includes('timeout')) {
-          msg = t('login.timeoutError');
+        if (e.message.toLowerCase().includes('network error')) {
+          msg = t('login.networkError') || 'Server tidak dapat dijangkau. Periksa URL server Anda.';
+        } else if (e.message.toLowerCase().includes('timeout')) {
+          msg = t('login.timeoutError') || 'Koneksi ke server terputus (timeout).';
+        } else if (e.message.toLowerCase().includes('401') || e.message.toLowerCase().includes('invalid')) {
+          msg = t('login.invalidCredentials') || 'Username atau Password salah.';
         } else {
           msg = e.message;
         }
@@ -133,7 +141,7 @@ export default function LoginScreen() {
           </ImageBackground>
         ) : (
           <LinearGradient
-            colors={['#eff6ff', '#2563eb', '#1e3a8a']}
+            colors={[COLORS.slate[900], COLORS.primaryDark, COLORS.primary]}
             style={styles.backgroundImage}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -229,7 +237,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {showServerSetting && (
-            <View style={styles.serverBox}>
+            <Reanimated.View 
+              entering={SlideInDown.duration(300)}
+              style={styles.serverBox}
+            >
               <TextInput
                 style={styles.serverInput}
                 placeholder={t('login.serverUrlPlaceholder')}
@@ -240,7 +251,7 @@ export default function LoginScreen() {
                 keyboardType="url"
                 keyboardAppearance="dark"
               />
-            </View>
+            </Reanimated.View>
           )}
             </BlurView>
           </Animated.View>
@@ -258,7 +269,7 @@ const styles = StyleSheet.create({
   },
   darkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)', // Slate-900 with transparency
   },
   container: {
     flex: 1,
@@ -280,32 +291,36 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 32,
     borderRadius: 40,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(15, 23, 42, 0.35)', // Slate-900 glassy base
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 30,
-    height: 60,
+    borderRadius: 24,
+    height: 64,
     paddingHorizontal: 16,
     marginBottom: 16,
   },
   iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(37, 99, 235, 0.15)', // Primary blue tint
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(37, 99, 235, 0.4)',
   },
   input: {
     flex: 1,
@@ -324,27 +339,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
     marginBottom: 20,
+    marginTop: 4,
   },
   errorText: {
     color: '#fca5a5',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: '700',
+    lineHeight: 18,
   },
   loginButton: {
-    height: 60,
-    borderRadius: 30,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1.5,
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
     marginTop: 10,
+    borderWidth: 0,
   },
   loginButtonText: {
     color: COLORS.white,
     fontSize: 17,
     fontWeight: '900',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   settingsToggle: {
     flexDirection: 'row',
@@ -354,24 +377,26 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   settingsText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 14,
-    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   serverBox: {
     marginTop: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    borderRadius: 20,
     padding: 4,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   serverInput: {
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 16,
     height: 52,
     fontSize: 14,
     color: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   }
 });
 

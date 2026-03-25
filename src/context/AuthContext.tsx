@@ -56,23 +56,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password?: string) => {
     try {
+      console.log('Attempting login for:', username);
       const response = await apiClient.post('/api/auth/login', {
         username,
         password,
       });
 
+      console.log('Login response received:', response.status);
+      
       const { user: userData, token: userToken } = response.data;
 
-      // Extract token from cookie header if not in body, though our API sends in body usually
-      // If our API sets httpOnly cookie, we might need to adjust or use the token from body
+      if (!userToken || !userData) {
+        console.error('Login successful but missing data:', response.data);
+        throw new Error('Data login tidak lengkap dari server.');
+      }
       
       await AsyncStorage.setItem(CONFIG.TOKEN_KEY, userToken);
       await AsyncStorage.setItem(CONFIG.USER_KEY, JSON.stringify(userData));
       
       setToken(userToken);
       setUser(userData);
+      console.log('Login successful, token saved.');
     } catch (e: any) {
-      throw new Error(e.response?.data?.error || 'Login failed');
+      console.error('Login process failed:', e.response?.data || e.message);
+      throw new Error(e.response?.data?.error || e.message || 'Login failed');
     }
   };
 
