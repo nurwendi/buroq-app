@@ -37,7 +37,7 @@ export default function LoginScreen() {
   const [showServerSetting, setShowServerSetting] = useState(false);
   const [serverUrl, setServerUrl] = useState(CONFIG.API_BASE_URL);
   const [logoUrl, setLogoUrl] = useState('https://raw.githubusercontent.com/nurwendi/buroqmanager/master/public/logo.png');
-  const [loginBgUrl, setLoginBgUrl] = useState('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop');
+  const [loginBgUrl, setLoginBgUrl] = useState('');
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -141,7 +141,7 @@ export default function LoginScreen() {
           </ImageBackground>
         ) : (
           <LinearGradient
-            colors={[COLORS.slate[900], COLORS.primaryDark, COLORS.primary]}
+            colors={['#eff6ff', '#eef2ff']}
             style={styles.backgroundImage}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -292,9 +292,9 @@ const styles = StyleSheet.create({
     padding: 32,
     borderRadius: 40,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
     overflow: 'hidden',
-    backgroundColor: 'rgba(15, 23, 42, 0.35)', // Slate-900 glassy base
+    backgroundColor: 'rgba(15, 23, 42, 0.8)', // Darker background to make text readable against light gradient
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,

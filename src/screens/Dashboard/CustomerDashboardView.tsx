@@ -213,14 +213,29 @@ export default function CustomerDashboardView() {
              </View>
           </View>
           <View style={styles.billingBody}>
-             <View>
+             <View style={{ flex: 1 }}>
                 <Text style={styles.billingInvoice}>Invoice: {stats?.billing?.invoice || '-'}</Text>
-             </View>
-             <View style={styles.billingRight}>
                 {stats?.billing?.status === 'unpaid' && (
                   <Text style={styles.billingAmount}>Rp {(stats?.billing?.amount || 0).toLocaleString()}</Text>
                 )}
-                <ChevronRight size={20} color="#94a3b8" />
+             </View>
+             <View style={styles.billingRight}>
+                {stats?.billing?.status === 'unpaid' ? (
+                  <TouchableOpacity 
+                    style={styles.payNowButton}
+                    onPress={() => {
+                        Alert.alert(
+                          t('dashboard.payNow'),
+                          t('dashboard.payNowInstructions') || 'Silakan hubungi admin atau gunakan fitur pembayaran otomatis (jika tersedia).',
+                          [{ text: 'OK' }]
+                        );
+                    }}
+                  >
+                    <Text style={styles.payNowText}>{t('dashboard.payNow') || 'Bayar Sekarang'}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <ChevronRight size={20} color="#94a3b8" />
+                )}
              </View>
           </View>
         </TouchableOpacity>
@@ -541,12 +556,30 @@ const styles = StyleSheet.create({
   billingRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
+  },
+  payNowButton: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  payNowText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   billingAmount: {
     fontSize: 18,
     fontWeight: '900',
     color: '#ef4444',
+    marginTop: 4,
   },
   wifiCard: {
     backgroundColor: '#ffffff',

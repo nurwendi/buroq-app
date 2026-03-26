@@ -197,16 +197,21 @@ export default function PaymentFormScreen() {
       await printReceipt({
         invoiceNumber: lastPayment.invoiceNumber,
         customerName: selectedCustomer.name,
+        username: selectedCustomer.username,
         date: new Date(lastPayment.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: lastPayment.amount,
-        paymentMethod: lastPayment.method === 'cash' ? t('billing.cash') : t('billing.transfer')
+        paymentMethod: lastPayment.method === 'cash' ? t('billing.cash') : t('billing.transfer'),
+        agentFullName: user?.fullName || user?.name || user?.username,
+        agentPhone: user?.phone,
+        period: `${months[selectedMonth]} ${selectedYear}`
       });
       Alert.alert(t('common.success'), t('billing.printingReceipt'));
     } catch (e: any) {
-      if (e.message?.includes('belum disetting')) {
+      const errorMsg = e?.message || String(e);
+      if (errorMsg.includes('belum disetting')) {
         setPrinterModalVisible(true);
       } else {
-        Alert.alert(t('billing.printingFailed'), e.message || t('billing.printReceiptError'));
+        Alert.alert(t('billing.printingFailed'), errorMsg || t('billing.printReceiptError'));
       }
     }
   };

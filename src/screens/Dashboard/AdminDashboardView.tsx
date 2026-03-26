@@ -23,13 +23,15 @@ import {
   Megaphone,
   CreditCard,
   Clock,
-  ChevronRight
+  ChevronRight,
+  TrendingUp
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
+import PppoePieChart from '../../components/PppoePieChart';
 import { useLanguage } from '../../context/LanguageContext';
 import { COLORS } from '../../constants/theme';
 
@@ -50,7 +52,10 @@ export default function AdminDashboardView() {
     unpaidBillsCount: 0,
     adminCount: 0,
     pendingPayments: [] as any[],
-    pendingCount: 0
+    pendingCount: 0,
+    grossRevenue: 0,
+    netRevenue: 0,
+    staffCommission: 0
   });
   const [onlineCount, setOnlineCount] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -113,6 +118,20 @@ export default function AdminDashboardView() {
     setRefreshing(false);
   };
 
+  const getPendingInfo = (item: any) => {
+    if (item.type === 'payment') return t('dashboard.paymentPending');
+    if (item.type === 'registration') {
+      if (item.subType === 'edit') return t('dashboard.editPending');
+      return t('dashboard.registrationPending');
+    }
+    return t('dashboard.waitingPayment');
+  };
+
+  const getPendingIcon = (item: any) => {
+    if (item.type === 'registration') return UserPlus;
+    return Clock;
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
@@ -127,29 +146,48 @@ export default function AdminDashboardView() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Section: Customer Status */}
+        <PppoePieChart 
+          active={onlineCount}
+          offline={Math.max(0, (stats?.totalCustomers || 0) - onlineCount)}
+          total={stats?.totalCustomers || 0}
+          loading={loadingStats}
+          onPress={() => navigation.navigate('CustomerList')}
+        />
+
+        {/* Section: Financial Summary */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.titleCard}>
-              <Activity size={18} color={COLORS.slate[400]} />
-              <Text style={styles.titleCardText}>{t('dashboard.customerStatus')}</Text>
+              <TrendingUp size={18} color={COLORS.slate[400]} />
+              <Text style={styles.titleCardText}>{t('dashboard.financialSummary')}</Text>
             </View>
           </View>
           <View style={styles.statsGrid}>
             <View style={{ width: '48%' }}>
               <StatCard 
-                title={t('users.all')} 
-                value={stats?.totalCustomers || 0} 
-                icon={Users} 
-                color={COLORS.accent} 
+                title={t('dashboard.grossRevenue')} 
+                value={`Rp ${(stats?.grossRevenue || 0).toLocaleString()}`} 
+                icon={CreditCard} 
+                color={COLORS.primary} 
+                subtitle={t('dashboard.thisMonth')}
               />
             </View>
             <View style={{ width: '48%' }}>
               <StatCard 
-                title={t('users.online')} 
-                value={onlineCount} 
-                icon={Activity} 
+                title={t('dashboard.staffCommission')} 
+                value={`Rp ${(stats?.staffCommission || 0).toLocaleString()}`} 
+                icon={Users} 
+                color={COLORS.warning} 
+                subtitle={t('dashboard.thisMonth')}
+              />
+            </View>
+            <View style={{ width: '100%', marginTop: 12 }}>
+              <StatCard 
+                title={t('dashboard.netRevenue')} 
+                value={`Rp ${(stats?.netRevenue || 0).toLocaleString()}`} 
+                icon={TrendingUp} 
                 color={COLORS.success} 
+                subtitle={t('dashboard.thisMonth')}
               />
             </View>
           </View>
@@ -207,28 +245,31 @@ export default function AdminDashboardView() {
             <View style={styles.sectionHeader}>
               <View style={styles.titleCard}>
                 <Clock size={18} color={COLORS.slate[400]} />
-                <Text style={styles.titleCardText}>{t('dashboard.pendingApproval')}</Text>
+                <Text style={styles.titleCardText}>{t('dashboard.pendingApproval')} ({stats?.pendingCount || 0})</Text>
               </View>
             </View>
             <View style={styles.pendingListLight}>
-              {(stats?.pendingPayments || []).slice(0, 3).map((item: any) => (
-                <TouchableOpacity 
-                   key={item.id} 
-                   style={styles.pendingItem}
-                   onPress={() => navigation.navigate('UnpaidBills')}
-                >
-                   <View style={styles.pendingItemLeft}>
-                      <View style={styles.pendingIcon}>
-                         <Clock size={16} color={COLORS.slate[500]} />
-                      </View>
-                      <View>
-                         <Text style={styles.pendingName}>{item.customerName || item.name}</Text>
-                         <Text style={styles.pendingInfo}>{t('dashboard.waitingPayment')}</Text>
-                      </View>
-                   </View>
-                    <ChevronRight size={18} color={COLORS.slate[400]} />
-                </TouchableOpacity>
-              ))}
+              {(stats?.pendingPayments || []).slice(0, 5).map((item: any) => {
+                const ItemIcon = getPendingIcon(item);
+                return (
+                  <TouchableOpacity 
+                     key={item.id} 
+                     style={styles.pendingItem}
+                     onPress={() => item.type === 'payment' ? navigation.navigate('UnpaidBills') : navigation.navigate('AllUsers')}
+                  >
+                     <View style={styles.pendingItemLeft}>
+                        <View style={styles.pendingIcon}>
+                           <ItemIcon size={16} color={COLORS.slate[500]} />
+                        </View>
+                        <View>
+                           <Text style={styles.pendingName}>{item.customerName || item.name}</Text>
+                           <Text style={styles.pendingInfo}>{getPendingInfo(item)}</Text>
+                        </View>
+                     </View>
+                      <ChevronRight size={18} color={COLORS.slate[400]} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         )}

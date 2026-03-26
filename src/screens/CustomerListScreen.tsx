@@ -13,7 +13,9 @@ import {
   StatusBar
 } from 'react-native';
 import { Search, Users } from 'lucide-react-native';
-import apiClient from '../api/client';
+import { customerService } from '../services/customerService';
+import { pppoeService } from '../services/pppoeService';
+import { Customer } from '../api/models';
 import CustomerItem from '../components/CustomerItem';
 import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
@@ -21,8 +23,8 @@ import { COLORS } from '../constants/theme';
 
 export default function CustomerListScreen({ navigation }: any) {
   const { t } = useLanguage();
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,19 +33,17 @@ export default function CustomerListScreen({ navigation }: any) {
 
   const fetchCustomers = async () => {
     try {
-      const [custRes, activeRes] = await Promise.all([
-        apiClient.get('/api/customers?lite=true'),
-        apiClient.get('/api/pppoe/active').catch(() => ({ data: [] }))
+      const [customersData, activeData] = await Promise.all([
+        customerService.getCustomers(true),
+        pppoeService.getActiveConnections()
       ]);
 
-      const activeData = Array.isArray(activeRes.data) ? activeRes.data : [];
-      const activeMap = new Map(activeData.map((conn: any) => [conn.name, conn['address'] || conn['remote-address']]));
+      const activeMap = new Map(activeData.map(conn => [conn.name, conn.address || conn['remote-address']]));
       
-      const rawData = custRes.data || {};
-      const data = Object.values(rawData).map((c: any) => ({
+      const data: Customer[] = customersData.filter(c => c && typeof c === 'object').map(c => ({
         ...c,
         isOnline: c.username ? activeMap.has(c.username) : false,
-        ipAddress: c.username ? activeMap.get(c.username) : null
+        ipAddress: c.username ? (activeMap.get(c.username) as string) : null
       }));
 
       setCustomers(data);
@@ -171,11 +171,11 @@ export default function CustomerListScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={filteredCustomers}
-          keyExtractor={(item) => item.username}
+          keyExtractor={(item, index) => item?.username || `fallback-customer-${index}`}
           renderItem={({ item }) => (
             <CustomerItem 
               customer={item} 
-              onPress={() => navigation.navigate('CustomerDetail', { username: item.username })} 
+              onPress={() => navigation.navigate('CustomerDetail', { customer: item })} 
             />
           )}
           ListEmptyComponent={

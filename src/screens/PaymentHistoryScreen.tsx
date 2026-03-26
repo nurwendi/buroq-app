@@ -12,6 +12,7 @@ import {
 import { ArrowLeft, CreditCard, ChevronRight, Filter, Calendar, Printer } from 'lucide-react-native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { printReceipt } from '../utils/printer';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import { Alert } from 'react-native';
@@ -19,6 +20,7 @@ import { Alert } from 'react-native';
 export default function PaymentHistoryScreen({ route, navigation }: any) {
   const { username, name } = route.params;
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,17 +53,27 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
     try {
       await printReceipt({
         invoiceNumber: item.invoiceNumber,
-        customerName: name || username || item.customerName,
+        customerName: item.customerName || (name !== t('billing.history') ? name : null),
+        username: item.username || username,
         date: new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: item.amount,
-        paymentMethod: item.method === 'cash' ? (t('billing.cash') || 'Tunai') : (t('billing.transfer') || 'Transfer')
+        paymentMethod: item.method === 'cash' ? (t('billing.cash') || 'Tunai') : (t('billing.transfer') || 'Transfer'),
+        agentFullName: item?.agentFullName || user?.fullName || user?.name || user?.username,
+        agentPhone: item?.agentPhone || user?.phone,
+        period: item?.month !== undefined ? `${[
+          t('billing.january') || 'Januari', t('billing.february') || 'Februari', t('billing.march') || 'Maret', 
+          t('billing.april') || 'April', t('billing.may') || 'Mei', t('billing.june') || 'Juni',
+          t('billing.july') || 'Juli', t('billing.august') || 'Agustus', t('billing.september') || 'September', 
+          t('billing.october') || 'Oktober', t('billing.november') || 'November', t('billing.december') || 'Desember'
+        ][item.month]} ${item.year}` : undefined
       });
       Alert.alert(t('common.success'), t('billing.printingReceipt'));
     } catch (e: any) {
-      if (e.message?.includes('belum disetting')) {
+      const errorMsg = e?.message || String(e);
+      if (errorMsg.includes('belum disetting')) {
         setPrinterModalVisible(true);
       } else {
-        Alert.alert(t('common.error'), e.message || t('billing.printReceiptError'));
+        Alert.alert(t('common.error'), errorMsg || t('billing.printReceiptError'));
       }
     }
   };

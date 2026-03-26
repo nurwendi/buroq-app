@@ -39,6 +39,45 @@ import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from '../constants/theme';
 
+const InputField = ({ label, icon: Icon, value, onChangeText, placeholder, secureTextEntry = false, keyboardType = 'default', rightIcon: RightIcon, onRightIconPress, editable = true, multiline = false }: any) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.label}>{label}</Text>
+    <View style={[styles.inputWrapper, !editable && styles.inputWrapperDisabled, multiline && styles.inputWrapperMultiline]}>
+      <View style={[styles.iconBox, multiline && { height: 56, justifyContent: 'center' }]}>
+        <Icon size={20} color={editable ? COLORS.slate[500] : COLORS.slate[400]} />
+      </View>
+      <TextInput 
+        style={[styles.input, !editable && styles.inputDisabled, multiline && { height: 100, paddingTop: 16, textAlignVertical: 'top' }]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
+        placeholderTextColor={COLORS.slate[400]}
+        editable={editable}
+        multiline={multiline}
+      />
+      {RightIcon && editable && (
+        <TouchableOpacity 
+          style={styles.rightIconBox} 
+          onPress={onRightIconPress}
+        >
+          <RightIcon size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+      )}
+    </View>
+  </View>
+);
+
+const SectionHeader = ({ title, icon: Icon }: any) => (
+  <View style={styles.sectionHeader}>
+    <View style={styles.sectionIcon}>
+      <Icon size={18} color={COLORS.primary} />
+    </View>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
+
 export default function CustomerFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -57,15 +96,14 @@ export default function CustomerFormScreen() {
     email: customer?.email || '',
     address: customer?.address || '',
     password: '',
-    profileId: customer?.profileId || '',
+    profile: customer?.profile?.name || customer?.profileId || '',
     agentId: customer?.agentId || '',
     technicianId: customer?.technicianId || '',
     coordinates: customer?.coordinates || '',
     comment: customer?.comment || '',
     customerId: customer?.customerId || '',
     routerIds: customer?.routerIds || [],
-    service: customer?.service || 'pppoe',
-    disabled: customer?.disabled || false,
+    service: 'pppoe',
   });
 
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -107,6 +145,11 @@ export default function CustomerFormScreen() {
         if (Object.keys(updates).length > 0) {
             setFormData(prev => ({ ...prev, ...updates }));
         }
+      } else if (mode === 'edit') {
+        // Fallback for routerIds if missing from lite customer object but present in session/stats
+        if ((!formData.routerIds || formData.routerIds.length === 0) && customer?.session?.routerId) {
+            setFormData(prev => ({ ...prev, routerIds: [customer.session.routerId] }));
+        }
       }
     } catch (e) {
       console.error('Failed to fetch initial data', e);
@@ -120,7 +163,7 @@ export default function CustomerFormScreen() {
     const missingFields = [];
     if (!formData.username) missingFields.push(t('users.username'));
     if (mode === 'add' && !formData.password) missingFields.push(t('users.password'));
-    if (!formData.profileId || formData.profileId === '') missingFields.push(t('users.profile'));
+    if (!formData.profile || formData.profile === '') missingFields.push(t('users.profile'));
     if (!formData.name) missingFields.push(t('users.fullName'));
     if (!formData.address) missingFields.push(t('users.address'));
     
@@ -140,8 +183,8 @@ export default function CustomerFormScreen() {
         const pppoePayload = {
           name: formData.username,
           password: formData.password,
-          profile: profiles.find(p => p.id === formData.profileId)?.name || '',
-          service: formData.service || 'pppoe',
+          profile: formData.profile,
+          service: 'pppoe',
           routerIds: formData.routerIds,
           comment: formData.comment,
           coordinates: formData.coordinates,
@@ -172,8 +215,8 @@ export default function CustomerFormScreen() {
                 newValues: {
                     username: formData.username,
                     password: formData.password,
-                    profile: profiles.find(p => p.id === formData.profileId)?.name || '',
-                    service: formData.service,
+                    profile: formData.profile,
+                    service: 'pppoe',
                     name: formData.name,
                     address: formData.address,
                     phone: formData.phone,
@@ -292,44 +335,7 @@ export default function CustomerFormScreen() {
     );
   }
 
-  const InputField = ({ label, icon: Icon, value, onChangeText, placeholder, secureTextEntry = false, keyboardType = 'default', rightIcon: RightIcon, onRightIconPress, editable = true, multiline = false }: any) => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrapper, !editable && styles.inputWrapperDisabled, multiline && styles.inputWrapperMultiline]}>
-        <View style={[styles.iconBox, multiline && { height: 56, justifyContent: 'center' }]}>
-          <Icon size={20} color={editable ? COLORS.slate[500] : COLORS.slate[400]} />
-        </View>
-        <TextInput 
-          style={[styles.input, !editable && styles.inputDisabled, multiline && { height: 100, paddingTop: 16, textAlignVertical: 'top' }]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          placeholderTextColor={COLORS.slate[400]}
-          editable={editable}
-          multiline={multiline}
-        />
-        {RightIcon && editable && (
-          <TouchableOpacity 
-            style={styles.rightIconBox} 
-            onPress={onRightIconPress}
-          >
-            <RightIcon size={20} color={COLORS.primary} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
 
-  const SectionHeader = ({ title, icon: Icon }: any) => (
-    <View style={styles.sectionHeader}>
-      <View style={styles.sectionIcon}>
-        <Icon size={18} color={COLORS.primary} />
-      </View>
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -349,6 +355,43 @@ export default function CustomerFormScreen() {
         >
           <View style={styles.formCard}>
             
+            <SectionHeader title={t('users.pppoeCredentials')} icon={Key} />
+            
+            <InputField 
+              label={t('users.usernameLabel')} 
+              icon={User} 
+              value={formData.username}
+              onChangeText={(text: string) => setFormData({ ...formData, username: text })}
+              placeholder={t('users.usernamePlaceholder') || "Username login"}
+            />
+
+            <InputField 
+              label={t('users.passwordLabel')} 
+              icon={Lock} 
+              value={formData.password}
+              onChangeText={(text: string) => setFormData({ ...formData, password: text })}
+              placeholder={mode === 'edit' ? t('dashboard.wifiPassPlaceholder') : t('users.passwordPlaceholder')}
+              secureTextEntry
+            />
+
+            <View style={styles.inputGroupSpecial}>
+              <Text style={styles.label}>{t('users.profile')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                 {profiles.map((p) => (
+                   <TouchableOpacity 
+                      key={p.id || p.name} 
+                      style={[styles.chip, formData.profile === p.name && styles.chipActive]}
+                      onPress={() => setFormData({ ...formData, profile: p.name })}
+                   >
+                      <Text style={[styles.chipText, formData.profile === p.name && styles.chipTextActive]}>{p.name}</Text>
+                      {formData.profile === p.name && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
+                   </TouchableOpacity>
+                 ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.divider} />
+
             <SectionHeader title={t('users.customerInfo')} icon={Info} />
 
             <InputField 
@@ -415,77 +458,6 @@ export default function CustomerFormScreen() {
               placeholder={t('users.notesPlaceholder') || "Catatan khusus..."}
               multiline
             />
-
-            <View style={styles.divider} />
-            
-            <SectionHeader title={t('users.pppoeCredentials')} icon={Key} />
-            
-            <InputField 
-              label={t('users.usernameLabel')} 
-              icon={User} 
-              value={formData.username}
-              onChangeText={(text: string) => setFormData({ ...formData, username: text })}
-              placeholder={t('users.usernamePlaceholder') || "Username login"}
-            />
-
-            <InputField 
-              label={t('users.passwordLabel')} 
-              icon={Lock} 
-              value={formData.password}
-              onChangeText={(text: string) => setFormData({ ...formData, password: text })}
-              placeholder={mode === 'edit' ? t('dashboard.wifiPassPlaceholder') : t('users.passwordPlaceholder')}
-              secureTextEntry
-            />
-
-            <View style={styles.inputGroupSpecial}>
-              <Text style={styles.label}>{t('users.servicePackage')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                 {profiles.map((p) => (
-                   <TouchableOpacity 
-                      key={p.id} 
-                      style={[styles.chip, formData.profileId === p.id && styles.chipActive]}
-                      onPress={() => setFormData({ ...formData, profileId: p.id })}
-                   >
-                      <Text style={[styles.chipText, formData.profileId === p.id && styles.chipTextActive]}>{p.name}</Text>
-                      {formData.profileId === p.id && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
-                   </TouchableOpacity>
-                 ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.inputGroupSpecial}>
-              <Text style={styles.label}>{t('users.service')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                 {['pppoe', 'any', 'hotspot', 'static'].map((s) => (
-                   <TouchableOpacity 
-                      key={s} 
-                      style={[styles.chip, formData.service === s && styles.chipActive]}
-                      onPress={() => setFormData({ ...formData, service: s })}
-                   >
-                      <Text style={[styles.chipText, formData.service === s && styles.chipTextActive]}>{s.toUpperCase()}</Text>
-                      {formData.service === s && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
-                   </TouchableOpacity>
-                 ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.inputGroupSpecial}>
-              <Text style={styles.label}>{t('common.status')}</Text>
-              <View style={styles.row}>
-                  <TouchableOpacity 
-                      style={[styles.chip, !formData.disabled && styles.chipActive, { flex: 1, marginRight: 8, justifyContent: 'center' }]}
-                      onPress={() => setFormData({ ...formData, disabled: false })}
-                  >
-                      <Text style={[styles.chipText, !formData.disabled && styles.chipTextActive]}>{t('dashboard.active')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                      style={[styles.chip, formData.disabled && styles.chipActiveIsolir, { flex: 1, justifyContent: 'center' }]}
-                      onPress={() => setFormData({ ...formData, disabled: true })}
-                  >
-                      <Text style={[styles.chipText, formData.disabled && styles.chipTextActive]}>{t('users.disabled')}</Text>
-                  </TouchableOpacity>
-              </View>
-            </View>
 
             <View style={styles.divider} />
 

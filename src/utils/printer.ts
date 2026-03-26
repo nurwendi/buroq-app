@@ -4,9 +4,13 @@ import { BLEPrinter } from '@poriyaalar/react-native-thermal-receipt-printer';
 export interface ReceiptData {
   invoiceNumber: string;
   customerName: string;
+  username?: string; // Fallback if name is unknown
   date: string;
   amount: number;
   paymentMethod: string;
+  agentFullName?: string;
+  agentPhone?: string;
+  period?: string;
 }
 
 const PRINTER_MAC_KEY = '@buroq_printer_mac';
@@ -36,41 +40,52 @@ export const printReceipt = async (data: ReceiptData) => {
     throw new Error('Printer belum disetting.');
   }
 
-  const payload = `[C]<b>BUROQ BILLING</b>
-[C]--------------------------------
-[C]<b>STRUK PEMBAYARAN</b>
-[C]--------------------------------
-[L]No. Invoice : ${data.invoiceNumber}
-[L]Tanggal     : ${data.date}
-[L]Pelanggan   : ${data.customerName}
-[C]--------------------------------
-[L]Metode      : ${data.paymentMethod}
-[L]<b>TOTAL       : Rp ${data.amount.toLocaleString()}</b>
-[C]--------------------------------
-[C]Terima kasih telah berlangganan
-[C]Buroq Sarana Informatika
-[C]
-[C]
-`;
+  const displayCustomer = (data.customerName && data.customerName.toLowerCase() !== 'unknown')
+    ? data.customerName
+    : (data.username || data.customerName || 'Unknown');
+
+  const payload =
+    `<C><B>BUROQ SARANA</B>
+    <C><B>INFORMATIKA</B>
+    <C>ASN-140390
+<C>--------------------------------
+<C>STRUK PEMBAYARAN
+<C>${data.invoiceNumber}
+<C>--------------------------------
+<L>Pelanggan : ${displayCustomer}
+<L>Tanggal   : ${data.date}
+<L>Metode    : ${data.paymentMethod}
+${data.period ? `<L>Periode   : ${data.period}\n` : ''}
+<C>--------------------------------
+<C><B>Rp ${(Number(data.amount) || 0).toLocaleString()}</B>
+<C>--------------------------------
+${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}
+${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}
+<C>--------------------------------
+<C>Terima kasih telah berlangganan
+\n\n\n`;
 
   try {
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
-    
+
+    // Give a tiny delay after connecting for stability
+    await new Promise(r => setTimeout(r, 300));
+
     return new Promise((resolve, reject) => {
-      BLEPrinter.printBill(
+      BLEPrinter.printText(
         payload,
-        { beep: true, tailingLine: true },
+        { beep: true, cut: true, tailingLine: false, encoding: 'UTF8', keepConnection: false },
         () => resolve(true),
-        (err: Error) => {
-          console.error('PrintBill error', err);
-          reject(err);
+        (err: any) => {
+          console.error('PrintText error', err);
+          reject(new Error(err?.message || 'Gagal cetak teks'));
         }
       );
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Printing failed', error);
-    throw error;
+    throw new Error(error?.message || 'Koneksi ke printer gagal');
   }
 };
 export const printReport = async (monthName: string, year: number, data: any) => {
@@ -80,40 +95,47 @@ export const printReport = async (monthName: string, year: number, data: any) =>
   }
 
   let payload = `
-[C]<b>LAPORAN KEUANGAN</b>
-[C]<b>${monthName.toUpperCase()} ${year}</b>
-[C]--------------------------------
-[L]Revenue     : Rp ${data.summary.totalRevenue.toLocaleString()}
-[L]Unpaid      : Rp ${data.summary.totalUnpaid.toLocaleString()}
-[L]Expenses    : Rp ${data.summary.totalCommissions.toLocaleString()}
-[C]--------------------------------
-[L]<b>NET INCOME   : Rp ${data.summary.netIncome.toLocaleString()}</b>
-[C]--------------------------------
-[C]<b>PERFORMA STAFF</b>
+<C><B>BUROQ SARANA INFORMATIKA</B>
+<C>--------------------------------
+<C><B>LAPORAN KEUANGAN</B>
+<C><B>${monthName.toUpperCase()} ${year}</B>
+<C>--------------------------------
+<L>Revenue     : Rp ${data.summary.totalRevenue.toLocaleString()}
+<L>Unpaid      : Rp ${data.summary.totalUnpaid.toLocaleString()}
+<L>Expenses    : Rp ${data.summary.totalCommissions.toLocaleString()}
+<C>--------------------------------
+<L><B>NET INCOME   : Rp ${data.summary.netIncome.toLocaleString()}</B>
+<C>--------------------------------
+<C><B>PERFORMA STAFF</B>
 `;
 
   data.staffBreakdown.forEach((s: any) => {
-    payload += `[L]${s.name.padEnd(12)} : ${s.count} trx\n`;
+    payload += `<L>${s.name.padEnd(12)} : ${s.count} trx\n`;
   });
 
   payload += `
-[C]--------------------------------
-[C]<i>Buroq Manager Mobile</i>
-[C]
-[C]
-`;
+<C>--------------------------------
+<C>Buroq Sarana Informatika
+<C>
+<C>
+<C>
+<C>
+\n\n\n\n`;
 
   try {
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
-    
+
+    // Give a tiny delay after connecting for stability
+    await new Promise(r => setTimeout(r, 300));
+
     return new Promise((resolve, reject) => {
-      BLEPrinter.printBill(
+      BLEPrinter.printText(
         payload,
-        { beep: true, tailingLine: true },
+        { beep: true, cut: true, tailingLine: false, encoding: 'UTF8', keepConnection: false },
         () => resolve(true),
         (err: Error) => {
-          console.error('PrintReport error', err);
+          console.error('PrintReportText error', err);
           reject(err);
         }
       );
@@ -130,29 +152,33 @@ export const printTest = async () => {
     throw new Error('Printer belum disetting.');
   }
 
-  const payload = `[C]<b>PRINTER TEST</b>
-[C]--------------------------------
-[C]Koneksi Berhasil!
-[C]Buroq Manager Mobile
-[C]--------------------------------
-[L]Tanggal : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-[L]Jam     : ${new Date().toLocaleTimeString('id-ID')}
-[C]--------------------------------
-[C]
-[C]
-`;
+  const payload = `<C><B>BUROQ SARANA INFORMATIKA</B>
+<C>--------------------------------
+<C><B>PRINTER TEST</B>
+<C>--------------------------------
+<C>Koneksi Berhasil!
+<C>Buroq Billing Mobile
+<C>--------------------------------
+<L>Printer : ${mac}
+<L>Tanggal : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+<L>Jam     : ${new Date().toLocaleTimeString('id-ID')}
+<C>--------------------------------
+\n\n\n`;
 
   try {
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
-    
+
+    // Give a tiny delay after connecting for stability
+    await new Promise(r => setTimeout(r, 300));
+
     return new Promise((resolve, reject) => {
-      BLEPrinter.printBill(
+      BLEPrinter.printText(
         payload,
-        { beep: true, tailingLine: true },
+        { beep: true, cut: true, tailingLine: false, encoding: 'UTF8', keepConnection: false },
         () => resolve(true),
         (err: Error) => {
-          console.error('PrintTest error', err);
+          console.error('PrintTestText error', err);
           reject(err);
         }
       );
@@ -162,4 +188,3 @@ export const printTest = async () => {
     throw error;
   }
 };
-

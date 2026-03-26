@@ -7,9 +7,13 @@ import apiClient from '../api/client';
  */
 export const resolveUrl = (path: string | null | undefined): string => {
   if (!path) return '';
-  if (path.startsWith('http')) return path;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
   
-  const baseUrl = apiClient.defaults.baseURL || '';
+  let baseUrl = (apiClient.defaults.baseURL as string) || '';
+  if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+  
   // Ensure we don't have double slashes if path starts with it
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   

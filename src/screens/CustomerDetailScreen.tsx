@@ -277,12 +277,14 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
               </View>
             )}
           </View>
-          <TouchableOpacity
-             style={styles.payButton}
-             onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
-          >
-            <Banknote size={24} color="#fff" />
-          </TouchableOpacity>
+          {stats?.billing?.status === 'unpaid' && (
+            <TouchableOpacity
+               style={styles.payButton}
+               onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
+            >
+              <Banknote size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.actionButtons}>
@@ -365,13 +367,15 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                       {stats?.billing?.status === 'unpaid' ? t('billing.unpaidBills') : t('billing.paid')}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    style={styles.payNowBtn}
-                    onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
-                  >
-                    <Banknote size={16} color="#fff" />
-                    <Text style={styles.payNowText}>{t('billing.recordPayment')}</Text>
-                  </TouchableOpacity>
+                  {stats?.billing?.status === 'unpaid' && (
+                    <TouchableOpacity
+                      style={styles.payNowBtn}
+                      onPress={() => navigation.navigate('PaymentForm', { customer: { ...customer, ...stats } })}
+                    >
+                      <Banknote size={16} color="#fff" />
+                      <Text style={styles.payNowText}>{t('billing.recordPayment')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {stats?.billing?.status === 'unpaid' && (
