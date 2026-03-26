@@ -32,7 +32,6 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
-import PppoePieChart from '../../components/PppoePieChart';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function StaffDashboardView() {
@@ -129,13 +128,6 @@ export default function StaffDashboardView() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        <PppoePieChart 
-          active={onlineCount}
-          offline={Math.max(0, (stats?.totalCustomers || 0) - onlineCount)}
-          total={stats?.totalCustomers || 0}
-          loading={loadingStats}
-          onPress={() => navigation.navigate('CustomerList')}
-        />
 
         <View style={styles.statsGrid}>
           <View style={{ width: '48%' }}>
