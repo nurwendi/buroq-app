@@ -31,7 +31,6 @@ import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import GradientHeader from '../../components/GradientHeader';
-import PppoePieChart from '../../components/PppoePieChart';
 import { useLanguage } from '../../context/LanguageContext';
 import { COLORS } from '../../constants/theme';
 
@@ -146,14 +145,6 @@ export default function AdminDashboardView() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        <PppoePieChart 
-          active={onlineCount}
-          offline={Math.max(0, (stats?.totalCustomers || 0) - onlineCount)}
-          total={stats?.totalCustomers || 0}
-          loading={loadingStats}
-          onPress={() => navigation.navigate('CustomerList')}
-        />
-
         {/* Section: Financial Summary */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>

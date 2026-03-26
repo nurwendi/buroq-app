@@ -158,7 +158,7 @@ export default function StaffDashboardView() {
             </View>
           </View>
           <View style={styles.statsGrid}>
-            <View style={{ width: '31%' }}>
+            <View style={{ width: '48%' }}>
               <StatCard 
                 title={t('users.all') || 'All'} 
                 value={stats?.totalCustomers || 0} 
@@ -166,20 +166,12 @@ export default function StaffDashboardView() {
                 color="#0ea5e9" 
               />
             </View>
-            <View style={{ width: '31%' }}>
+            <View style={{ width: '48%' }}>
               <StatCard 
                 title={t('users.online') || 'Online'} 
                 value={onlineCount} 
                 icon={Activity} 
                 color="#10b981" 
-              />
-            </View>
-            <View style={{ width: '31%' }}>
-              <StatCard 
-                title={t('users.offline') || 'Offline'} 
-                value={Math.max(0, (stats?.totalCustomers || 0) - onlineCount)} 
-                icon={Activity} 
-                color="#ef4444" 
               />
             </View>
           </View>

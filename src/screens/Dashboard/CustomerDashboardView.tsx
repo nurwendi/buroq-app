@@ -155,6 +155,7 @@ export default function CustomerDashboardView() {
         title={stats?.name || user?.fullName || user?.username} 
         role={t('sidebar.users').toUpperCase()}
         userAvatar={resolveUrl(user?.avatar)}
+        onProfilePress={() => navigation.navigate('SettingsTab')}
       />
       <ScrollView
         style={styles.fullScrollView}
@@ -240,6 +241,57 @@ export default function CustomerDashboardView() {
           </View>
         </TouchableOpacity>
 
+        {/* Customer Information Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <LayoutDashboard size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('users.customerInfo') || 'INFORMASI PELANGGAN'}</Text>
+            </View>
+          </View>
+          <View style={styles.infoGrid}>
+            <View style={styles.infoCard}>
+               <Text style={styles.infoLabel}>{t('users.id') || 'ID Pelanggan'}</Text>
+               <Text style={styles.infoValue}>{stats?.customerId || user?.username || '-'}</Text>
+            </View>
+            <View style={styles.infoCard}>
+               <Text style={styles.infoLabel}>{t('users.username') || 'Username'}</Text>
+               <Text style={styles.infoValue}>{stats?.pppoeUsername || '-'}</Text>
+            </View>
+            <View style={[styles.infoCard, { width: '48%', marginTop: 12 }]}>
+               <Text style={styles.infoLabel}>{t('users.profile') || 'Paket'}</Text>
+               <Text style={styles.infoValue}>{stats?.profileName || '-'}</Text>
+            </View>
+            <View style={[styles.infoCard, { width: '48%', marginTop: 12 }]}>
+               <Text style={styles.infoLabel}>{t('users.uptime') || 'Uptime'}</Text>
+               <Text style={styles.infoValue}>{stats?.session?.uptime || '-'}</Text>
+            </View>
+            <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
+               <Text style={styles.infoLabel}>{t('users.address') || 'Alamat'}</Text>
+               <Text style={styles.infoValue}>{stats?.address || '-'}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Latest Notifications Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleCard}>
+              <Bell size={18} color="#94a3b8" />
+              <Text style={styles.titleCardText}>{t('notifications.title') || 'NOTIFIKASI TERBARU'}</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+              <Text style={styles.seeAllText}>{t('dashboard.seeAll') || 'Lihat Semua'}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.notificationBox}>
+             <Clock size={20} color="#94a3b8" />
+             <Text style={styles.notifPlaceholder}>
+               {stats?.latestNotification || 'Belum ada notifikasi pembayaran terbaru.'}
+             </Text>
+          </View>
+        </View>
+
         {/* WiFi Management */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -271,23 +323,6 @@ export default function CustomerDashboardView() {
           </View>
         </View>
 
-        {/* Main Menu */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.titleCard}>
-              <LayoutDashboard size={18} color="#94a3b8" />
-              <Text style={styles.titleCardText}>{t('dashboard.mainMenu')}</Text>
-            </View>
-          </View>
-          <View style={styles.menuGrid}>
-             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SettingsTab')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
-                   <Settings size={22} color="#475569" />
-                </View>
-                <Text style={styles.menuLabel}>{t('sidebar.settings')}</Text>
-             </TouchableOpacity>
-          </View>
-        </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -481,6 +516,51 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  infoCard: {
+    width: '48%',
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  notificationBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#f8fafc',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  notifPlaceholder: {
+    flex: 1,
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  seeAllText: {
+    fontSize: 12,
+    color: '#2563eb',
+    fontWeight: '700',
   },
   billingCard: {
     padding: 24,

@@ -117,16 +117,18 @@ export default function SettingsScreen() {
 
         <Text style={styles.sectionTitle}>{t('appSettings.application')}</Text>
         <View style={styles.settingGroup}>
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('ServerSettings')}
-          >
-            <View style={[styles.settingIcon, { backgroundColor: '#f5f3ff' }]}>
-              <SettingsIcon size={20} color="#7c3aed" />
-            </View>
-            <Text style={styles.settingLabel}>{t('appSettings.serverSettings')}</Text>
-            <ChevronRight size={20} color={COLORS.slate[300]} />
-          </TouchableOpacity>
+          {user?.role !== 'customer' && (
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => navigation.navigate('ServerSettings')}
+            >
+              <View style={[styles.settingIcon, { backgroundColor: '#f5f3ff' }]}>
+                <SettingsIcon size={20} color="#7c3aed" />
+              </View>
+              <Text style={styles.settingLabel}>{t('appSettings.serverSettings')}</Text>
+              <ChevronRight size={20} color={COLORS.slate[300]} />
+            </TouchableOpacity>
+          )}
           
           <TouchableOpacity 
             style={styles.settingItem}
@@ -155,24 +157,26 @@ export default function SettingsScreen() {
             <ChevronRight size={20} color={COLORS.slate[300]} />
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => setPrinterModalVisible(true)}
-          >
-            <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '10' }]}>
-              <Printer size={20} color={COLORS.success} />
-            </View>
-            <Text style={styles.settingLabel}>
-              {(() => {
-                const label = t('appSettings.printerSettings');
-                if (label !== 'appSettings.printerSettings') return label;
-                const label2 = t('billing.printerSettings');
-                if (label2 !== 'billing.printerSettings') return label2;
-                return 'Printer Settings';
-              })()}
-            </Text>
-            <ChevronRight size={20} color={COLORS.slate[300]} />
-          </TouchableOpacity>
+          {user?.role !== 'customer' && (
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => setPrinterModalVisible(true)}
+            >
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '10' }]}>
+                <Printer size={20} color={COLORS.success} />
+              </View>
+              <Text style={styles.settingLabel}>
+                {(() => {
+                  const label = t('appSettings.printerSettings');
+                  if (label !== 'appSettings.printerSettings') return label;
+                  const label2 = t('billing.printerSettings');
+                  if (label2 !== 'billing.printerSettings') return label2;
+                  return 'Printer Settings';
+                })()}
+              </Text>
+              <ChevronRight size={20} color={COLORS.slate[300]} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {(user?.role === 'superadmin' || user?.role === 'admin') && (

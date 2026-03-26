@@ -42,7 +42,6 @@ export default function AppLauncherModal({ visible, onClose }: Props) {
     { name: 'Tagihan', icon: CreditCard, nav: 'BillingTab', roles: ['admin', 'manager', 'partner', 'staff', 'technician'] },
     { name: 'Laporan', icon: Activity, nav: 'FinancialReport', roles: ['superadmin', 'admin'] },
     { name: 'Pelanggan', icon: Users, nav: 'UsersTab', roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'technician'] },
-    { name: 'Offline', icon: WifiOff, nav: null, roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'technician'] },
     { name: 'Semua User', icon: Globe, nav: 'AllUsers', roles: ['superadmin', 'admin'] },
     { name: 'Profile PPPoE', icon: Server, nav: 'PppoeProfiles', roles: ['admin', 'manager', 'superadmin'] },
     { name: 'Router Management', icon: Server, nav: 'NAT', roles: ['admin', 'manager', 'superadmin'] },
@@ -51,7 +50,6 @@ export default function AppLauncherModal({ visible, onClose }: Props) {
     { name: 'Invoice', icon: FileText, nav: 'BillingTab', roles: ['superadmin'] },
     { name: 'Pengaturan', icon: Settings, nav: 'SettingsTab', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician', 'customer'] },
     { name: 'Notifikasi', icon: Bell, nav: 'Notification', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician', 'customer'] },
-    { name: 'Log Sistem', icon: ClipboardList, nav: 'Logs', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician'] },
   ];
 
   const visibleItems = allItems.filter(item => item.roles.includes(role));
