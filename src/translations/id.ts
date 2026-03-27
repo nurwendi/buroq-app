@@ -144,6 +144,7 @@ export const id = {
         systemSettings: 'Pengaturan Sistem',
         nasManagement: 'Manajemen NAS (Router)',
         paymentGateway: 'Payment Gateway',
+        systemUsers: 'Manajemen User Sistem',
         printerSettings: 'Pengaturan Printer',
         version: 'Versi',
     },

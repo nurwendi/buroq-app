@@ -10,9 +10,11 @@ import {
   RefreshControl,
   Platform,
   ScrollView,
-  StatusBar
+  StatusBar,
+  ImageBackground
 } from 'react-native';
 import { Search, Users } from 'lucide-react-native';
+import apiClient from '../api/client';
 import { customerService } from '../services/customerService';
 import { pppoeService } from '../services/pppoeService';
 import { Customer } from '../api/models';
@@ -30,6 +32,25 @@ export default function CustomerListScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'online' | 'offline' | 'isolir'>('all');
   const [counts, setCounts] = useState({ all: 0, online: 0, offline: 0, isolir: 0 });
+  const [loginBgUrl, setLoginBgUrl] = useState('');
+  const [dashboardBgUrl, setDashboardBgUrl] = useState('');
+
+  const resolveUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = apiClient.defaults.baseURL || '';
+    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await apiClient.get('/api/app-settings');
+      if (res.data.loginBgUrl) setLoginBgUrl(res.data.loginBgUrl);
+      if (res.data.dashboardBgUrl) setDashboardBgUrl(res.data.dashboardBgUrl);
+    } catch (e) {
+      console.log('Failed to fetch settings');
+    }
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -66,6 +87,7 @@ export default function CustomerListScreen({ navigation }: any) {
 
   useEffect(() => {
     fetchCustomers();
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -94,13 +116,29 @@ export default function CustomerListScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchCustomers();
+    await Promise.all([fetchCustomers(), fetchSettings()]);
     setRefreshing(false);
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      {/* Absolute Transparent Background */}
+      <View style={StyleSheet.absoluteFill}>
+        {loginBgUrl ? (
+          <ImageBackground
+            source={{ uri: resolveUrl(loginBgUrl) }}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          >
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.65)' }} />
+          </ImageBackground>
+        ) : (
+          <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />
+        )}
+      </View>
+
       <GradientHeader 
         title={t('users.listTitle')} 
         onBackPress={() => navigation.goBack()}
@@ -203,27 +241,25 @@ export default function CustomerListScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
   topSection: {
-    backgroundColor: COLORS.white,
     zIndex: 10,
+    backgroundColor: 'transparent',
   },
   searchContainer: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
-    backgroundColor: COLORS.white,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.slate[50],
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
     paddingHorizontal: 16,
     height: 56,
     borderWidth: 1.5,
-    borderColor: COLORS.slate[100],
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   searchInput: {
     flex: 1,
@@ -246,9 +282,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderWidth: 1.5,
-    borderColor: COLORS.slate[100],
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   filterChipActive: {
     backgroundColor: COLORS.primary,
@@ -262,7 +298,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 13,
     fontWeight: '800',
-    color: COLORS.slate[400],
+    color: COLORS.slate[500],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -282,6 +318,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   empty: {
     flex: 1,
@@ -293,10 +330,12 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 40,
-    backgroundColor: COLORS.slate[50],
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   emptyText: {
     fontSize: 18,

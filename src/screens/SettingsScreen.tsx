@@ -198,6 +198,17 @@ export default function SettingsScreen() {
 
               <TouchableOpacity 
                 style={styles.settingItem}
+                onPress={() => navigation.navigate('SystemUsers')}
+              >
+                <View style={[styles.settingIcon, { backgroundColor: '#f0fdf4' }]}>
+                  <User size={20} color="#10b981" />
+                </View>
+                <Text style={styles.settingLabel}>{t('appSettings.systemUsers')}</Text>
+                <ChevronRight size={20} color={COLORS.slate[300]} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.settingItem}
                 onPress={() => navigation.navigate('NasManagement')}
               >
                 <View style={[styles.settingIcon, { backgroundColor: '#f5f3ff' }]}>

@@ -48,7 +48,7 @@ export default function AppLauncherModal({ visible, onClose }: Props) {
     { name: 'Sistem Admin', icon: Shield, nav: 'SystemUsers', roles: ['superadmin', 'admin'] },
     { name: 'Backup DB', icon: Database, nav: null, roles: ['superadmin'] },
     { name: 'Invoice', icon: FileText, nav: 'BillingTab', roles: ['superadmin'] },
-    { name: 'Pengaturan', icon: Settings, nav: 'SettingsTab', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician', 'customer'] },
+    { name: 'Pengaturan', icon: Settings, nav: 'SettingsTab', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician'] },
     { name: 'Notifikasi', icon: Bell, nav: 'Notification', roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'technician', 'customer'] },
   ];
 

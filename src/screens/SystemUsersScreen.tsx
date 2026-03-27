@@ -247,12 +247,12 @@ export default function SystemUsersScreen() {
           <View style={styles.roleCapabilities}>
             {item.isAgent && (
               <View style={[styles.capabilityBadge, { backgroundColor: '#fef3c7' }]}>
-                <Text style={{ fontSize: 10, color: '#92400e', fontWeight: 'bold' }}>AGENT (Rp{item.agentRate || 0})</Text>
+                <Text style={{ fontSize: 10, color: '#92400e', fontWeight: 'bold' }}>AGENT ({item.agentRate || 0}%)</Text>
               </View>
             )}
             {item.isTechnician && (
               <View style={[styles.capabilityBadge, { backgroundColor: '#e0e7ff' }]}>
-                <Text style={{ fontSize: 10, color: '#3730a3', fontWeight: 'bold' }}>TECH (Rp{item.technicianRate || 0})</Text>
+                <Text style={{ fontSize: 10, color: '#3730a3', fontWeight: 'bold' }}>TECH ({item.technicianRate || 0}%)</Text>
               </View>
             )}
           </View>
@@ -450,6 +450,32 @@ export default function SystemUsersScreen() {
                   </View>
                   <Text style={styles.businessRoleLabel}>{t('systemUsers.asTechnician')}</Text>
                 </TouchableOpacity>
+
+                {formData.isAgent && (
+                  <>
+                    <Text style={styles.label}>{t('users.agentRate')}</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={formData.agentRate}
+                      onChangeText={(text) => setFormData({...formData, agentRate: text})}
+                      keyboardType="numeric"
+                      placeholder="%"
+                    />
+                  </>
+                )}
+
+                {formData.isTechnician && (
+                  <>
+                    <Text style={styles.label}>{t('users.technicianRate')}</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={formData.technicianRate}
+                      onChangeText={(text) => setFormData({...formData, technicianRate: text})}
+                      keyboardType="numeric"
+                      placeholder="%"
+                    />
+                  </>
+                )}
               </View>
 
               <View style={{ height: 40 }} />

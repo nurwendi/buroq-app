@@ -111,19 +111,21 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('SettingsTab')}
-          >
-            <View style={[styles.menuIcon, { backgroundColor: '#eff6ff' }]}>
-              <User size={20} color="#2563eb" />
-            </View>
-            <Text style={styles.menuLabel}>{t('profile.editProfile')}</Text>
-            <ChevronRight size={20} color="#cbd5e1" />
-          </TouchableOpacity>
-        </View>
+        {user?.role !== 'customer' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('SettingsTab')}
+            >
+              <View style={[styles.menuIcon, { backgroundColor: '#eff6ff' }]}>
+                <User size={20} color="#2563eb" />
+              </View>
+              <Text style={styles.menuLabel}>{t('profile.editProfile')}</Text>
+              <ChevronRight size={20} color="#cbd5e1" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <LogOut size={20} color={COLORS.error} />

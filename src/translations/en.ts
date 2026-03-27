@@ -142,6 +142,7 @@ export const en = {
         systemSettings: 'System Settings',
         nasManagement: 'NAS Management (Router)',
         paymentGateway: 'Payment Gateway',
+        systemUsers: 'System User Management',
         printerSettings: 'Printer Settings',
         version: 'Version',
     },

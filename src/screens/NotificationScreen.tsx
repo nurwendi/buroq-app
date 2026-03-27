@@ -116,6 +116,19 @@ export default function NotificationScreen() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  const [selectedNotifId, setSelectedNotifId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string, isRead: boolean) => {
+    if (selectedNotifId === id) {
+      setSelectedNotifId(null);
+    } else {
+      setSelectedNotifId(id);
+      if (!isRead) {
+        markRead(id);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
@@ -185,11 +198,12 @@ export default function NotificationScreen() {
         >
           {filteredNotifications.map((n) => {
             const badge = getBadgeStyles(n.notification?.type);
+            const isExpanded = selectedNotifId === n.id;
             return (
               <TouchableOpacity 
                 key={n.id} 
-                style={[styles.card, !n.isRead && styles.unreadCard]}
-                onPress={() => !n.isRead && markRead(n.id)}
+                style={[styles.card, !n.isRead && styles.unreadCard, isExpanded && styles.expandedCard]}
+                onPress={() => toggleExpand(n.id, n.isRead)}
                 activeOpacity={0.7}
               >
                 <View style={styles.cardHeader}>
@@ -214,7 +228,7 @@ export default function NotificationScreen() {
                   </View>
                 </View>
 
-                <Text style={styles.message} numberOfLines={3}>
+                <Text style={styles.message} numberOfLines={isExpanded ? undefined : 3}>
                   {n.notification?.message}
                 </Text>
 
@@ -234,10 +248,12 @@ export default function NotificationScreen() {
                     </Text>
                   </View>
                   
-                  {!n.isRead && (
+                  {!n.isRead ? (
                     <TouchableOpacity onPress={() => markRead(n.id)} style={styles.markReadBtn}>
                       <Text style={styles.markReadText}>{t('notifications.markAsRead')}</Text>
                     </TouchableOpacity>
+                  ) : (
+                    <Text style={styles.readIndicator}>{isExpanded ? 'Tutup' : 'Selengkapnya'}</Text>
                   )}
                 </View>
               </TouchableOpacity>
@@ -412,6 +428,11 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     fontWeight: '800',
   },
+  expandedCard: {
+    borderColor: '#3b82f6',
+    borderWidth: 2,
+    backgroundColor: '#ffffff',
+  },
   typeBadge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -489,5 +510,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#ffffff',
     fontWeight: '800',
+  },
+  readIndicator: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '700',
   }
 });

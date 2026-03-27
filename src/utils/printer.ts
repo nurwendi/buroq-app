@@ -100,18 +100,18 @@ export const printReport = async (monthName: string, year: number, data: any) =>
 <C><B>LAPORAN KEUANGAN</B>
 <C><B>${monthName.toUpperCase()} ${year}</B>
 <C>--------------------------------
-<L>Revenue     : Rp ${data.summary.totalRevenue.toLocaleString()}
-<L>Unpaid      : Rp ${data.summary.totalUnpaid.toLocaleString()}
-<L>Expenses    : Rp ${data.summary.totalCommissions.toLocaleString()}
+<L>Billing/Rev : Rp ${data.summary.totalRevenue.toLocaleString()}
+<L>Piutang     : Rp ${data.summary.totalUnpaid.toLocaleString()}
+${data.isAgentView ? '' : `<L>Komisi Agen : Rp ${data.summary.totalCommissions.toLocaleString()}\n`}<C>--------------------------------
+<L><B>${data.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}  : Rp ${data.summary.netIncome.toLocaleString()}</B>
 <C>--------------------------------
-<L><B>NET INCOME   : Rp ${data.summary.netIncome.toLocaleString()}</B>
-<C>--------------------------------
-<C><B>PERFORMA STAFF</B>
-`;
+${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;
 
-  data.staffBreakdown.forEach((s: any) => {
-    payload += `<L>${s.name.padEnd(12)} : ${s.count} trx\n`;
-  });
+  if (!data.isAgentView && data.staffBreakdown?.length > 0) {
+    data.staffBreakdown.forEach((s: any) => {
+      payload += `<L>${(s.name || s.username).substring(0, 12).padEnd(12)} : ${s.count} trx\n`;
+    });
+  }
 
   payload += `
 <C>--------------------------------
