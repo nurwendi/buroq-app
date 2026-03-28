@@ -80,7 +80,7 @@ export default function FinancialReportScreen() {
 
   const fetchReport = async () => {
     try {
-      const response = await apiClient.get(`/api/reports/financial?month=${selectedMonth}&year=${selectedYear}`);
+      const response = await apiClient.get(`/api/reports/financial?month=${selectedMonth + 1}&year=${selectedYear}`);
       setData(response.data);
     } catch (e) {
       console.error('Failed to fetch report', e);
