@@ -103,11 +103,11 @@ export default function FinancialReportScreen() {
   const handleShare = async () => {
     if (!data) return;
     
-    const summary = `${t('financial.title') || 'Laporan Keuangan'} - ${months[selectedMonth].toUpperCase()} ${selectedYear}\n\n` +
-      `- ${t('financial.revenue')}: ${formatCurrency(data.summary.totalRevenue)}\n` +
-      `- ${t('financial.unpaid')}: ${formatCurrency(data.summary.totalUnpaid)}\n` +
-      `- ${t('financial.expenses')}: ${formatCurrency(data.summary.totalCommissions)}\n` +
-      `*${t('financial.netIncome').toUpperCase()}: ${formatCurrency(data.summary.netIncome)}*\n\n` +
+    const summary = `${t('financial.title') || 'Laporan Keuangan'} - ${(months[selectedMonth] || '').toUpperCase()} ${selectedYear}\n\n` +
+      `- ${t('financial.revenue') || 'Revenue'}: ${formatCurrency(data?.summary?.totalRevenue)}\n` +
+      `- ${t('financial.unpaid') || 'Unpaid'}: ${formatCurrency(data?.summary?.totalUnpaid)}\n` +
+      `- ${t('financial.expenses') || 'Expenses'}: ${formatCurrency(data?.summary?.totalCommissions)}\n` +
+      `*${(t('financial.netIncome') || 'Net Income').toUpperCase()}: ${formatCurrency(data?.summary?.netIncome)}*\n\n` +
       `_Sent from Buroq App_`;
 
     try {
@@ -203,12 +203,12 @@ export default function FinancialReportScreen() {
               <Text style={[styles.tableHeadText, { flex: 1, textAlign: 'center' }]}>{t('financial.count') || 'Trx'}</Text>
               <Text style={[styles.tableHeadText, { flex: 2, textAlign: 'right' }]}>{t('financial.profit') || 'Profit'}</Text>
             </View>
-            {data.staffBreakdown.map((s: any, i: number) => (
-              <View key={i} style={[styles.tableRow, i === data.staffBreakdown.length - 1 && { borderBottomWidth: 0 }]}>
+            {(data?.staffBreakdown || []).map((s: any, i: number) => (
+              <View key={i} style={[styles.tableRow, i === (data?.staffBreakdown?.length || 0) - 1 && { borderBottomWidth: 0 }]}>
                 <Text style={[styles.tableCellName, { flex: 2 }]} numberOfLines={1}>{s.name || s.username}</Text>
-                <Text style={[styles.tableCellText, { flex: 1, textAlign: 'center' }]}>{s.count}</Text>
+                <Text style={[styles.tableCellText, { flex: 1, textAlign: 'center' }]}>{s.count || 0}</Text>
                 <Text style={[styles.tableCellProfit, { flex: 2, textAlign: 'right' }]}>
-                  {formatCurrency(s.revenue - s.commission)}
+                  {formatCurrency((s.revenue || 0) - (s.commission || 0))}
                 </Text>
               </View>
             ))}
@@ -316,7 +316,7 @@ export default function FinancialReportScreen() {
             </TouchableOpacity>
           ))}
           <View style={styles.divider} />
-          {months.map((m, i) => (
+          {Array.isArray(months) && months.map((m, i) => (
             <TouchableOpacity 
               key={m} 
               onPress={() => setSelectedMonth(i)}

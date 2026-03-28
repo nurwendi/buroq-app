@@ -80,7 +80,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
-    if (typeof value === 'string' && params) {
+    if (params && typeof value === 'string') {
       let result = value;
       Object.keys(params).forEach((param) => {
         result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), String(params[param]));
@@ -88,7 +88,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return result;
     }
 
-    return typeof value === 'string' ? value : key;
+    return value !== undefined ? value : key;
   };
 
   return (
