@@ -156,6 +156,14 @@ export default function CustomerDashboardView() {
     return months[month] || '';
   };
 
+  const formatBytes = (bytes: number) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   if (!stats) {
     return (
       <View style={styles.loadingContainer}>
@@ -321,6 +329,20 @@ export default function CustomerDashboardView() {
                       <UserIcon size={16} color="#64748b" style={{ marginRight: 8 }} />
                       <Text style={styles.infoLabel}>{t('common.name') || 'Nama Lengkap'}: </Text>
                       <Text style={styles.infoValue}>{stats?.name || '-'}</Text>
+                   </View>
+                </View>
+                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
+                   <View style={styles.infoRowSimple}>
+                      <Zap size={16} color="#64748b" style={{ marginRight: 8 }} />
+                      <Text style={styles.infoLabel}>{t('users.servicePackage') || 'Paket Layanan'}: </Text>
+                      <Text style={styles.infoValue}>{stats?.profileName || '-'} (Rp {(stats?.profilePrice || 0).toLocaleString()})</Text>
+                   </View>
+                </View>
+                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
+                   <View style={styles.infoRowSimple}>
+                      <Activity size={16} color="#64748b" style={{ marginRight: 8 }} />
+                      <Text style={styles.infoLabel}>{t('users.usageThisMonth') || 'Pemakaian Bulan Ini'}: </Text>
+                      <Text style={styles.infoValue}>{formatBytes((stats?.usage?.download || 0) + (stats?.usage?.upload || 0))}</Text>
                    </View>
                 </View>
                 <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>

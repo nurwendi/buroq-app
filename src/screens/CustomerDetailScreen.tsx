@@ -275,6 +275,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 <MapPin size={12} color="#94a3b8" />
                 <Text style={styles.address} numberOfLines={1}>{customer.address}</Text>
               </View>
+              </>
             )}
           </View>
           {stats?.billing?.status === 'unpaid' && (
@@ -349,6 +350,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                   </View>
                 )}
               </View>
+              </>
             )}
           </View>
         </View>
@@ -391,6 +393,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                   </View>
                 )}
               </View>
+              </>
             )}
           </View>
         </View>
@@ -402,7 +405,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
              </View>
              <View style={styles.infoContent}>
                <Text style={styles.infoLabel}>{t('users.emailPackage')}</Text>
-               <Text style={styles.infoValue}>{customer.email || '-'} ({stats?.profile || '-'})</Text>
+               <Text style={styles.infoValue}>{customer.email || '-'} ({stats?.profileName || '-'}) • Rp {(stats?.profilePrice || 0).toLocaleString()}</Text>
              </View>
           </View>
           <View style={styles.divider} />
@@ -551,7 +554,14 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
             {loading ? (
              <ActivityIndicator color="#2563eb" />
            ) : (
-             <View style={styles.usageGrid}>
+             <>
+                <View style={{ marginBottom: 20, alignItems: 'center' }}>
+                  <Text style={styles.usageLabel}>{t('common.total')}</Text>
+                  <Text style={[styles.usageValue, { fontSize: 32 }]}>
+                    {formatBytes((stats?.usage?.download || 0) + (stats?.usage?.upload || 0))}
+                  </Text>
+                </View>
+                <View style={styles.usageGrid}>
                 <View style={styles.usageItem}>
                    <Text style={styles.usageLabel}>{t('users.download')}</Text>
                    <Text style={styles.usageValue}>{formatBytes(stats?.usage?.download)}</Text>
@@ -562,6 +572,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                    <Text style={styles.usageValue}>{formatBytes(stats?.usage?.upload)}</Text>
                 </View>
              </View>
+              </>
            )}
         </View>
       </ScrollView>
