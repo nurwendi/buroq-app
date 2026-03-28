@@ -9,20 +9,42 @@ export const customerService = {
    * @returns Dictionary/Map of customers by username or an Array depending on API.
    */
   getCustomers: async (lite: boolean = true) => {
-    const response = await apiClient.get(`${ENDPOINTS.CUSTOMERS}?lite=${lite}`);
-    // Extracting Object.values since the server returns an object map { [username]: Customer }
-    const rawData = response.data || {};
-    
-    if (typeof rawData === 'object' && rawData !== null && !Array.isArray(rawData) && rawData.error) {
-      console.warn('Malformed API response from customers:', rawData.error);
-      return [];
-    }
-    
-    if (typeof rawData === 'string') {
-      return [];
-    }
+    try {
+      const response = await apiClient.get(`${ENDPOINTS.CUSTOMERS}?lite=${lite}`);
+      // The server returns an object map { [username]: Customer }
+      const rawData = response.data || {};
+      
+      // Handle error response inside data
+      if (typeof rawData === 'object' && rawData !== null && !Array.isArray(rawData) && rawData.error) {
+        console.warn('Malformed API response from customers:', rawData.error);
+        return [];
+      }
+      
+      // Handle non-object / non-array response
+      if (typeof rawData === 'string') {
+        return [];
+      }
 
-    return Object.values(rawData) as Customer[];
+      // If API returns a wrapper { success: true, data: [...] }
+      if (rawData.data && Array.isArray(rawData.data)) {
+        return rawData.data as Customer[];
+      }
+
+      // If API returns array directly
+      if (Array.isArray(rawData)) {
+        return rawData as Customer[];
+      }
+
+      // If API returns an object map { [username]: Customer }
+      if (typeof rawData === 'object' && rawData !== null) {
+         return Object.values(rawData) as Customer[];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('getCustomers API error:', error);
+      return [];
+    }
   },
 
   /**

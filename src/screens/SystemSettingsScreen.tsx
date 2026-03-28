@@ -134,38 +134,42 @@ export default function SystemSettingsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Company Info Section */}
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionIcon}>
-              <Building size={18} color={COLORS.primary} />
-            </View>
-            <Text style={styles.sectionTitle}>{t('systemSettings.companyInfo')}</Text>
-          </View>
+          {/* Company Info Section - Only for Superadmin */}
+          {user?.role === 'superadmin' && (
+            <>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <Building size={18} color={COLORS.primary} />
+                </View>
+                <Text style={styles.sectionTitle}>{t('systemSettings.companyInfo')}</Text>
+              </View>
 
-          <View style={styles.formCard}>
-            <InputField 
-              label={t('systemSettings.companyName')}
-              value={settings.companyName}
-              onChangeText={(text: string) => setSettings({ ...settings, companyName: text })}
-              placeholder={t('systemSettings.companyNamePlaceholder') || "Contoh: Buroq Net"}
-            />
+              <View style={styles.formCard}>
+                <InputField 
+                  label={t('systemSettings.companyName')}
+                  value={settings.companyName}
+                  onChangeText={(text: string) => setSettings({ ...settings, companyName: text })}
+                  placeholder={t('systemSettings.companyNamePlaceholder') || "Contoh: Buroq Net"}
+                />
 
-            <InputField 
-              label={t('systemSettings.companyContact')}
-              value={settings.companyContact}
-              onChangeText={(text: string) => setSettings({ ...settings, companyContact: text })}
-              placeholder="billing@net.id"
-              keyboardType="email-address"
-            />
+                <InputField 
+                  label={t('systemSettings.companyContact')}
+                  value={settings.companyContact}
+                  onChangeText={(text: string) => setSettings({ ...settings, companyContact: text })}
+                  placeholder="billing@net.id"
+                  keyboardType="email-address"
+                />
 
-            <InputField 
-              label={t('systemSettings.companyAddress')}
-              value={settings.companyAddress}
-              onChangeText={(text: string) => setSettings({ ...settings, companyAddress: text })}
-              placeholder={t('systemSettings.addressPlaceholder') || "Alamat lengkap perusahan..."}
-              multiline
-            />
-          </View>
+                <InputField 
+                  label={t('systemSettings.companyAddress')}
+                  value={settings.companyAddress}
+                  onChangeText={(text: string) => setSettings({ ...settings, companyAddress: text })}
+                  placeholder={t('systemSettings.addressPlaceholder') || "Alamat lengkap perusahan..."}
+                  multiline
+                />
+              </View>
+            </>
+          )}
 
           {/* Billing Automation Section */}
           <View style={styles.sectionHeader}>

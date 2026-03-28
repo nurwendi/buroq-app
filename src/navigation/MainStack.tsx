@@ -26,6 +26,7 @@ import PppoeProfilesScreen from '../screens/PppoeProfilesScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import BroadcastScreen from '../screens/BroadcastScreen';
 import GenieAcsScreen from '../screens/GenieAcsScreen';
+import SuperadminCustomerListScreen from '../screens/SuperadminCustomerListScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +62,7 @@ export default function MainStack() {
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Broadcast" component={BroadcastScreen} />
       <Stack.Screen name="GenieACS" component={GenieAcsScreen} />
+      <Stack.Screen name="SuperadminCustomerList" component={SuperadminCustomerListScreen} />
     </Stack.Navigator>
   );
 }

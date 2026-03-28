@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image, Platform } from 'react-native';
-import { User, ChevronRight } from 'lucide-react-native';
+import { User, ChevronRight, Clock, Shield, Globe } from 'lucide-react-native';
 import { resolveUrl } from '../utils/url';
 import { COLORS } from '../constants/theme';
 
@@ -11,68 +11,113 @@ interface CustomerItemProps {
 
 export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
   const isOnline = customer.isOnline; 
+  const hasDifferentUsername = customer.name && customer.username && customer.name.toLowerCase() !== customer.username.toLowerCase();
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.left}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            {customer.avatar ? (
-              <Image 
-                source={{ uri: resolveUrl(customer.avatar) }} 
-                style={styles.avatarImage} 
-              />
-            ) : (
-              <User size={24} color={COLORS.slate[400]} />
+    <TouchableOpacity 
+      style={[
+        styles.container, 
+        customer.isIsolir && styles.isolirContainer
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={styles.topRow}>
+        <View style={styles.left}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              {customer.avatar ? (
+                <Image 
+                  source={{ uri: resolveUrl(customer.avatar) }} 
+                  style={styles.avatarImage} 
+                />
+              ) : (
+                <User size={24} color={COLORS.slate[400]} />
+              )}
+            </View>
+            <View style={[styles.statusIndicator, { backgroundColor: isOnline ? COLORS.success : COLORS.slate[300] }]} />
+          </View>
+          <View style={styles.info}>
+            <View style={styles.nameRow}>
+               <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
+               {customer.isIsolir && (
+                 <View style={styles.isolirBadge}>
+                   <Text style={styles.isolirBadgeText}>ISOLIR</Text>
+                 </View>
+               )}
+            </View>
+            
+            {hasDifferentUsername && (
+              <Text style={styles.username} numberOfLines={1}>@{customer.username}</Text>
             )}
+
+            <View style={styles.detailsRow}>
+               <View style={styles.profileBadge}>
+                 <Shield size={10} color={COLORS.primary} style={{ marginRight: 4 }} />
+                 <Text style={styles.profileText}>{customer.profileName || '-'}</Text>
+               </View>
+               <View style={styles.idBadge}>
+                 <Text style={styles.idText}>ID: {customer.customerId || '-'}</Text>
+               </View>
+            </View>
           </View>
-          <View style={[styles.statusIndicator, { backgroundColor: isOnline ? COLORS.success : COLORS.slate[300] }]} />
         </View>
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>{customer.name || customer.username}</Text>
-          <View style={styles.idContainer}>
-             <Text style={styles.idLabel}>ID: </Text>
-             <Text style={styles.id}>{customer.customerId || customer.username}</Text>
+        <View style={styles.right}>
+          <View style={styles.arrowIcon}>
+            <ChevronRight size={18} color={COLORS.slate[400]} />
           </View>
         </View>
       </View>
-      <View style={styles.right}>
-        <View style={styles.statusBadgeContainer}>
-           <Text style={[styles.statusText, { color: isOnline ? COLORS.success : COLORS.slate[500] }]}>
-             {isOnline ? (customer.ipAddress || 'Online') : 'Offline'}
-           </Text>
+
+      {/* Online Status Bar */}
+      {isOnline && (
+        <View style={styles.statusFooter}>
+          <View style={styles.statusItem}>
+            <Globe size={12} color={COLORS.success} style={{ marginRight: 4 }} />
+            <Text style={styles.statusFooterText}>{customer.ipAddress || 'Connected'}</Text>
+          </View>
+          {customer.uptime && (
+            <View style={styles.statusItem}>
+              <Clock size={12} color={COLORS.slate[400]} style={{ marginRight: 4 }} />
+              <Text style={styles.statusFooterText}>{customer.uptime}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.arrowIcon}>
-          <ChevronRight size={18} color={COLORS.slate[400]} />
-        </View>
-      </View>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
     backgroundColor: COLORS.white,
-    borderRadius: 32,
-    marginHorizontal: 20,
-    marginBottom: 16,
+    borderRadius: 24,
+    marginHorizontal: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.slate[100],
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.04,
-        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
       },
       android: {
         elevation: 2,
       },
     }),
+  },
+  isolirContainer: {
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderWidth: 1.5,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
   },
   left: {
     flexDirection: 'row',
@@ -81,15 +126,15 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 16,
+    marginRight: 14,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     backgroundColor: COLORS.slate[50],
     borderWidth: 1,
-    borderColor: COLORS.slate[200],
+    borderColor: COLORS.slate[100],
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -100,60 +145,109 @@ const styles = StyleSheet.create({
   },
   statusIndicator: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 3,
+    bottom: -1,
+    right: -1,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
     borderColor: COLORS.white,
   },
   info: {
     flex: 1,
   },
-  name: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.slate[900],
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  idContainer: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 2,
   },
-  idLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.slate[400],
-    textTransform: 'uppercase',
-  },
-  id: {
-    fontSize: 12,
-    color: COLORS.slate[500],
+  name: {
+    fontSize: 15,
     fontWeight: '800',
+    color: COLORS.slate[900],
+    letterSpacing: -0.3,
+    flexShrink: 1,
+  },
+  username: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.slate[400],
+    marginBottom: 6,
+  },
+  isolirBadge: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  isolirBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: COLORS.error,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  profileBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
+  },
+  profileText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  idBadge: {
+    backgroundColor: COLORS.slate[50],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: COLORS.slate[200],
+  },
+  idText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.slate[500],
   },
   right: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  statusBadgeContainer: {
-    alignItems: 'flex-end',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    paddingLeft: 8,
   },
   arrowIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 10,
     backgroundColor: COLORS.slate[50],
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  statusFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: COLORS.slate[50],
+    borderTopWidth: 1,
+    borderTopColor: COLORS.slate[100],
+    gap: 16,
+  },
+  statusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusFooterText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.slate[600],
   }
 });
 

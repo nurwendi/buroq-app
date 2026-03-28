@@ -156,7 +156,7 @@ export default function StaffDashboardView() {
                 <Bell size={20} color="transparent" />
              </TouchableOpacity>
              <View style={{ alignItems: 'center', flex: 1 }}>
-                <Text style={styles.welcomeText}>Selamat datang,</Text>
+                <Text style={styles.welcomeText}>{t('dashboard.welcome')}</Text>
                 <Text style={styles.userNameText} numberOfLines={1}>{user?.fullName || user?.username}</Text>
              </View>
              <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notification')}>
@@ -242,7 +242,7 @@ export default function StaffDashboardView() {
                   </View>
                   <View style={styles.menuListTextWrapper}>
                      <Text style={styles.menuListTitle}>{t('users.addUser')}</Text>
-                     <Text style={styles.menuListSubtitle}>Tambahkan pelanggan baru ke sistem</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.manageNewCustomer')}</Text>
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
@@ -254,7 +254,7 @@ export default function StaffDashboardView() {
                   </View>
                   <View style={styles.menuListTextWrapper}>
                      <Text style={styles.menuListTitle}>{t('sidebar.users')}</Text>
-                     <Text style={styles.menuListSubtitle}>Lihat dan kelola daftar pelanggan</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.viewManageCustomers')}</Text>
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
@@ -266,7 +266,7 @@ export default function StaffDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('sidebar.billing')}</Text>
-                      <Text style={styles.menuListSubtitle}>Kelola pembayaran dan tagihan</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.manageBillingPayments')}</Text>
                    </View>
                    <ChevronRight size={20} color="#cbd5e1" />
                 </TouchableOpacity>
@@ -278,7 +278,7 @@ export default function StaffDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
-                      <Text style={styles.menuListSubtitle}>Lihat rangkuman pendapatan dan performa</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.viewEarningsPerformance')}</Text>
                    </View>
                    <ChevronRight size={20} color="#cbd5e1" />
                 </TouchableOpacity>
@@ -326,7 +326,7 @@ export default function StaffDashboardView() {
                </View>
                <View style={styles.menuListTextWrapper}>
                   <Text style={styles.menuListTitle}>{t('sidebar.settings')}</Text>
-                  <Text style={styles.menuListSubtitle}>Pengaturan akun dan preferensi</Text>
+                  <Text style={styles.menuListSubtitle}>{t('dashboard.accountSettingsPrefs')}</Text>
                </View>
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>
@@ -337,7 +337,7 @@ export default function StaffDashboardView() {
                </View>
                <View style={styles.menuListTextWrapper}>
                   <Text style={styles.menuListTitle}>{t('common.logout') || 'Keluar'}</Text>
-                  <Text style={styles.menuListSubtitle}>Akhiri sesi Anda sekarang</Text>
+                  <Text style={styles.menuListSubtitle}>{t('dashboard.endSessionNow')}</Text>
                </View>
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>

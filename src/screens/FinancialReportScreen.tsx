@@ -173,7 +173,7 @@ export default function FinancialReportScreen() {
         </View>
         <View style={{ width: '48%' }}>
           <SummaryCard 
-            title={t('financial.unpaid') || 'PIUTANG'} 
+            title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
             amount={data?.summary?.totalUnpaid} 
             color={COLORS.warning} 
             icon={Clock}
@@ -263,7 +263,7 @@ export default function FinancialReportScreen() {
 
   const groupedData = [
     { type: 'header' },
-    { type: 'section_title', title: t('financial.paid') || 'LUMAS (MASUK)', count: paidPayments.length, color: COLORS.success },
+    { type: 'section_title', title: t('financial.paid') || 'LUNAS (MASUK)', count: paidPayments.length, color: COLORS.success },
     ...paidPayments.map((p: any) => ({ ...p, type: 'payment' })),
     { type: 'section_title', title: t('financial.unpaid_tagihan') || 'TAGIHAN (PENDING)', count: unpaidPayments.length, color: COLORS.warning },
     ...unpaidPayments.map((p: any) => ({ ...p, type: 'payment' }))

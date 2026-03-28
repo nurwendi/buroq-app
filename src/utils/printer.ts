@@ -5,6 +5,7 @@ export interface ReceiptData {
   invoiceNumber: string;
   customerName: string;
   username?: string; // Fallback if name is unknown
+  customerId?: string;
   date: string;
   amount: number;
   paymentMethod: string;
@@ -45,15 +46,13 @@ export const printReceipt = async (data: ReceiptData) => {
     : (data.username || data.customerName || 'Unknown');
 
   const payload =
-    `<C><B>BUROQ SARANA</B>
-    <C><B>INFORMATIKA</B>
-    <C>ASN-140390
+    `<C><B>BUROQ BILLING</B>
 <C>--------------------------------
 <C>STRUK PEMBAYARAN
 <C>${data.invoiceNumber}
 <C>--------------------------------
 <L>Pelanggan : ${displayCustomer}
-<L>Tanggal   : ${data.date}
+${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}<L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
 ${data.period ? `<L>Periode   : ${data.period}\n` : ''}
 <C>--------------------------------
@@ -63,6 +62,8 @@ ${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}
 ${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}
 <C>--------------------------------
 <C>Terima kasih telah berlangganan
+<C>Buroq Sarana Informatika
+<C>ASN-140390
 \n\n\n`;
 
   try {
@@ -95,10 +96,10 @@ export const printReport = async (monthName: string, year: number, data: any) =>
   }
 
   let payload = `
-<C><B>BUROQ SARANA INFORMATIKA</B>
+<C><B>BUROQ BILLING</B>
 <C>--------------------------------
-<C><B>LAPORAN KEUANGAN</B>
-<C><B>${monthName.toUpperCase()} ${year}</B>
+<C>LAPORAN KEUANGAN
+<C>${monthName.toUpperCase()} ${year}
 <C>--------------------------------
 <L>Billing/Rev : Rp ${data.summary.totalRevenue.toLocaleString()}
 <L>Piutang     : Rp ${data.summary.totalUnpaid.toLocaleString()}
@@ -116,9 +117,6 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
   payload += `
 <C>--------------------------------
 <C>Buroq Sarana Informatika
-<C>
-<C>
-<C>
 <C>
 \n\n\n\n`;
 
@@ -152,12 +150,11 @@ export const printTest = async () => {
     throw new Error('Printer belum disetting.');
   }
 
-  const payload = `<C><B>BUROQ SARANA INFORMATIKA</B>
+  const payload = `<C>BUROQ SARANA INFORMATIKA
 <C>--------------------------------
 <C><B>PRINTER TEST</B>
 <C>--------------------------------
 <C>Koneksi Berhasil!
-<C>Buroq Billing Mobile
 <C>--------------------------------
 <L>Printer : ${mac}
 <L>Tanggal : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}

@@ -10,11 +10,21 @@ export interface Customer {
   agentId?: string;
   technicianId?: string;
   ownerId?: string;
+  owner?: {
+    username: string;
+    fullName: string;
+  };
   
   // Appended runtime flags
   isOnline?: boolean;
   ipAddress?: string | null;
+  uptime?: string | null;
   isIsolir?: boolean;
+  profileName?: string;
+  profile?: {
+    name: string;
+    price: number;
+  };
 }
 
 export interface Payment {

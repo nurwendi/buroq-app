@@ -23,7 +23,8 @@ import {
   Megaphone,
   ChevronRight,
   PlusCircle,
-  LogOut
+  LogOut,
+  FileText
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -180,7 +181,7 @@ export default function SuperadminDashboardView() {
           
           <View style={[styles.headerContent, { paddingTop: insets.top + 10 }]}>
              <View>
-                <Text style={styles.welcomeText}>Selamat datang,</Text>
+                <Text style={styles.welcomeText}>{t('dashboard.welcome')}</Text>
                 <Text style={styles.userNameText} numberOfLines={1}>{user?.fullName || user?.username}</Text>
              </View>
              <View style={styles.roleBadge}>
@@ -295,9 +296,9 @@ export default function SuperadminDashboardView() {
                   color="#2563eb" 
                 />
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('AllUsers')} style={{ width: '48%' }}>
+              <TouchableOpacity onPress={() => navigation.navigate('SuperadminCustomerList')} style={{ width: '48%' }}>
                 <StatCard 
-                  title={t('dashboard.totalUsers')} 
+                  title={t('dashboard.allCustomers') || 'Semua Pelanggan'} 
                   value={stats?.totalCustomers || 0} 
                   icon={Users} 
                   color="#10b981" 
@@ -313,14 +314,26 @@ export default function SuperadminDashboardView() {
             </View>
             <View style={styles.menuList}>
                
+               {/* Customers */}
+               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#2563eb' }]} onPress={() => navigation.navigate('SuperadminCustomerList')}>
+                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#2563eb15' }]}>
+                     <Users size={22} color="#2563eb" />
+                  </View>
+                  <View style={styles.menuListTextWrapper}>
+                     <Text style={styles.menuListTitle}>{t('sidebar.users') || 'Pelanggan'}</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.viewManageCustomers')}</Text>
+                  </View>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </TouchableOpacity>
+
                {/* All Users */}
                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#10b981' }]} onPress={() => navigation.navigate('AllUsers')}>
                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#10b98115' }]}>
-                     <PlusCircle size={22} color="#10b981" />
+                     <Shield size={22} color="#10b981" />
                   </View>
                   <View style={styles.menuListTextWrapper}>
                      <Text style={styles.menuListTitle}>{t('sidebar.allUsers') || 'Semua Pengguna'}</Text>
-                     <Text style={styles.menuListSubtitle}>Kelola semua admin dan staf</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.allSystemUsers')}</Text>
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
@@ -332,7 +345,19 @@ export default function SuperadminDashboardView() {
                   </View>
                   <View style={styles.menuListTextWrapper}>
                      <Text style={styles.menuListTitle}>{t('sidebar.broadcast') || 'Broadcast Pesan'}</Text>
-                     <Text style={styles.menuListSubtitle}>Kirim pesan massal ke pengguna</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.broadcastMassMessage')}</Text>
+                  </View>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </TouchableOpacity>
+
+               {/* Report */}
+               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#8b5cf6' }]} onPress={() => navigation.navigate('FinancialReport')}>
+                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#8b5cf615' }]}>
+                     <FileText size={22} color="#8b5cf6" />
+                  </View>
+                  <View style={styles.menuListTextWrapper}>
+                     <Text style={styles.menuListTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.viewEarningsPerformance')}</Text>
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
@@ -348,7 +373,7 @@ export default function SuperadminDashboardView() {
                </View>
                <View style={styles.menuListTextWrapper}>
                   <Text style={styles.menuListTitle}>{t('sidebar.settings')}</Text>
-                  <Text style={styles.menuListSubtitle}>Konfigurasi sistem utama</Text>
+                  <Text style={styles.menuListSubtitle}>{t('dashboard.mainSystemConfig')}</Text>
                </View>
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>
@@ -359,7 +384,7 @@ export default function SuperadminDashboardView() {
                </View>
                <View style={styles.menuListTextWrapper}>
                   <Text style={styles.menuListTitle}>{t('common.logout') || 'Keluar'}</Text>
-                  <Text style={styles.menuListSubtitle}>Akhiri sesi Anda sekarang</Text>
+                  <Text style={styles.menuListSubtitle}>{t('dashboard.endSessionNow')}</Text>
                </View>
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>

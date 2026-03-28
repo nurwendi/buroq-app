@@ -89,18 +89,30 @@ export default function SystemUsersScreen() {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredUsers(users);
-    } else {
+    let result = users;
+    
+    // 1. Initial filter based on role permissions (if currentUser is loaded)
+    if (currentUser) {
+      result = users.filter((u: any) => {
+        if (currentUser.role === 'superadmin') return true;
+        if (currentUser.role === 'admin') return u.role !== 'superadmin';
+        return false;
+      });
+    }
+
+    // 2. Search filter
+    if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      const filtered = users.filter(u => 
+      result = result.filter(u => 
         (u.fullName && u.fullName.toLowerCase().includes(query)) || 
         u.username.toLowerCase().includes(query) ||
-        (u.email && u.email.toLowerCase().includes(query))
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        (u.ownerName && u.ownerName.toLowerCase().includes(query))
       );
-      setFilteredUsers(filtered);
     }
-  }, [searchQuery, users]);
+    
+    setFilteredUsers(result);
+  }, [searchQuery, users, currentUser]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -178,7 +190,7 @@ export default function SystemUsersScreen() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     Alert.alert(
       t('users.deleteConfirmTitle'),
       t('users.deleteConfirmMsg'),
@@ -223,6 +235,9 @@ export default function SystemUsersScreen() {
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.fullName || item.username}</Text>
           <Text style={styles.userUsername}>@{item.username}</Text>
+          {item.ownerName && (
+            <Text style={styles.ownerText}>Admin: {item.ownerName}</Text>
+          )}
         </View>
         <View style={[styles.roleBadge, { backgroundColor: getRoleColor(item.role) + '15' }]}>
           <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
@@ -605,6 +620,12 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginTop: 2,
     fontWeight: '600',
+  },
+  ownerText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    marginTop: 4,
+    fontWeight: '700',
   },
   roleBadge: {
     paddingHorizontal: 10,

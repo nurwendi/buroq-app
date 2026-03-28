@@ -22,7 +22,9 @@ import {
   TrendingUp,
   Bell,
   Settings,
-  LogOut
+  LogOut,
+  Shield,
+  FileText
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -177,7 +179,7 @@ export default function AdminDashboardView() {
                 <Bell size={20} color="transparent" />
              </TouchableOpacity>
              <View style={{ alignItems: 'center', flex: 1 }}>
-                <Text style={styles.welcomeText}>Selamat datang,</Text>
+                <Text style={styles.welcomeText}>{t('dashboard.welcome')}</Text>
                 <Text style={styles.userNameText} numberOfLines={1}>{user?.fullName || user?.username}</Text>
              </View>
              <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notification')}>
@@ -253,7 +255,7 @@ export default function AdminDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('common.add')}</Text>
-                      <Text style={styles.menuListSubtitle}>Tambahkan pelanggan baru ke sistem</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.manageNewCustomer')}</Text>
                    </View>
                    <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
@@ -265,7 +267,7 @@ export default function AdminDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('sidebar.users')}</Text>
-                      <Text style={styles.menuListSubtitle}>Lihat dan kelola daftar pelanggan</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.viewManageCustomers')}</Text>
                    </View>
                    <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
@@ -277,7 +279,7 @@ export default function AdminDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('sidebar.billing')}</Text>
-                      <Text style={styles.menuListSubtitle}>Kelola pembayaran dan tagihan</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.manageBillingPayments')}</Text>
                    </View>
                    <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
@@ -289,7 +291,31 @@ export default function AdminDashboardView() {
                    </View>
                    <View style={styles.menuListTextWrapper}>
                       <Text style={styles.menuListTitle}>{t('sidebar.broadcast')}</Text>
-                      <Text style={styles.menuListSubtitle}>Kirim pesan massal ke pelanggan</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.broadcastMassMessage')}</Text>
+                   </View>
+                   <ChevronRight size={20} color={COLORS.slate[300]} />
+                </TouchableOpacity>
+
+                {/* Laporan */}
+                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#8b5cf6' }]} onPress={() => navigation.navigate('FinancialReport')}>
+                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#8b5cf615' }]}>
+                      <FileText size={22} color="#8b5cf6" />
+                   </View>
+                   <View style={styles.menuListTextWrapper}>
+                      <Text style={styles.menuListTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.viewEarningsPerformance')}</Text>
+                   </View>
+                   <ChevronRight size={20} color={COLORS.slate[300]} />
+                </TouchableOpacity>
+
+                {/* System Users */}
+                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: COLORS.accent || '#0ea5e9' }]} onPress={() => navigation.navigate('SystemUsers')}>
+                   <View style={[styles.menuListIconWrapper, { backgroundColor: (COLORS.accent || '#0ea5e9') + '15' }]}>
+                      <Shield size={22} color={COLORS.accent || '#0ea5e9'} />
+                   </View>
+                   <View style={styles.menuListTextWrapper}>
+                      <Text style={styles.menuListTitle}>{t('appSettings.systemUsers')}</Text>
+                      <Text style={styles.menuListSubtitle}>{t('dashboard.manageSystemAccounts')}</Text>
                    </View>
                    <ChevronRight size={20} color={COLORS.slate[300]} />
                 </TouchableOpacity>
@@ -337,7 +363,7 @@ export default function AdminDashboardView() {
                  </View>
                  <View style={styles.menuListTextWrapper}>
                     <Text style={styles.menuListTitle}>{t('sidebar.settings')}</Text>
-                    <Text style={styles.menuListSubtitle}>Konfigurasi sistem dan aplikasi</Text>
+                    <Text style={styles.menuListSubtitle}>{t('dashboard.systemAppConfig')}</Text>
                  </View>
                  <ChevronRight size={20} color={COLORS.slate[300]} />
               </TouchableOpacity>
@@ -348,7 +374,7 @@ export default function AdminDashboardView() {
                  </View>
                  <View style={styles.menuListTextWrapper}>
                     <Text style={styles.menuListTitle}>{t('common.logout') || 'Keluar'}</Text>
-                    <Text style={styles.menuListSubtitle}>Akhiri sesi Anda sekarang</Text>
+                    <Text style={styles.menuListSubtitle}>{t('dashboard.endSessionNow')}</Text>
                  </View>
                  <ChevronRight size={20} color={COLORS.slate[300]} />
               </TouchableOpacity>

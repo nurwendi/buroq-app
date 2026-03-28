@@ -59,13 +59,18 @@ export default function CustomerListScreen({ navigation }: any) {
         pppoeService.getActiveConnections()
       ]);
 
-      const activeMap = new Map(activeData.map(conn => [conn.name, conn.address || conn['remote-address']]));
+      const activeMap = new Map(activeData.map(conn => [conn.name, conn]));
       
-      const data: Customer[] = customersData.filter(c => c && typeof c === 'object').map(c => ({
-        ...c,
-        isOnline: c.username ? activeMap.has(c.username) : false,
-        ipAddress: c.username ? (activeMap.get(c.username) as string) : null
-      }));
+      const data: Customer[] = customersData.filter(c => c && typeof c === 'object').map(c => {
+        const active = c.username ? activeMap.get(c.username) : null;
+        return {
+          ...c,
+          isOnline: !!active,
+          ipAddress: active?.address || active?.['remote-address'] || null,
+          uptime: active?.uptime || null,
+          profileName: c.profile?.name || '-'
+        };
+      });
 
       setCustomers(data);
       

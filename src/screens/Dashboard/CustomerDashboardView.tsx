@@ -215,7 +215,7 @@ export default function CustomerDashboardView() {
           <View style={[styles.headerContent, { paddingTop: insets.top + 10 }]}>
              <View style={{ width: 44, height: 44, opacity: 0 }} /> {/* Spacer for centering */}
              <View style={{ alignItems: 'center', flex: 1 }}>
-                <Text style={styles.welcomeText}>Selamat datang,</Text>
+                <Text style={styles.welcomeText}>{t('dashboard.welcome')}</Text>
                 <Text style={styles.userNameText} numberOfLines={1}>{stats?.name || user?.fullName || user?.username}</Text>
              </View>
              <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notification')}>
@@ -277,7 +277,7 @@ export default function CustomerDashboardView() {
                   <Text style={styles.billingInvoice}>Invoice: {stats?.billing?.invoice || '-'}</Text>
                   <View style={styles.periodRow}>
                     <Clock size={12} color="#64748b" />
-                    <Text style={styles.periodLabel}>Periode: </Text>
+                    <Text style={styles.periodLabel}>{t('users.period') || 'Periode'}: </Text>
                     <Text style={styles.periodValue}>
                       {getMonthName(stats?.billing?.month)} {stats?.billing?.year || ''}
                     </Text>
@@ -465,7 +465,7 @@ export default function CustomerDashboardView() {
                </View>
                <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text style={[styles.supportLabel, { color: '#ef4444' }]}>{t('common.logout') || 'Keluar'}</Text>
-                  <Text style={{ fontSize: 12, color: '#fca5a5', fontWeight: '500' }}>Akhiri sesi aplikasi</Text>
+                  <Text style={{ fontSize: 12, color: '#fca5a5', fontWeight: '500' }}>{t('dashboard.endSessionNow')}</Text>
                </View>
                <ChevronRight size={18} color="#fca5a5" />
             </TouchableOpacity>

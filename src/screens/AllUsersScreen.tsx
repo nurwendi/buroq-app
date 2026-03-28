@@ -177,7 +177,7 @@ export default function AllUsersScreen() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     Alert.alert(
       t('users.deleteConfirmTitle'),
       t('users.deleteConfirmMsg'),
@@ -236,6 +236,9 @@ export default function AllUsersScreen() {
             </View>
           </View>
           <Text style={styles.userUsername}>@{item.username}</Text>
+          {item.ownerName && (
+            <Text style={styles.ownerText}>Admin: {item.ownerName}</Text>
+          )}
         </View>
       </View>
 
@@ -595,6 +598,12 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 2,
     fontWeight: '500',
+  },
+  ownerText: {
+    fontSize: 11,
+    color: '#2563eb',
+    marginTop: 4,
+    fontWeight: '700',
   },
   roleBadge: {
     paddingHorizontal: 8,

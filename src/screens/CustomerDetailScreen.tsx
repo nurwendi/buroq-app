@@ -275,7 +275,6 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 <MapPin size={12} color="#94a3b8" />
                 <Text style={styles.address} numberOfLines={1}>{customer.address}</Text>
               </View>
-              </>
             )}
           </View>
           {stats?.billing?.status === 'unpaid' && (
@@ -350,7 +349,6 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                   </View>
                 )}
               </View>
-              </>
             )}
           </View>
         </View>
@@ -393,7 +391,6 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                   </View>
                 )}
               </View>
-              </>
             )}
           </View>
         </View>
