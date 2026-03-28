@@ -52,7 +52,8 @@ export const printReceipt = async (data: ReceiptData) => {
 <C>${data.invoiceNumber}
 <C>--------------------------------
 <L>Pelanggan : ${displayCustomer}
-${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}<L>Tanggal   : ${data.date}
+${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}
+<L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
 ${data.period ? `<L>Periode   : ${data.period}\n` : ''}
 <C>--------------------------------

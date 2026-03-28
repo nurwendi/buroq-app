@@ -179,7 +179,7 @@ export default function SystemUsersScreen() {
         Alert.alert(t('common.success'), t('users.userUpdateSuccess'));
       } else {
         await apiClient.post('/api/admin/users', body);
-        Alert.alert('Success', 'User berhasil ditambahkan');
+        Alert.alert(t('common.success'), t('users.userAddSuccess'));
       }
       setModalVisible(false);
       fetchUsers();
@@ -236,7 +236,7 @@ export default function SystemUsersScreen() {
           <Text style={styles.userName}>{item.fullName || item.username}</Text>
           <Text style={styles.userUsername}>@{item.username}</Text>
           {item.ownerName && (
-            <Text style={styles.ownerText}>Admin: {item.ownerName}</Text>
+            <Text style={styles.ownerText}>{t('systemUsers.roles.admin')}: {item.ownerName}</Text>
           )}
         </View>
         <View style={[styles.roleBadge, { backgroundColor: getRoleColor(item.role) + '15' }]}>
@@ -262,12 +262,12 @@ export default function SystemUsersScreen() {
           <View style={styles.roleCapabilities}>
             {item.isAgent && (
               <View style={[styles.capabilityBadge, { backgroundColor: '#fef3c7' }]}>
-                <Text style={{ fontSize: 10, color: '#92400e', fontWeight: 'bold' }}>AGENT ({item.agentRate || 0}%)</Text>
+                <Text style={{ fontSize: 10, color: '#92400e', fontWeight: 'bold' }}>{t('systemUsers.asAgent').toUpperCase()} ({item.agentRate || 0}%)</Text>
               </View>
             )}
             {item.isTechnician && (
               <View style={[styles.capabilityBadge, { backgroundColor: '#e0e7ff' }]}>
-                <Text style={{ fontSize: 10, color: '#3730a3', fontWeight: 'bold' }}>TECH ({item.technicianRate || 0}%)</Text>
+                <Text style={{ fontSize: 10, color: '#3730a3', fontWeight: 'bold' }}>{t('systemUsers.asTechnician').toUpperCase()} ({item.technicianRate || 0}%)</Text>
               </View>
             )}
           </View>
@@ -419,17 +419,16 @@ export default function SystemUsersScreen() {
               <Text style={styles.label}>{t('systemUsers.systemRole')}</Text>
               <View style={styles.rolePickerContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {['Admin', 'Manager', 'Staff (Agen/Teknisi)', 'Partner', 'Viewer'].filter(r => {
-                    const mappedRole = r.startsWith('Staff') ? 'staff' : r.toLowerCase();
+                  {['admin', 'manager', 'staff', 'partner', 'viewer'].filter(r => {
+                    const mappedRole = r;
                     if (currentUser?.role === 'superadmin') return true;
                     if (currentUser?.role === 'admin') return mappedRole !== 'admin';
                     return false;
-                  }).map((r) => {
-                    const mappedRole = r.startsWith('Staff') ? 'staff' : r.toLowerCase();
-                    const label = mappedRole === 'staff' ? t('systemUsers.roles.staff') : t(`systemUsers.roles.${mappedRole}`);
+                  }).map((mappedRole) => {
+                    const label = t(`systemUsers.roles.${mappedRole}`);
                     return (
                       <TouchableOpacity 
-                        key={r}
+                        key={mappedRole}
                          style={[styles.roleOption, (formData.role === mappedRole) && styles.roleOptionActive, { marginRight: 8 }]}
                          onPress={() => setFormData({...formData, role: mappedRole})}
                        >
