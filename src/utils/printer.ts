@@ -30,7 +30,7 @@ export const getAvailablePrinters = async () => {
     const hasPermission = await requestBluetoothPermissions();
     if (!hasPermission) {
       console.warn('Bluetooth permission denied');
-      return [];
+      // Continue anyway, maybe it's implicitly granted or older Android
     }
     await BLEPrinter.init();
     const devices = await BLEPrinter.getDeviceList();
@@ -71,25 +71,18 @@ export const printReceipt = async (data: ReceiptData) => {
 <C>${data.invoiceNumber}
 <C>--------------------------------
 <L>Pelanggan : ${displayCustomer}
-<L>Tanggal   : ${data.date}
+${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}<L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
-${data.period ? `<L>Periode   : ${data.period}` : ''}
-<C>--------------------------------
+${data.period ? `<L>Periode   : ${data.period}\n` : ''}<C>--------------------------------
 <C><B>Rp ${(Number(data.amount) || 0).toLocaleString()}</B>
 <C>--------------------------------
-${data.agentFullName ? `<L>Agen      : ${data.agentFullName}` : ''}
-${data.agentPhone ? `<L>No HP     : ${data.agentPhone}` : ''}
-<C>--------------------------------
+${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}<C>--------------------------------
 <C>Terima kasih telah berlangganan
 <C>Buroq Sarana Informatika
 <C>ASN-140390
 \n\n\n`;
 
   try {
-    const hasPermission = await requestBluetoothPermissions();
-    if (!hasPermission) {
-      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
-    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
@@ -97,7 +90,7 @@ ${data.agentPhone ? `<L>No HP     : ${data.agentPhone}` : ''}
     await new Promise(r => setTimeout(r, 300));
 
     // Try to print logo first
-    await printLogo();
+    // await printLogo(); // DISABLED TEMPORARILY due to potential force close from ImageBase64 Bitmap process
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -147,10 +140,6 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
 \n\n\n\n`;
 
   try {
-    const hasPermission = await requestBluetoothPermissions();
-    if (!hasPermission) {
-      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
-    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
@@ -158,7 +147,7 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
     await new Promise(r => setTimeout(r, 300));
 
     // Try to print logo first
-    await printLogo();
+    // await printLogo(); // DISABLED TEMPORARILY due to potential force close from ImageBase64 Bitmap process
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -196,10 +185,6 @@ export const printTest = async () => {
 \n\n\n`;
 
   try {
-    const hasPermission = await requestBluetoothPermissions();
-    if (!hasPermission) {
-      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
-    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
@@ -207,7 +192,7 @@ export const printTest = async () => {
     await new Promise(r => setTimeout(r, 300));
 
     // Try to print logo first
-    await printLogo();
+    // await printLogo(); // DISABLED TEMPORARILY due to potential force close
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
