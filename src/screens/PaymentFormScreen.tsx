@@ -198,6 +198,8 @@ export default function PaymentFormScreen() {
         invoiceNumber: lastPayment.invoiceNumber,
         customerName: selectedCustomer.name,
         username: selectedCustomer.username,
+        customerId: selectedCustomer.customerId || selectedCustomer.username,
+        status: 'PAID',
         date: new Date(lastPayment.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: lastPayment.amount,
         paymentMethod: lastPayment.method === 'cash' ? t('billing.cash') : t('billing.transfer'),

@@ -55,6 +55,8 @@ export default function PaymentHistoryScreen({ route, navigation }: any) {
         invoiceNumber: item.invoiceNumber,
         customerName: item.customerName || (name !== t('billing.history') ? name : null),
         username: item.username || username,
+        customerId: item.customerId !== undefined ? item.customerId : (item.username || username),
+        status: item.status !== undefined ? (item.status === 'completed' || item.status === 'PAID' ? 'PAID' : 'UNPAID') : 'PAID',
         date: new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: item.amount,
         paymentMethod: item.method === 'cash' ? (t('billing.cash') || 'Tunai') : (t('billing.transfer') || 'Transfer'),

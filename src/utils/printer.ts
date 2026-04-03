@@ -13,6 +13,7 @@ export interface ReceiptData {
   agentFullName?: string;
   agentPhone?: string;
   period?: string;
+  status?: string;
 }
 
 const PRINTER_MAC_KEY = '@buroq_printer_mac';
@@ -73,7 +74,7 @@ export const printReceipt = async (data: ReceiptData) => {
 <L>Pelanggan : ${displayCustomer}
 ${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}<L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
-${data.period ? `<L>Periode   : ${data.period}\n` : ''}<C>--------------------------------
+${data.period ? `<L>Periode   : ${data.period}\n` : ''}${data.status ? `<L>Status    : ${data.status.toUpperCase() === 'PAID' ? 'LUNAS' : 'BELUM LUNAS'}\n` : ''}<C>--------------------------------
 <C><B>Rp ${(Number(data.amount) || 0).toLocaleString()}</B>
 <C>--------------------------------
 ${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}<C>--------------------------------
@@ -89,8 +90,8 @@ ${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}${data.agen
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
 
-    // Try to print logo first
-    // await printLogo(); // DISABLED TEMPORARILY due to potential force close from ImageBase64 Bitmap process
+    // Print logo at the top
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -116,14 +117,13 @@ export const printReport = async (monthName: string, year: number, data: any) =>
 
   let payload = `
 <C>--------------------------------
-<C>--------------------------------
 <C>LAPORAN KEUANGAN
 <C>${monthName.toUpperCase()} ${year}
 <C>--------------------------------
 <L>Billing/Rev : Rp ${data.summary.totalRevenue.toLocaleString()}
 <L>Piutang     : Rp ${data.summary.totalUnpaid.toLocaleString()}
 ${data.isAgentView ? '' : `<L>Komisi Agen : Rp ${data.summary.totalCommissions.toLocaleString()}\n`}<C>--------------------------------
-<L><B>${data.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}  : Rp ${data.summary.netIncome.toLocaleString()}</B>
+<L>${data.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}  : Rp ${data.summary.netIncome.toLocaleString()}</B>
 <C>--------------------------------
 ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;
 
@@ -146,8 +146,8 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
 
-    // Try to print logo first
-    // await printLogo(); // DISABLED TEMPORARILY due to potential force close from ImageBase64 Bitmap process
+    // Print logo at the top
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -191,8 +191,8 @@ export const printTest = async () => {
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
 
-    // Try to print logo first
-    // await printLogo(); // DISABLED TEMPORARILY due to potential force close
+    // Print logo at the top
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
