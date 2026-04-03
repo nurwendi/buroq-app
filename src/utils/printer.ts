@@ -74,7 +74,7 @@ export const printReceipt = async (data: ReceiptData) => {
 <L>Pelanggan : ${displayCustomer}
 ${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}<L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
-${data.period ? `<L>Periode   : ${data.period}\n` : ''}${data.status ? `<L>Status    : ${data.status.toUpperCase() === 'PAID' ? 'LUNAS' : 'TERHUTANG'}\n` : ''}<C>--------------------------------
+${data.period ? `<L>Periode   : ${data.period}\n` : ''}${data.status ? `<L>Status    : ${data.status.toUpperCase() === 'PAID' ? 'LUNAS' : 'BELUM BAYAR'}\n` : ''}<C>--------------------------------
 <C><B>Rp ${(Number(data.amount) || 0).toLocaleString()}</B>
 <C>--------------------------------
 ${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}<C>--------------------------------
