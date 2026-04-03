@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BLEPrinter } from '@poriyaalar/react-native-thermal-receipt-printer';
-
+import { requestBluetoothPermissions } from './permissions';
+import { BUROQ_LOGO_BASE64 } from '../constants/logo';
 export interface ReceiptData {
   invoiceNumber: string;
   customerName: string;
@@ -26,6 +27,11 @@ export const getPrinterMac = async () => {
 
 export const getAvailablePrinters = async () => {
   try {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      console.warn('Bluetooth permission denied');
+      return [];
+    }
     await BLEPrinter.init();
     const devices = await BLEPrinter.getDeviceList();
     return devices;
@@ -33,6 +39,20 @@ export const getAvailablePrinters = async () => {
     console.error('Failed to get devices', error);
     return [];
   }
+};
+
+const printLogo = async () => {
+  return new Promise((resolve) => {
+    BLEPrinter.printImageBase64(
+      BUROQ_LOGO_BASE64,
+      { imageWidth: 360, imageHeight: 130 },
+      () => resolve(true),
+      (err: any) => {
+        console.warn('Failed to print logo', err);
+        resolve(false);
+      }
+    );
+  });
 };
 
 export const printReceipt = async (data: ReceiptData) => {
@@ -46,21 +66,19 @@ export const printReceipt = async (data: ReceiptData) => {
     : (data.username || data.customerName || 'Unknown');
 
   const payload =
-    `<C><B>BUROQ BILLING</B>
-<C>--------------------------------
+    `<C>--------------------------------
 <C>STRUK PEMBAYARAN
 <C>${data.invoiceNumber}
 <C>--------------------------------
 <L>Pelanggan : ${displayCustomer}
-${data.customerId ? `<L>ID Pel.   : ${data.customerId}\n` : ''}
 <L>Tanggal   : ${data.date}
 <L>Metode    : ${data.paymentMethod}
-${data.period ? `<L>Periode   : ${data.period}\n` : ''}
+${data.period ? `<L>Periode   : ${data.period}` : ''}
 <C>--------------------------------
 <C><B>Rp ${(Number(data.amount) || 0).toLocaleString()}</B>
 <C>--------------------------------
-${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}
-${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}
+${data.agentFullName ? `<L>Agen      : ${data.agentFullName}` : ''}
+${data.agentPhone ? `<L>No HP     : ${data.agentPhone}` : ''}
 <C>--------------------------------
 <C>Terima kasih telah berlangganan
 <C>Buroq Sarana Informatika
@@ -68,11 +86,18 @@ ${data.agentPhone ? `<L>No HP     : ${data.agentPhone}\n` : ''}
 \n\n\n`;
 
   try {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
+    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
+
+    // Try to print logo first
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -97,7 +122,7 @@ export const printReport = async (monthName: string, year: number, data: any) =>
   }
 
   let payload = `
-<C><B>BUROQ BILLING</B>
+<C>--------------------------------
 <C>--------------------------------
 <C>LAPORAN KEUANGAN
 <C>${monthName.toUpperCase()} ${year}
@@ -122,11 +147,18 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
 \n\n\n\n`;
 
   try {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
+    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
+
+    // Try to print logo first
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -151,7 +183,7 @@ export const printTest = async () => {
     throw new Error('Printer belum disetting.');
   }
 
-  const payload = `<C>BUROQ SARANA INFORMATIKA
+  const payload = `<C>--------------------------------
 <C>--------------------------------
 <C><B>PRINTER TEST</B>
 <C>--------------------------------
@@ -164,11 +196,18 @@ export const printTest = async () => {
 \n\n\n`;
 
   try {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      throw new Error('Izin Bluetooth ditolak. Aktifkan Bluetooth dan izinkan akses.');
+    }
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
     // Give a tiny delay after connecting for stability
     await new Promise(r => setTimeout(r, 300));
+
+    // Try to print logo first
+    await printLogo();
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(

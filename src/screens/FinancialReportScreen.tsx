@@ -14,7 +14,9 @@ import {
   ScrollView,
   ImageBackground,
   Share,
-  Alert
+  Alert,
+  Modal,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -31,8 +33,13 @@ import {
   Printer,
   Share2,
   CheckCircle2,
-  Clock
+  Clock,
+  Download,
+  ChevronDown,
+  Calendar
 } from 'lucide-react-native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -56,6 +63,8 @@ export default function FinancialReportScreen() {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [monthModalVisible, setMonthModalVisible] = useState(false);
+  const [yearModalVisible, setYearModalVisible] = useState(false);
 
   const months = t('financial.months') as unknown as string[] || 
     ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -80,7 +89,7 @@ export default function FinancialReportScreen() {
 
   const fetchReport = async () => {
     try {
-      const response = await apiClient.get(`/api/reports/financial?month=${selectedMonth + 1}&year=${selectedYear}`);
+      const response = await apiClient.get(`/api/reports/financial?month=${selectedMonth}&year=${selectedYear}`);
       setData(response.data);
     } catch (e) {
       console.error('Failed to fetch report', e);
@@ -117,6 +126,105 @@ export default function FinancialReportScreen() {
       });
     } catch (error) {
       console.error('Sharing failed', error);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!data) return;
+    setLoading(true);
+    try {
+      const html = `
+        <html>
+          <head>
+            <style>
+              body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #334155; }
+              .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+              .title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
+              .subtitle { font-size: 14px; color: #64748b; margin-top: 4px; }
+              .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 40px; }
+              .card { background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
+              .card-label { font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+              .card-value { font-size: 18px; font-weight: bold; color: #0f172a; }
+              .section-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; border-left: 4px solid #3b82f6; padding-left: 10px; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              th { text-align: left; font-size: 12px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; padding: 10px 5px; }
+              td { padding: 10px 5px; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
+              .text-right { text-align: right; }
+              .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 50px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1 class="title">${t('financial.title') || 'Laporan Keuangan'}</h1>
+              <p class="subtitle">${(months[selectedMonth] || '').toUpperCase()} ${selectedYear}</p>
+            </div>
+            
+            <div class="summary-grid">
+              <div class="card">
+                <div class="card-label">${data?.isAgentView ? (t('financial.myEarnings') || 'PENDAPATAN SAYA') : (t('financial.netIncome') || 'PENDAPATAN BERSIH')}</div>
+                <div class="card-value">${formatCurrency(data?.summary?.netIncome)}</div>
+              </div>
+              <div class="card">
+                <div class="card-label">${data?.isAgentView ? (t('financial.totalBilling') || 'TOTAL PENAGIHAN') : (t('financial.revenue') || 'TOTAL REVENUE')}</div>
+                <div class="card-value">${formatCurrency(data?.summary?.totalRevenue)}</div>
+              </div>
+            </div>
+
+            ${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? `
+              <h2 class="section-title">${t('financial.staffPerformance') || 'Performa Staff'}</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Staff</th>
+                    <th class="text-right">Trx</th>
+                    <th class="text-right">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.staffBreakdown.map((s: any) => `
+                    <tr>
+                      <td>${s.name || s.username}</td>
+                      <td class="text-right">${s.count}</td>
+                      <td class="text-right">${formatCurrency((s.revenue || 0) - (s.commission || 0))}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+
+            <h2 class="section-title">${t('financial.allPayments') || 'Detail Pembayaran'}</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Pelanggan</th>
+                  <th class="text-right">Jumlah</th>
+                  <th class="text-right">Tanggal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(data?.allPayments || []).map((p: any) => `
+                  <tr>
+                    <td>${p.customerName}</td>
+                    <td class="text-right">${formatCurrency(p.amount)}</td>
+                    <td class="text-right">${new Date(p.date).toLocaleDateString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Generated by Buroq App on ${new Date().toLocaleString()}</p>
+            </div>
+          </body>
+        </html>
+      `;
+      
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } catch (error: any) {
+      Alert.alert('Gagal', error.message || 'Gagal generate PDF');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -175,7 +283,7 @@ export default function FinancialReportScreen() {
           <SummaryCard 
             title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
             amount={data?.summary?.totalUnpaid} 
-            color={COLORS.warning} 
+            color={COLORS.error} 
             icon={Clock}
           />
         </View>
@@ -189,6 +297,35 @@ export default function FinancialReportScreen() {
              />
           </View>
         )}
+      </View>
+
+      {/* Body Action Buttons - Move here from absolute top */}
+      <View style={styles.bodyActionsGrid}>
+        <TouchableOpacity style={styles.bodyActionButton} onPress={handleDownloadPDF}>
+          <View style={[styles.bodyActionIcon, { backgroundColor: COLORS.primary + '15' }]}>
+            <Download size={22} color={COLORS.primary} />
+          </View>
+          <View style={styles.bodyActionTextContainer}>
+             <Text style={styles.bodyActionTitle}>{t('financial.downloadPdf') || 'Download PDF'}</Text>
+             <Text style={styles.bodyActionSubtitle}>{t('financial.saveSharePdf') || 'Simpan & Bagikan Laporan'}</Text>
+          </View>
+          <ChevronRight size={18} color={COLORS.slate[300]} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.bodyActionButton, printing && { opacity: 0.7 }]} 
+          onPress={handlePrint} 
+          disabled={printing}
+        >
+          <View style={[styles.bodyActionIcon, { backgroundColor: COLORS.success + '15' }]}>
+            {printing ? <ActivityIndicator size="small" color={COLORS.success} /> : <Printer size={22} color={COLORS.success} />}
+          </View>
+          <View style={styles.bodyActionTextContainer}>
+             <Text style={styles.bodyActionTitle}>{t('financial.printThermal') || 'Cetak Thermal'}</Text>
+             <Text style={styles.bodyActionSubtitle}>{t('financial.printViaBluetooth') || 'Cetak struk via Bluetooth'}</Text>
+          </View>
+          <ChevronRight size={18} color={COLORS.slate[300]} />
+        </TouchableOpacity>
       </View>
 
       {!data?.isAgentView && data?.staffBreakdown?.length > 0 && (
@@ -265,7 +402,7 @@ export default function FinancialReportScreen() {
     { type: 'header' },
     { type: 'section_title', title: t('financial.paid') || 'LUNAS (MASUK)', count: paidPayments.length, color: COLORS.success },
     ...paidPayments.map((p: any) => ({ ...p, type: 'payment' })),
-    { type: 'section_title', title: t('financial.unpaid_tagihan') || 'TAGIHAN (PENDING)', count: unpaidPayments.length, color: COLORS.warning },
+    { type: 'section_title', title: t('financial.unpaid_tagihan') || 'TAGIHAN (PENDING)', count: unpaidPayments.length, color: COLORS.error },
     ...unpaidPayments.map((p: any) => ({ ...p, type: 'payment' }))
   ];
 
@@ -281,7 +418,7 @@ export default function FinancialReportScreen() {
             style={{ flex: 1 }}
             resizeMode="cover"
           >
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.75)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255, 255, 255, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />
@@ -293,40 +430,83 @@ export default function FinancialReportScreen() {
         onBackPress={() => navigation.goBack()}
       />
 
-      {/* Floating Actions */}
-      <View style={styles.topActions}>
-        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-          <Share2 size={20} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionButton, printing && { opacity: 0.5 }]} onPress={handlePrint} disabled={printing}>
-          {printing ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Printer size={20} color={COLORS.primary} />}
-        </TouchableOpacity>
+      {/* Month & Year Selectors (Dropdowns) */}
+      <View style={styles.filterBar}>
+        <View style={styles.dropdownContainer}>
+           <TouchableOpacity 
+             style={styles.dropdownButton} 
+             onPress={() => setYearModalVisible(true)}
+           >
+             <View style={styles.dropdownIconBox}>
+                <Calendar size={16} color={COLORS.primary} />
+             </View>
+             <Text style={styles.dropdownText}>{selectedYear}</Text>
+             <ChevronDown size={18} color={COLORS.slate[400]} />
+           </TouchableOpacity>
+
+           <TouchableOpacity 
+             style={styles.dropdownButton} 
+             onPress={() => setMonthModalVisible(true)}
+           >
+             <View style={styles.dropdownIconBox}>
+                <CalendarIcon size={16} color={COLORS.primary} />
+             </View>
+             <Text style={styles.dropdownText}>{months[selectedMonth]}</Text>
+             <ChevronDown size={18} color={COLORS.slate[400]} />
+           </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Month Selector */}
-      <View style={styles.filterBar}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          {years.map(y => (
-            <TouchableOpacity 
-              key={y} 
-              onPress={() => setSelectedYear(y)}
-              style={[styles.yearChip, selectedYear === y && styles.yearChipActive]}
-            >
-              <Text style={[styles.yearText, selectedYear === y && styles.yearTextActive]}>{y}</Text>
-            </TouchableOpacity>
-          ))}
-          <View style={styles.divider} />
-          {Array.isArray(months) && months.map((m, i) => (
-            <TouchableOpacity 
-              key={m} 
-              onPress={() => setSelectedMonth(i)}
-              style={[styles.monthChip, selectedMonth === i && styles.monthChipActive]}
-            >
-              <Text style={[styles.monthText, selectedMonth === i && styles.monthTextActive]}>{m}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      {/* Selectors Modals */}
+      <Modal visible={monthModalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setMonthModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('financial.selectMonth') || 'Pilih Bulan'}</Text>
+              <ScrollView style={{ maxHeight: 400 }}>
+                {months.map((m, i) => (
+                  <TouchableOpacity 
+                    key={m} 
+                    style={[styles.modalOption, selectedMonth === i && styles.modalOptionActive]} 
+                    onPress={() => {
+                      setSelectedMonth(i);
+                      setMonthModalVisible(false);
+                    }}
+                  >
+                    <Text style={[styles.modalOptionText, selectedMonth === i && styles.modalOptionActiveText]}>{m}</Text>
+                    {selectedMonth === i && <CheckCircle2 size={18} color={COLORS.primary} />}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal visible={yearModalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setYearModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('financial.selectYear') || 'Pilih Tahun'}</Text>
+              <ScrollView>
+                {years.map(y => (
+                  <TouchableOpacity 
+                    key={y} 
+                    style={[styles.modalOption, selectedYear === y && styles.modalOptionActive]} 
+                    onPress={() => {
+                      setSelectedYear(y);
+                      setYearModalVisible(false);
+                    }}
+                  >
+                    <Text style={[styles.modalOptionText, selectedYear === y && styles.modalOptionActiveText]}>{y}</Text>
+                    {selectedYear === y && <CheckCircle2 size={18} color={COLORS.primary} />}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {loading && !refreshing ? (
         <View style={styles.center}>
@@ -378,79 +558,135 @@ const styles = StyleSheet.create({
     color: COLORS.slate[500],
     fontWeight: '600',
   },
-  topActions: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 35,
-    right: 20,
-    flexDirection: 'row',
-    gap: 10,
-    zIndex: 100,
-  },
-  actionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   filterBar: {
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,255,255,0.8)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  filterScroll: {
-    paddingHorizontal: 20,
+  dropdownContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dropdownButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.05)',
+    gap: 10,
   },
-  yearChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+  dropdownIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  yearChipActive: {
-    backgroundColor: COLORS.slate[800],
-  },
-  yearText: {
-    fontSize: 13,
+  dropdownText: {
+    flex: 1,
+    fontSize: 14,
     fontWeight: '800',
+    color: COLORS.slate[700],
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 20,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: COLORS.slate[900],
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  modalOptionActive: {
+    backgroundColor: COLORS.primary + '08',
+  },
+  modalOptionText: {
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.slate[600],
   },
-  yearTextActive: {
-    color: '#ffffff',
+  modalOptionActiveText: {
+    color: COLORS.primary,
+    fontWeight: '900',
   },
-  divider: {
-    width: 1,
-    height: 20,
-    backgroundColor: COLORS.slate[200],
-    marginHorizontal: 8,
+  bodyActionsGrid: {
+    marginBottom: 24,
+    gap: 12,
   },
-  monthChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+  bodyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.03)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  monthChipActive: {
-    backgroundColor: COLORS.primary,
+  bodyActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  monthText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.slate[600],
+  bodyActionTextContainer: {
+    flex: 1,
   },
-  monthTextActive: {
-    color: '#ffffff',
+  bodyActionTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: COLORS.slate[800],
+    marginBottom: 2,
+  },
+  bodyActionSubtitle: {
+    fontSize: 12,
+    color: COLORS.slate[400],
+    fontWeight: '600',
   },
   listContent: {
     padding: 20,

@@ -10,21 +10,26 @@ interface StatCardProps {
   icon: LucideIcon;
   color: string;
   subtitle?: string;
+  isPrimary?: boolean;
 }
 
 const { width } = Dimensions.get('window');
 
-export default function StatCard({ title, value, icon: Icon, color, subtitle }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, color, subtitle, isPrimary }: StatCardProps) {
   const CardContent = (
-    <View style={styles.cardInner}>
+    <View style={[styles.cardInner, isPrimary && { backgroundColor: COLORS.primary }]}>
       <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: `${color}20`, borderColor: `${color}30` }]}>
-          <Icon size={22} color={color} />
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: isPrimary ? 'rgba(255,255,255,0.2)' : `${color}20`, 
+            borderColor: isPrimary ? 'rgba(255,255,255,0.3)' : `${color}30` }
+        ]}>
+          <Icon size={22} color={isPrimary ? '#ffffff' : color} />
         </View>
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.title, isPrimary && { color: 'rgba(255,255,255,0.8)' }]} numberOfLines={1}>{title}</Text>
       </View>
-      <Text style={styles.value}>{value}</Text>
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      <Text style={[styles.value, isPrimary && { color: '#ffffff' }]}>{value}</Text>
+      {subtitle && <Text style={[styles.subtitle, isPrimary && { color: 'rgba(255,255,255,0.7)' }]}>{subtitle}</Text>}
     </View>
   );
 

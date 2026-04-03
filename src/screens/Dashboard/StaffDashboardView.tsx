@@ -184,9 +184,19 @@ export default function StaffDashboardView() {
         <View style={styles.bodyContent}>
 
           <View style={styles.statsGrid}>
+            <View style={{ width: '100%', marginBottom: 12 }}>
+              <StatCard 
+                title={t('dashboard.thisMonth') || t('financial.revenue')} 
+                value={`Rp ${(stats?.thisMonthRevenue || 0).toLocaleString()}`} 
+                icon={TrendingUp} 
+                color="#10b981" 
+                subtitle={t('dashboard.thisMonthRevenueDesc')}
+                isPrimary
+              />
+            </View>
             <View style={{ width: '48%' }}>
               <StatCard 
-                title={t('dashboard.revenueTotal')} 
+                title={t('dashboard.revenueTotal') || 'TOTAL PENAGIHAN'} 
                 value={`Rp ${(stats?.totalRevenue || 0).toLocaleString()}`} 
                 icon={TrendingUp} 
                 color="#2563eb" 
@@ -195,11 +205,11 @@ export default function StaffDashboardView() {
             </View>
             <View style={{ width: '48%' }}>
               <StatCard 
-                title={t('dashboard.thisMonth')} 
-                value={`Rp ${(stats?.thisMonthRevenue || 0).toLocaleString()}`} 
-                icon={TrendingUp} 
-                color="#10b981" 
-                subtitle={t('dashboard.thisMonthRevenueDesc')}
+                title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
+                value={`Rp ${(stats?.totalUnpaid || 0).toLocaleString()}`} 
+                icon={Clock} 
+                color="#f59e0b" 
+                subtitle={t('dashboard.waitingPayment')}
               />
             </View>
           </View>
