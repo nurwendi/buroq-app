@@ -151,7 +151,7 @@ export default function AdminDashboardView() {
             resizeMode="cover"
           >
             {/* Lighter overlay to act as a transparent elegant background */}
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.65)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255, 255, 255, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: COLORS.slate[50] }} />

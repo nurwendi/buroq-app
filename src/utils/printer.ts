@@ -67,7 +67,7 @@ export const printReceipt = async (data: ReceiptData) => {
     : (data.username || data.customerName || 'Unknown');
 
   const payload =
-    `<C>--------------------------------
+    `
 <C>STRUK PEMBAYARAN
 <C>${data.invoiceNumber}
 <C>--------------------------------

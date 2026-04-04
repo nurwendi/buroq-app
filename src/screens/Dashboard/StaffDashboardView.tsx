@@ -47,6 +47,9 @@ export default function StaffDashboardView() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
     thisMonthRevenue: 0,
+    grossRevenue: 0,
+    netRevenue: 0,
+    staffCommission: 0,
     activeCustomers: 0,
     todaysRevenue: 0,
     pendingCount: 0,
@@ -127,7 +130,7 @@ export default function StaffDashboardView() {
             resizeMode="cover"
           >
             {/* Lighter overlay to act as a transparent elegant background */}
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.65)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255, 255, 255, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />
@@ -186,21 +189,21 @@ export default function StaffDashboardView() {
           <View style={styles.statsGrid}>
             <View style={{ width: '100%', marginBottom: 12 }}>
               <StatCard 
-                title={t('dashboard.thisMonth') || t('financial.revenue')} 
-                value={`Rp ${(stats?.thisMonthRevenue || 0).toLocaleString()}`} 
+                title={t('dashboard.netRevenue') || t('financial.netIncome')} 
+                value={`Rp ${(stats?.netRevenue || 0).toLocaleString()}`} 
                 icon={TrendingUp} 
                 color="#10b981" 
-                subtitle={t('dashboard.thisMonthRevenueDesc')}
+                subtitle={t('dashboard.thisMonth')}
                 isPrimary
               />
             </View>
             <View style={{ width: '48%' }}>
               <StatCard 
-                title={t('dashboard.revenueTotal') || 'TOTAL PENAGIHAN'} 
-                value={`Rp ${(stats?.totalRevenue || 0).toLocaleString()}`} 
+                title={t('dashboard.grossRevenue') || t('financial.revenue')} 
+                value={`Rp ${(stats?.grossRevenue || 0).toLocaleString()}`} 
                 icon={TrendingUp} 
                 color="#2563eb" 
-                subtitle={t('dashboard.totalCumulative')}
+                subtitle={t('dashboard.thisMonth')}
               />
             </View>
             <View style={{ width: '48%' }}>
@@ -210,6 +213,15 @@ export default function StaffDashboardView() {
                 icon={Clock} 
                 color="#f59e0b" 
                 subtitle={t('dashboard.waitingPayment')}
+              />
+            </View>
+            <View style={{ width: '100%', marginTop: 12 }}>
+              <StatCard 
+                title={t('dashboard.staffCommission') || 'KOMISI'} 
+                value={`Rp ${(stats?.staffCommission || 0).toLocaleString()}`} 
+                icon={Users} 
+                color="#ef4444" 
+                subtitle={t('dashboard.thisMonth')}
               />
             </View>
           </View>

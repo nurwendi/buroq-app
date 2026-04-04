@@ -59,10 +59,10 @@ export default function CustomerListScreen({ navigation }: any) {
         pppoeService.getActiveConnections()
       ]);
 
-      const activeMap = new Map(activeData.map(conn => [conn.name, conn]));
+      const activeMap = new Map(activeData.map(conn => [conn.name?.toLowerCase(), conn]));
       
       const data: Customer[] = customersData.filter(c => c && typeof c === 'object').map(c => {
-        const active = c.username ? activeMap.get(c.username) : null;
+        const active = c.username ? activeMap.get(c.username.toLowerCase()) : null;
         return {
           ...c,
           isOnline: !!active,
@@ -137,7 +137,7 @@ export default function CustomerListScreen({ navigation }: any) {
             style={{ flex: 1 }}
             resizeMode="cover"
           >
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.65)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />

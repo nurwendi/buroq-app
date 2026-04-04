@@ -56,6 +56,7 @@ export default function CustomerDashboardView() {
   const [dashboardBgUrl, setDashboardBgUrl] = useState('');
   const [loginBgUrl, setLoginBgUrl] = useState('');
   const [latestNotifs, setLatestNotifs] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
   
 
   const [wifiModalVisible, setWifiModalVisible] = useState(false);
@@ -64,11 +65,17 @@ export default function CustomerDashboardView() {
   const [updatingWifi, setUpdatingWifi] = useState(false);
 
   const fetchStats = async () => {
+    setError(null);
     try {
       const response = await apiClient.get('/api/customer/stats');
       setStats(response.data);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to fetch customer stats', e);
+      if (e.response?.status === 401) {
+        logout();
+      } else {
+        setError(e.response?.data?.error || t('common.error') || 'Gagal memuat data dashboard.');
+      }
     }
   };
 
@@ -164,10 +171,29 @@ export default function CustomerDashboardView() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  if (error && !stats) {
+    return (
+      <View style={styles.loadingContainer}>
+        <View style={styles.errorCard}>
+          <HelpCircle size={48} color="#ef4444" />
+          <Text style={styles.errorTitle}>{t('common.error') || 'Terjadi Kesalahan'}</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchStats}>
+            <Text style={styles.retryText}>{t('common.retry') || 'Coba Lagi'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutTextButton} onPress={logout}>
+            <Text style={styles.logoutSmallText}>{t('common.logout') || 'Keluar'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   if (!stats) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={{ marginTop: 12, color: '#64748b', fontWeight: '600' }}>{t('common.loading') || 'Memuat...'}</Text>
       </View>
     );
   }
@@ -188,7 +214,7 @@ export default function CustomerDashboardView() {
             resizeMode="cover"
           >
             {/* Transparent overlaysamakan dengan background login, tetapi buat lebih transparant */}
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.7)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255, 255, 255, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />
@@ -698,6 +724,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  errorCard: {
+    padding: 30,
+    alignItems: 'center',
+    width: '85%',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0f172a',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 30,
+  },
+  retryButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+  },
+  retryText: {
+    color: '#ffffff',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  logoutTextButton: {
+    marginTop: 20,
+    padding: 10,
+  },
+  logoutSmallText: {
+    color: '#ef4444',
+    fontWeight: '700',
   },
   titleCardText: {
     fontSize: 12,

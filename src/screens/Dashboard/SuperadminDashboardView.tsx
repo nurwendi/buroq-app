@@ -155,7 +155,7 @@ export default function SuperadminDashboardView() {
             resizeMode="cover"
           >
             {/* Lighter overlay to act as a transparent elegant background */}
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.65)' }} />
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255, 255, 255, 0.92)' }} />
           </ImageBackground>
         ) : (
           <View style={{ flex: 1, backgroundColor: '#f8fafc' }} />
@@ -262,9 +262,9 @@ export default function SuperadminDashboardView() {
                  {(ownerStats || []).map((stat) => (
                    <View key={stat.id} style={styles.glassCardSmall}>
                       <View style={styles.ownerInitialWrapper}>
-                        <Text style={styles.ownerInitialText}>{stat.owner.charAt(0).toUpperCase()}</Text>
+                        <Text style={styles.ownerInitialText}>{(stat.owner || 'U').charAt(0).toUpperCase()}</Text>
                       </View>
-                      <Text style={styles.ownerName} numberOfLines={1}>{stat.owner}</Text>
+                      <Text style={styles.ownerName} numberOfLines={1}>{stat.owner || 'Unknown'}</Text>
                       <View style={styles.ownerStatsRow}>
                         <View style={styles.ownerStatItem}>
                            <Text style={styles.ownerStatValue}>{stat.active}</Text>
