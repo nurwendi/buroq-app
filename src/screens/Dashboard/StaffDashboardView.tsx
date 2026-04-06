@@ -327,6 +327,7 @@ export default function StaffDashboardView() {
                       <View>
                         <Text style={styles.customerName}>{item.customerName}</Text>
                         <Text style={styles.transactionDate}>
+                          {item.invoiceNumber ? `${item.invoiceNumber} • ` : ''}
                           {new Date(item.date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </Text>
                       </View>

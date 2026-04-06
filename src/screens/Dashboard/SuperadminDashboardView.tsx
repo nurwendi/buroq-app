@@ -51,12 +51,25 @@ export default function SuperadminDashboardView() {
   const { t } = useLanguage();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<any>({
+    adminCount: 0,
+    totalCustomers: 0,
+    pppoeActive: 0,
+    pppoeOffline: 0,
+    cpuLoad: 0,
+    memoryUsed: 0,
+    memoryTotal: 0,
+    serverCpuLoad: 0,
+    serverMemoryUsed: 0,
+    serverMemoryTotal: 0,
+    routers: []
+  });
   const [ownerStats, setOwnerStats] = useState<any[]>([]);
   const [systemInfo, setSystemInfo] = useState<any>(null);
   const [dashboardBgUrl, setDashboardBgUrl] = useState('');
   const [loginBgUrl, setLoginBgUrl] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   const resolveUrl = (path: string) => {
     if (!path) return '';
@@ -105,10 +118,17 @@ export default function SuperadminDashboardView() {
   };
 
   useEffect(() => {
-    fetchStats();
-    fetchOwnerStats();
-    fetchSystemInfo();
-    fetchSettings();
+    const init = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchStats(),
+        fetchOwnerStats(),
+        fetchSystemInfo(),
+        fetchSettings()
+      ]);
+      setLoading(false);
+    };
+    init();
   }, []);
 
   const onRefresh = async () => {
@@ -127,10 +147,11 @@ export default function SuperadminDashboardView() {
     return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
   };
 
-  if (!stats && !refreshing) {
+  if (loading && !stats.adminCount && !ownerStats.length) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={{ marginTop: 12, color: '#64748b', fontWeight: '600' }}>{t('common.loading') || 'Loading Dashboard...'}</Text>
       </View>
     );
   }

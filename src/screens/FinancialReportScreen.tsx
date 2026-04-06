@@ -369,7 +369,7 @@ export default function FinancialReportScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.customerName} numberOfLines={1}>{item.customerName}</Text>
-            <Text style={styles.customerUser}>#{item.customerNumber} • @{item.username}</Text>
+            <Text style={styles.customerUser}>{item.invoiceNumber ? `${item.invoiceNumber} • ` : ''}@{item.username}</Text>
           </View>
         </View>
         <View style={styles.paymentRight}>
