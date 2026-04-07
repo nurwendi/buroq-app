@@ -66,9 +66,7 @@ export const printReceipt = async (data: ReceiptData) => {
     ? data.customerName
     : (data.username || data.customerName || 'Unknown');
 
-  const payload =
-    `
-<C>STRUK PEMBAYARAN
+  const payload = `<C>STRUK PEMBAYARAN
 <C>${data.invoiceNumber}
 <C>--------------------------------
 <L>Pelanggan : ${displayCustomer}
@@ -87,11 +85,14 @@ ${data.agentFullName ? `<L>Agen      : ${data.agentFullName}\n` : ''}${data.agen
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
-    // Give a tiny delay after connecting for stability
-    await new Promise(r => setTimeout(r, 300));
+    // Give a delay after connecting for stability
+    await new Promise(r => setTimeout(r, 500));
 
     // Print logo at the top
     await printLogo();
+
+    // Crucial: delay after logo image before sending text
+    await new Promise(r => setTimeout(r, 600));
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -115,21 +116,24 @@ export const printReport = async (monthName: string, year: number, data: any) =>
     throw new Error('Printer belum disetting.');
   }
 
-  let payload = `
-<C>--------------------------------
-<C>LAPORAN KEUANGAN
-<C>${monthName.toUpperCase()} ${year}
-<C>--------------------------------
-<L>Billing/Rev : Rp ${data.summary.totalRevenue.toLocaleString()}
-<L>Piutang     : Rp ${data.summary.totalUnpaid.toLocaleString()}
-${data.isAgentView ? '' : `<L>Komisi Agen : Rp ${data.summary.totalCommissions.toLocaleString()}\n`}<C>--------------------------------
-<L>${data.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}  : Rp ${data.summary.netIncome.toLocaleString()}</B>
-<C>--------------------------------
-${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;
+  const safeMonth = (monthName || '').toUpperCase();
+  const safeYear = year || new Date().getFullYear();
+  const summary = data?.summary || { totalRevenue: 0, totalUnpaid: 0, totalCommissions: 0, netIncome: 0 };
 
-  if (!data.isAgentView && data.staffBreakdown?.length > 0) {
+  let payload = `<C>--------------------------------
+<C>LAPORAN KEUANGAN
+<C>${safeMonth} ${safeYear}
+<C>--------------------------------
+<L>Billing/Rev : Rp ${(summary.totalRevenue || 0).toLocaleString()}
+<L>Belum Bayar : Rp ${(summary.totalUnpaid || 0).toLocaleString()}
+${data?.isAgentView ? '' : `<L>Komisi Agen : Rp ${(summary.totalCommissions || 0).toLocaleString()}\n`}<C>--------------------------------
+<L><B>${data?.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}</B>  : Rp ${(summary.netIncome || 0).toLocaleString()}
+<C>--------------------------------
+${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;
+
+  if (!data?.isAgentView && data?.staffBreakdown?.length > 0) {
     data.staffBreakdown.forEach((s: any) => {
-      payload += `<L>${(s.name || s.username).substring(0, 12).padEnd(12)} : ${s.count} trx\n`;
+      payload += `<L>${(s.name || s.username || 'Staff').substring(0, 12).padEnd(12)} : ${s.count || 0} trx\n`;
     });
   }
 
@@ -143,11 +147,14 @@ ${!data.isAgentView && data.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
-    // Give a tiny delay after connecting for stability
-    await new Promise(r => setTimeout(r, 300));
+    // Give a delay after connecting for stability
+    await new Promise(r => setTimeout(r, 500));
 
     // Print logo at the top
     await printLogo();
+
+    // Crucial: delay after logo image before sending text
+    await new Promise(r => setTimeout(r, 600));
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(
@@ -188,11 +195,14 @@ export const printTest = async () => {
     await BLEPrinter.init();
     await BLEPrinter.connectPrinter(mac);
 
-    // Give a tiny delay after connecting for stability
-    await new Promise(r => setTimeout(r, 300));
+    // Give a delay after connecting for stability
+    await new Promise(r => setTimeout(r, 500));
 
     // Print logo at the top
     await printLogo();
+
+    // Crucial: delay after logo image before sending text
+    await new Promise(r => setTimeout(r, 600));
 
     return new Promise((resolve, reject) => {
       BLEPrinter.printText(

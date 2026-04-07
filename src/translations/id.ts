@@ -241,7 +241,7 @@ export const id = {
         mainSystemConfig: 'Konfigurasi sistem utama',
         myEarnings: 'PENDAPATAN SAYA',
         totalBilling: 'TOTAL PENAGIHAN',
-        unpaid_tagihan: 'PIUTANG',
+        unpaid_tagihan: 'BELUM BAYAR',
         profit: 'Profit',
     },
     users: {
@@ -601,7 +601,7 @@ export const id = {
         ],
         myEarnings: 'Pendapatan Saya',
         totalBilling: 'Total Penagihan',
-        unpaid_tagihan: 'Tagihan (Pending)',
+        unpaid_tagihan: 'BELUM BAYAR',
         profit: 'Profit',
         paid: 'Lunas!',
         downloadPdf: 'Download PDF',

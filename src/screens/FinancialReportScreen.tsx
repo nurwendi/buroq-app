@@ -281,7 +281,7 @@ export default function FinancialReportScreen() {
         </View>
         <View style={{ width: '48%' }}>
           <SummaryCard 
-            title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
+            title={t('financial.unpaid_tagihan') || 'BELUM BAYAR'} 
             amount={data?.summary?.totalUnpaid} 
             color={COLORS.error} 
             icon={Clock}

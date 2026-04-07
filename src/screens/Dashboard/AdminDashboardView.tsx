@@ -207,50 +207,6 @@ export default function AdminDashboardView() {
         {/* Padding Top to accommodate half the avatar height plus spacing */}
         <View style={styles.bodyContent}>
            
-           <View style={styles.section}>
-             <View style={styles.sectionHeader}>
-               <Text style={styles.sectionTitle}>{t('dashboard.financialSummary')}</Text>
-             </View>
-             <View style={styles.statsGrid}>
-               <View style={{ width: '100%', marginBottom: 12 }}>
-                 <StatCard 
-                   title={t('dashboard.netRevenue') || t('financial.netIncome')} 
-                   value={`Rp ${(stats?.netRevenue || 0).toLocaleString()}`} 
-                   icon={TrendingUp} 
-                   color={COLORS.success} 
-                   subtitle={t('dashboard.thisMonth')}
-                   isPrimary
-                 />
-               </View>
-               <View style={{ width: '48%' }}>
-                 <StatCard 
-                   title={t('dashboard.grossRevenue') || t('financial.revenue')} 
-                   value={`Rp ${(stats?.grossRevenue || 0).toLocaleString()}`} 
-                   icon={CreditCard} 
-                   color={COLORS.primary} 
-                   subtitle={t('dashboard.thisMonth')}
-                 />
-               </View>
-               <View style={{ width: '48%' }}>
-                 <StatCard 
-                   title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
-                   value={`Rp ${(stats?.totalUnpaid || 0).toLocaleString()}`} 
-                   icon={Clock} 
-                   color={COLORS.warning} 
-                   subtitle={t('dashboard.thisMonth')}
-                 />
-               </View>
-               <View style={{ width: '100%', marginTop: 12 }}>
-                 <StatCard 
-                   title={t('dashboard.staffCommission') || t('financial.expenses')} 
-                   value={`Rp ${(stats?.staffCommission || 0).toLocaleString()}`} 
-                   icon={Users} 
-                   color={COLORS.error} 
-                   subtitle={t('dashboard.thisMonth')}
-                 />
-               </View>
-             </View>
-           </View>
 
            {/* Section: Main Menu (List Berwarna) */}
            <View style={styles.section}>

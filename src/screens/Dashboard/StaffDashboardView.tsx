@@ -186,45 +186,6 @@ export default function StaffDashboardView() {
         {/* Padding Top to accommodate half the avatar height plus spacing */}
         <View style={styles.bodyContent}>
 
-          <View style={styles.statsGrid}>
-            <View style={{ width: '100%', marginBottom: 12 }}>
-              <StatCard 
-                title={t('dashboard.netRevenue') || t('financial.netIncome')} 
-                value={`Rp ${(stats?.netRevenue || 0).toLocaleString()}`} 
-                icon={TrendingUp} 
-                color="#10b981" 
-                subtitle={t('dashboard.thisMonth')}
-                isPrimary
-              />
-            </View>
-            <View style={{ width: '48%' }}>
-              <StatCard 
-                title={t('dashboard.grossRevenue') || t('financial.revenue')} 
-                value={`Rp ${(stats?.grossRevenue || 0).toLocaleString()}`} 
-                icon={TrendingUp} 
-                color="#2563eb" 
-                subtitle={t('dashboard.thisMonth')}
-              />
-            </View>
-            <View style={{ width: '48%' }}>
-              <StatCard 
-                title={t('financial.unpaid_tagihan') || 'PIUTANG'} 
-                value={`Rp ${(stats?.totalUnpaid || 0).toLocaleString()}`} 
-                icon={Clock} 
-                color="#f59e0b" 
-                subtitle={t('dashboard.waitingPayment')}
-              />
-            </View>
-            <View style={{ width: '100%', marginTop: 12 }}>
-              <StatCard 
-                title={t('dashboard.staffCommission') || 'KOMISI'} 
-                value={`Rp ${(stats?.staffCommission || 0).toLocaleString()}`} 
-                icon={Users} 
-                color="#ef4444" 
-                subtitle={t('dashboard.thisMonth')}
-              />
-            </View>
-          </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
