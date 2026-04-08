@@ -27,8 +27,15 @@ import {
   ChevronRight,
   Activity,
   LogOut,
-  FileText
+  FileText,
+  WifiOff,
+  DollarSign,
+  AlertCircle,
+  Wallet,
+  BadgeDollarSign
 } from 'lucide-react-native';
+import DonutChart from '../../components/DonutChart';
+import FinancialWidget from '../../components/FinancialWidget';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
@@ -187,84 +194,90 @@ export default function StaffDashboardView() {
         <View style={styles.bodyContent}>
 
 
+          {/* Section: Customer Status — Donut Chart */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('dashboard.customerStatus')}</Text>
             </View>
-            <View style={styles.statsGrid}>
-              <View style={{ width: '48%' }}>
-                <StatCard 
-                  title={t('users.all') || 'Semua'} 
-                  value={stats?.totalCustomers || 0} 
-                  icon={Users} 
-                  color="#0ea5e9" 
-                />
-              </View>
-              <View style={{ width: '48%' }}>
-                <StatCard 
-                  title={t('users.online') || 'Online'} 
-                  value={onlineCount} 
-                  icon={Activity} 
-                  color="#10b981" 
-                />
-              </View>
+            <View style={styles.chartCard}>
+              <DonutChart
+                size={150}
+                strokeWidth={24}
+                centerValue={stats?.totalCustomers || 0}
+                centerLabel={t('users.all') || 'Semua'}
+                segments={[
+                  { value: onlineCount, color: '#10b981', label: t('users.online') || 'Online' },
+                  { value: Math.max(0, (stats?.totalCustomers || 0) - onlineCount), color: '#ef4444', label: t('users.offline') || 'Offline' },
+                ]}
+              />
             </View>
           </View>
 
-          {/* Section: Main Menu (List Berwarna) */}
+          {/* Section: Financial Widget */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-               <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
+              <Text style={styles.sectionTitle}>{t('financial.thisMonth') || 'Keuangan Bulan Ini'}</Text>
             </View>
-            <View style={styles.menuList}>
-               
-               {/* Add Customer */}
-               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#2563eb' }]} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
-                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#2563eb15' }]}>
-                     <UserPlus size={22} color="#2563eb" />
-                  </View>
-                  <View style={styles.menuListTextWrapper}>
-                     <Text style={styles.menuListTitle}>{t('users.addUser')}</Text>
-                     <Text style={styles.menuListSubtitle}>{t('dashboard.manageNewCustomer')}</Text>
-                  </View>
-                  <ChevronRight size={20} color="#cbd5e1" />
-               </TouchableOpacity>
+            <FinancialWidget
+              grossRevenue={stats?.grossRevenue || 0}
+              commission={stats?.staffCommission || 0}
+              netRevenue={stats?.netRevenue || 0}
+              totalUnpaid={stats?.totalUnpaid || 0}
+              commissionLabel={t('financial.myCommission') || 'Komisi Saya'}
+              title={t('financial.thisMonth') || 'Keuangan Bulan Ini'}
+              grossLabel={t('financial.grossRevenue') || 'Total Pendapatan'}
+              netLabel={t('financial.netRevenue') || 'Net Income'}
+              unpaidLabel={t('financial.unpaid') || 'Belum Bayar'}
+            />
+          </View>
 
-               {/* Customers */}
-               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#10b981' }]} onPress={() => navigation.navigate('CustomerList')}>
-                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#10b98115' }]}>
-                     <Users size={22} color="#10b981" />
-                  </View>
-                  <View style={styles.menuListTextWrapper}>
-                     <Text style={styles.menuListTitle}>{t('sidebar.users')}</Text>
-                     <Text style={styles.menuListSubtitle}>{t('dashboard.viewManageCustomers')}</Text>
-                  </View>
-                  <ChevronRight size={20} color="#cbd5e1" />
-               </TouchableOpacity>
+          {/* Section: Main Menu — Icon Grid */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
+            </View>
+            <View style={styles.menuGrid}>
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#2563eb18' }]}>
+                  <UserPlus size={26} color="#2563eb" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{t('users.addUser')}</Text>
+              </TouchableOpacity>
 
-                {/* Billing */}
-                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#f59e0b' }]} onPress={() => navigation.navigate('BillingTab')}>
-                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#f59e0b15' }]}>
-                      <CreditCard size={22} color="#f59e0b" />
-                   </View>
-                   <View style={styles.menuListTextWrapper}>
-                      <Text style={styles.menuListTitle}>{t('sidebar.billing')}</Text>
-                      <Text style={styles.menuListSubtitle}>{t('dashboard.manageBillingPayments')}</Text>
-                   </View>
-                   <ChevronRight size={20} color="#cbd5e1" />
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('CustomerList')}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#10b98118' }]}>
+                  <Users size={26} color="#10b981" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.users')}</Text>
+              </TouchableOpacity>
 
-                {/* Report */}
-                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#8b5cf6' }]} onPress={() => navigation.navigate('FinancialReport')}>
-                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#8b5cf615' }]}>
-                      <FileText size={22} color="#8b5cf6" />
-                   </View>
-                   <View style={styles.menuListTextWrapper}>
-                      <Text style={styles.menuListTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
-                      <Text style={styles.menuListSubtitle}>{t('dashboard.viewEarningsPerformance')}</Text>
-                   </View>
-                   <ChevronRight size={20} color="#cbd5e1" />
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('BillingTab')}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#f59e0b18' }]}>
+                  <CreditCard size={26} color="#f59e0b" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.billing')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('FinancialReport')}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#8b5cf618' }]}>
+                  <FileText size={26} color="#8b5cf6" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{t('financial.title') || 'Laporan'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('SettingsTab')}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#64748b18' }]}>
+                  <Settings size={26} color="#64748b" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.settings')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.gridItem} onPress={() => logout()}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#ef444418' }]}>
+                  <LogOut size={26} color="#ef4444" />
+                </View>
+                <Text style={[styles.gridLabel, { color: '#ef4444' }]} numberOfLines={2}>{t('common.logout') || 'Keluar'}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -581,5 +594,47 @@ const styles = StyleSheet.create({
     color: '#cbd5e1',
     fontSize: 14,
     fontWeight: '600',
+  },
+  chartCard: {
+    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(241,245,249,0.8)',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12 },
+      android: { elevation: 3 },
+    }),
+  },
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  gridItem: {
+    width: '22%',
+    alignItems: 'center',
+    gap: 8,
+  },
+  gridIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
+  },
+  gridLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
+    textAlign: 'center',
+    letterSpacing: -0.2,
   },
 });

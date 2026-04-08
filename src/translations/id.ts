@@ -596,7 +596,7 @@ export const id = {
         shareTitle: 'LAPORAN KEUANGAN {month} {year}',
         sentFrom: 'Dikirim dari Buroq Manager Mobile',
         months: [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
         ],
         myEarnings: 'Pendapatan Saya',
@@ -610,6 +610,13 @@ export const id = {
         printViaBluetooth: 'Cetak struk via Bluetooth',
         selectMonth: 'Pilih Bulan',
         selectYear: 'Pilih Tahun',
+        thisMonth: 'Keuangan Bulan Ini',
+        grossRevenue: 'Total Pendapatan',
+        netRevenue: 'Net Income',
+        myCommission: 'Komisi Saya',
+        agentCommission: 'Komisi Agen',
+        ownerIncome: 'Pendapatan Owner',
+        piutang: 'Piutang',
     },
     messages: {
         editRequestSubmitted: 'Permintaan edit telah terkirim untuk disetujui.',

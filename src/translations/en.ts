@@ -600,6 +600,13 @@ export const en = {
         printViaBluetooth: 'Print receipt via Bluetooth',
         selectMonth: 'Select Month',
         selectYear: 'Select Year',
+        thisMonth: 'This Month Finance',
+        grossRevenue: 'Total Revenue',
+        netRevenue: 'Net Income',
+        myCommission: 'My Commission',
+        agentCommission: 'Agent Commission',
+        ownerIncome: 'Owner Income',
+        piutang: 'Receivables',
     },
     messages: {
         editRequestSubmitted: 'Edit request has been submitted for approval.',

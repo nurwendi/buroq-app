@@ -11,7 +11,9 @@ import {
   Platform,
   FlatList,
   StatusBar,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Modal,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -25,7 +27,8 @@ import {
   Navigation,
   Printer,
   Settings,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown
 } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
@@ -77,6 +80,15 @@ export default function PaymentFormScreen() {
   const [printerModalVisible, setPrinterModalVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastPayment, setLastPayment] = useState<any>(null);
+  const [monthModalVisible, setMonthModalVisible] = useState(false);
+  const [yearModalVisible, setYearModalVisible] = useState(false);
+
+  const years = [
+    new Date().getFullYear() - 1,
+    new Date().getFullYear(),
+    new Date().getFullYear() + 1,
+    new Date().getFullYear() + 2
+  ];
 
   // Resolve customer if only username is provided
   useEffect(() => {
@@ -345,30 +357,23 @@ export default function PaymentFormScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('billing.billingPeriod')}</Text>
               <View style={styles.periodRow}>
-                 <View style={[styles.inputWrapper, { flex: 1.5, marginRight: 10 }]}>
+                 <TouchableOpacity 
+                    style={[styles.inputWrapper, { flex: 1.5, marginRight: 10 }]}
+                    onPress={() => setMonthModalVisible(true)}
+                 >
                     <View style={styles.iconBox}>
                       <Calendar size={20} color={COLORS.slate[500]} />
                     </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                       {months.map((m, idx) => (
-                         <TouchableOpacity 
-                            key={m} 
-                            style={[styles.chip, selectedMonth === idx && styles.chipActive]}
-                            onPress={() => setSelectedMonth(idx)}
-                         >
-                            <Text style={[styles.chipText, selectedMonth === idx && styles.chipTextActive]}>{m}</Text>
-                         </TouchableOpacity>
-                       ))}
-                    </ScrollView>
-                 </View>
-                 <View style={[styles.inputWrapper, { flex: 0.8 }]}>
-                    <TextInput 
-                       style={[styles.input, { textAlign: 'center' }]}
-                       value={selectedYear.toString()}
-                       onChangeText={(t) => setSelectedYear(parseInt(t) || new Date().getFullYear())}
-                       keyboardType="numeric"
-                    />
-                 </View>
+                    <Text style={styles.dropdownValue}>{months[selectedMonth]}</Text>
+                    <ChevronDown size={18} color={COLORS.slate[400]} style={{ marginRight: 16 }} />
+                 </TouchableOpacity>
+                 <TouchableOpacity 
+                    style={[styles.inputWrapper, { flex: 0.8 }]}
+                    onPress={() => setYearModalVisible(true)}
+                 >
+                    <Text style={[styles.dropdownValue, { textAlign: 'center', marginLeft: 16 }]}>{selectedYear}</Text>
+                    <ChevronDown size={18} color={COLORS.slate[400]} style={{ marginRight: 16 }} />
+                 </TouchableOpacity>
               </View>
             </View>
 
@@ -444,6 +449,73 @@ export default function PaymentFormScreen() {
           visible={printerModalVisible} 
           onClose={() => setPrinterModalVisible(false)} 
         />
+
+        {/* Month Selection Modal */}
+        <Modal
+          visible={monthModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setMonthModalVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setMonthModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.selectionModal}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('billing.selectMonth') || 'Pilih Bulan'}</Text>
+                </View>
+                <ScrollView contentContainerStyle={styles.selectionList}>
+                  {months.map((m, idx) => (
+                    <TouchableOpacity 
+                      key={m} 
+                      style={[styles.selectionItem, selectedMonth === idx && styles.selectionItemActive]}
+                      onPress={() => {
+                        setSelectedMonth(idx);
+                        setMonthModalVisible(false);
+                      }}
+                    >
+                      <Text style={[styles.selectionText, selectedMonth === idx && styles.selectionTextActive]}>{m}</Text>
+                      {selectedMonth === idx && <CheckCircle2 size={18} color={COLORS.primary} />}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* Year Selection Modal */}
+        <Modal
+          visible={yearModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setYearModalVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setYearModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.selectionModal}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('billing.selectYear') || 'Pilih Tahun'}</Text>
+                </View>
+                <View style={styles.selectionList}>
+                  {years.map((y) => (
+                    <TouchableOpacity 
+                      key={y} 
+                      style={[styles.selectionItem, selectedYear === y && styles.selectionItemActive]}
+                      onPress={() => {
+                        setSelectedYear(y);
+                        setYearModalVisible(false);
+                      }}
+                    >
+                      <Text style={[styles.selectionText, selectedYear === y && styles.selectionTextActive]}>{y}</Text>
+                      {selectedYear === y && <CheckCircle2 size={18} color={COLORS.primary} />}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
       </KeyboardAvoidingView>
     </View>
   );
@@ -827,6 +899,66 @@ const styles = StyleSheet.create({
   doneBtnText: {
     color: COLORS.slate[600],
     fontSize: 16,
+    fontWeight: '700',
+  },
+  dropdownValue: {
+    flex: 1,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: COLORS.slate[900],
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  selectionModal: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    maxHeight: '70%',
+    overflow: 'hidden',
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.slate[100],
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.slate[900],
+  },
+  selectionList: {
+    padding: 12,
+  },
+  selectionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 4,
+  },
+  selectionItemActive: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  selectionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.slate[700],
+  },
+  selectionTextActive: {
+    color: COLORS.primary,
     fontWeight: '700',
   },
 });

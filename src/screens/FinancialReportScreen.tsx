@@ -161,13 +161,28 @@ export default function FinancialReportScreen() {
             
             <div class="summary-grid">
               <div class="card">
-                <div class="card-label">${data?.isAgentView ? (t('financial.myEarnings') || 'PENDAPATAN SAYA') : (t('financial.netIncome') || 'PENDAPATAN BERSIH')}</div>
+                <div class="card-label">${data?.isAgentView ? 'KOMISI SAYA' : 'NET OWNER'}</div>
                 <div class="card-value">${formatCurrency(data?.summary?.netIncome)}</div>
               </div>
               <div class="card">
                 <div class="card-label">${data?.isAgentView ? (t('financial.totalBilling') || 'TOTAL PENAGIHAN') : (t('financial.revenue') || 'TOTAL REVENUE')}</div>
                 <div class="card-value">${formatCurrency(data?.summary?.totalRevenue)}</div>
               </div>
+              ${data?.isAgentView ? `
+                <div class="card">
+                  <div class="card-label">PENDAPATAN OWNER</div>
+                  <div class="card-value">${formatCurrency(data?.summary?.ownerIncome)}</div>
+                </div>
+              ` : `
+                <div class="card">
+                  <div class="card-label">KOMISI AGEN</div>
+                  <div class="card-value">${formatCurrency(data?.summary?.totalCommissions)}</div>
+                </div>
+                <div class="card">
+                  <div class="card-label">PENGELUARAN</div>
+                  <div class="card-value">${formatCurrency(data?.summary?.totalExpenses)}</div>
+                </div>
+              `}
             </div>
 
             ${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? `
@@ -264,7 +279,7 @@ export default function FinancialReportScreen() {
       <View style={styles.summaryGrid}>
         <View style={{ width: '100%', marginBottom: 12 }}>
           <SummaryCard 
-            title={data?.isAgentView ? (t('financial.myEarnings') || 'PENDAPATAN SAYA') : (t('financial.netIncome') || 'PENDAPATAN BERSIH')} 
+            title={data?.isAgentView ? 'KOMISI SAYA' : 'NET OWNER'} 
             amount={data?.summary?.netIncome} 
             color="#ffffff" 
             icon={TrendingUp}
@@ -287,15 +302,35 @@ export default function FinancialReportScreen() {
             icon={Clock}
           />
         </View>
-        {!data?.isAgentView && (
+        {data?.isAgentView && (
           <View style={{ width: '100%', marginTop: 12 }}>
              <SummaryCard 
-                title={t('financial.expenses') || 'KOMISI AGEN'} 
-                amount={data?.summary?.totalCommissions} 
-                color={COLORS.error} 
-                icon={ArrowDownRight}
+                title={'PENDAPATAN OWNER'} 
+                amount={data?.summary?.ownerIncome} 
+                color={COLORS.primary} 
+                icon={DollarSign}
              />
           </View>
+        )}
+        {!data?.isAgentView && (
+          <>
+            <View style={{ width: '48%', marginTop: 12 }}>
+               <SummaryCard 
+                  title={t('financial.expenses') || 'KOMISI AGEN'} 
+                  amount={data?.summary?.totalCommissions} 
+                  color={COLORS.error} 
+                  icon={ArrowDownRight}
+               />
+            </View>
+            <View style={{ width: '48%', marginTop: 12 }}>
+               <SummaryCard 
+                  title={'PENGELUARAN'} 
+                  amount={data?.summary?.totalExpenses} 
+                  color={COLORS.error} 
+                  icon={ArrowDownRight}
+               />
+            </View>
+          </>
         )}
       </View>
 

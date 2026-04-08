@@ -333,7 +333,6 @@ export default function CustomerDashboardView() {
             </View>
           </TouchableOpacity>
 
-          {/* Customer Information Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.titleCard}>
@@ -342,42 +341,70 @@ export default function CustomerDashboardView() {
               </View>
             </View>
             <View style={styles.glassCard}>
-              <View style={styles.infoGrid}>
-                <View style={[styles.infoCard, { width: '100%' }]}>
-                   <View style={styles.infoRowSimple}>
-                      <UserIcon size={16} color="#64748b" style={{ marginRight: 8 }} />
-                      <Text style={styles.infoLabel}>{t('users.id') || 'ID Pelanggan'}: </Text>
-                      <Text style={styles.infoValue}>{stats?.customerId || user?.username || '-'}</Text>
+              <View style={styles.infoList}>
+                {/* ID Pelanggan */}
+                <View style={styles.infoRow}>
+                   <View style={[styles.infoIconContainer, { backgroundColor: '#eff6ff' }]}>
+                      <UserIcon size={18} color="#2563eb" />
+                   </View>
+                   <View style={styles.infoMain}>
+                      <Text style={styles.infoLabel}>{t('users.id') || 'ID Pelanggan'}</Text>
+                      <Text style={styles.infoValueText}>{stats?.customerId || user?.username || '-'}</Text>
                    </View>
                 </View>
-                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
-                   <View style={styles.infoRowSimple}>
-                      <UserIcon size={16} color="#64748b" style={{ marginRight: 8 }} />
-                      <Text style={styles.infoLabel}>{t('common.name') || 'Nama Lengkap'}: </Text>
-                      <Text style={styles.infoValue}>{stats?.name || '-'}</Text>
+
+                <View style={styles.rowDivider} />
+
+                {/* Nama Lengkap */}
+                <View style={styles.infoRow}>
+                   <View style={[styles.infoIconContainer, { backgroundColor: '#f5f3ff' }]}>
+                      <UserIcon size={18} color="#7c3aed" />
+                   </View>
+                   <View style={styles.infoMain}>
+                      <Text style={styles.infoLabel}>{t('common.name') || 'Nama Lengkap'}</Text>
+                      <Text style={styles.infoValueText}>{stats?.name || '-'}</Text>
                    </View>
                 </View>
-                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
-                   <View style={styles.infoRowSimple}>
-                      <Zap size={16} color="#64748b" style={{ marginRight: 8 }} />
-                      <Text style={styles.infoLabel}>{t('users.servicePackage') || 'Paket Layanan'}: </Text>
-                      <Text style={styles.infoValue}>{stats?.profileName || '-'} (Rp {(stats?.profilePrice || 0).toLocaleString()})</Text>
+
+                <View style={styles.rowDivider} />
+
+                {/* Paket Layanan */}
+                <View style={styles.infoRow}>
+                   <View style={[styles.infoIconContainer, { backgroundColor: '#fff7ed' }]}>
+                      <Zap size={18} color="#ea580c" />
+                   </View>
+                   <View style={styles.infoMain}>
+                      <Text style={styles.infoLabel}>{t('users.servicePackage') || 'Paket Layanan'}</Text>
+                      <Text style={styles.infoValueText}>
+                        {stats?.profileName || '-'} 
+                        <Text style={styles.priceText}> (Rp {(stats?.profilePrice || 0).toLocaleString()})</Text>
+                      </Text>
                    </View>
                 </View>
-                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
-                   <View style={styles.infoRowSimple}>
-                      <Activity size={16} color="#64748b" style={{ marginRight: 8 }} />
-                      <Text style={styles.infoLabel}>{t('users.usageThisMonth') || 'Pemakaian Bulan Ini'}: </Text>
-                      <Text style={styles.infoValue}>{formatBytes((stats?.usage?.download || 0) + (stats?.usage?.upload || 0))}</Text>
+
+                <View style={styles.rowDivider} />
+
+                {/* Pemakaian */}
+                <View style={styles.infoRow}>
+                   <View style={[styles.infoIconContainer, { backgroundColor: '#f0fdf4' }]}>
+                      <Activity size={18} color="#16a34a" />
+                   </View>
+                   <View style={styles.infoMain}>
+                      <Text style={styles.infoLabel}>{t('users.usageThisMonth') || 'Pemakaian Bulan Ini'}</Text>
+                      <Text style={styles.infoValueText}>{formatBytes((stats?.usage?.download || 0) + (stats?.usage?.upload || 0))}</Text>
                    </View>
                 </View>
-                <View style={[styles.infoCard, { width: '100%', marginTop: 12 }]}>
-                   <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                      <MapPin size={16} color="#64748b" style={{ marginRight: 8, marginTop: 2 }} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.infoLabel}>{t('users.address') || 'Alamat'}</Text>
-                        <Text style={[styles.infoValue, { marginTop: 4 }]}>{stats?.address || '-'}</Text>
-                      </View>
+
+                <View style={styles.rowDivider} />
+
+                {/* Alamat */}
+                <View style={styles.infoRow}>
+                   <View style={[styles.infoIconContainer, { backgroundColor: '#fef2f2' }]}>
+                      <MapPin size={18} color="#dc2626" />
+                   </View>
+                   <View style={styles.infoMain}>
+                      <Text style={styles.infoLabel}>{t('users.address') || 'Alamat'}</Text>
+                      <Text style={[styles.infoValueText, { marginTop: 4, lineHeight: 20 }]}>{stats?.address || '-'}</Text>
                    </View>
                 </View>
               </View>
@@ -430,25 +457,46 @@ export default function CustomerDashboardView() {
               </View>
             </View>
             <View style={styles.wifiCard}>
-               <View style={styles.wifiHeader}>
-                  <View style={styles.wifiIconContainer}>
-                     <Wifi size={24} color="#2563eb" />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                     <Text style={styles.ssidLabel}>{t('dashboard.wifiName')}</Text>
-                     <Text style={styles.ssidValue}>{ssid || t('common.loading')}</Text>
-                  </View>
-                  <TouchableOpacity
-                     style={styles.editButton}
-                     onPress={() => setWifiModalVisible(true)}
-                  >
-                     <Settings size={20} color="#64748b" />
-                  </TouchableOpacity>
-               </View>
-               <View style={styles.wifiFooter}>
-                  <ShieldCheck size={16} color="#10b981" />
-                  <Text style={styles.securityText}>{t('dashboard.securityWpa2')}</Text>
-               </View>
+               {loadingDevice ? (
+                 <View style={{ paddingVertical: 10, alignItems: 'center', justifyContent: 'center' }}>
+                    <ActivityIndicator color="#2563eb" size="small" />
+                    <Text style={{ marginTop: 8, fontSize: 13, color: '#64748b', fontWeight: '600' }}>
+                      {t('dashboard.searchingRouter') || 'Mencari router...'}
+                    </Text>
+                 </View>
+               ) : device ? (
+                 <>
+                    <View style={styles.wifiHeader}>
+                       <View style={styles.wifiIconContainer}>
+                          <Wifi size={24} color="#2563eb" />
+                       </View>
+                       <View style={{ flex: 1 }}>
+                          <Text style={styles.ssidLabel}>{t('dashboard.wifiName')}</Text>
+                          <Text style={styles.ssidValue}>{ssid || '-'}</Text>
+                       </View>
+                       <TouchableOpacity
+                          style={styles.editButton}
+                          onPress={() => setWifiModalVisible(true)}
+                       >
+                          <Settings size={20} color="#64748b" />
+                       </TouchableOpacity>
+                    </View>
+                    <View style={styles.wifiFooter}>
+                       <ShieldCheck size={16} color="#10b981" />
+                       <Text style={styles.securityText}>{t('dashboard.securityWpa2')}</Text>
+                    </View>
+                 </>
+               ) : (
+                 <View style={{ paddingVertical: 10, alignItems: 'center', justifyContent: 'center' }}>
+                    <Wifi size={32} color="#94a3b8" style={{ marginBottom: 8, opacity: 0.5 }} />
+                    <Text style={{ fontSize: 14, color: '#64748b', fontWeight: '700', textAlign: 'center' }}>
+                      {t('dashboard.routerNotFound') || 'Router tidak terdeteksi'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginTop: 4 }}>
+                      {t('dashboard.routerHelp') || 'Pastikan router dalam keadaan hidup.'}
+                    </Text>
+                 </View>
+               )}
             </View>
           </View>
 
@@ -780,31 +828,49 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.5)',
     borderTopColor: 'rgba(241, 245, 249, 0.6)',
   },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  infoList: {
+    paddingVertical: 10,
   },
-  infoCard: {
-    backgroundColor: 'rgba(248, 250, 252, 0.6)',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(241, 245, 249, 0.7)',
-  },
-  infoRowSimple: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  infoIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  infoMain: {
+    flex: 1,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginLeft: 68,
+    opacity: 0.6,
   },
   infoLabel: {
     fontSize: 12,
-    color: '#64748b',
     fontWeight: '700',
+    color: '#94a3b8',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  infoValue: {
-    fontSize: 14,
+  infoValueText: {
+    fontSize: 15,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#1e293b',
+  },
+  priceText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748b',
   },
   notificationList: {
     gap: 12,

@@ -118,16 +118,17 @@ export const printReport = async (monthName: string, year: number, data: any) =>
 
   const safeMonth = (monthName || '').toUpperCase();
   const safeYear = year || new Date().getFullYear();
-  const summary = data?.summary || { totalRevenue: 0, totalUnpaid: 0, totalCommissions: 0, netIncome: 0 };
+  const summary = data?.summary || { totalRevenue: 0, totalUnpaid: 0, totalCommissions: 0, totalExpenses: 0, netIncome: 0, ownerIncome: 0 };
 
   let payload = `<C>--------------------------------
 <C>LAPORAN KEUANGAN
 <C>${safeMonth} ${safeYear}
 <C>--------------------------------
+<L>${data?.isAgentView ? 'Nama Agen' : 'Nama Owner'} : ${data?.ownerName || '-'}
 <L>Billing/Rev : Rp ${(summary.totalRevenue || 0).toLocaleString()}
 <L>Belum Bayar : Rp ${(summary.totalUnpaid || 0).toLocaleString()}
-${data?.isAgentView ? '' : `<L>Komisi Agen : Rp ${(summary.totalCommissions || 0).toLocaleString()}\n`}<C>--------------------------------
-<L><B>${data?.isAgentView ? 'KOMISI SAYA' : 'NET INCOME'}</B>  : Rp ${(summary.netIncome || 0).toLocaleString()}
+${data?.isAgentView ? `<L>Pend. Owner : Rp ${(summary.ownerIncome || 0).toLocaleString()}\n` : ''}${data?.isAgentView ? '' : `<L>Komisi Agen : Rp ${(summary.totalCommissions || 0).toLocaleString()}\n`}${(!data?.isAgentView && summary.totalExpenses > 0) ? `<L>Pengeluaran : Rp ${(summary.totalExpenses || 0).toLocaleString()}\n` : ''}<C>--------------------------------
+<L>${data?.isAgentView ? 'KOMISI SAYA' : 'NET OWNER'}  : Rp ${(summary.netIncome || 0).toLocaleString()}
 <C>--------------------------------
 ${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;
 
