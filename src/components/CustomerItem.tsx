@@ -1,8 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image, Platform } from 'react-native';
-import { User, ChevronRight, Clock, Shield, Globe } from 'lucide-react-native';
+import { User, ChevronRight, Clock, Shield, Globe, HardDrive, Banknote, HelpCircle } from 'lucide-react-native';
 import { resolveUrl } from '../utils/url';
 import { COLORS } from '../constants/theme';
+import { useLanguage } from '../context/LanguageContext';
+import { formatBytes } from '../utils/format';
 
 interface CustomerItemProps {
   customer: any;
@@ -10,6 +12,7 @@ interface CustomerItemProps {
 }
 
 export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
+  const { t } = useLanguage();
   const isOnline = customer.isOnline; 
   const hasDifferentUsername = customer.name && customer.username && customer.name.toLowerCase() !== customer.username.toLowerCase();
 
@@ -67,6 +70,30 @@ export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
             <ChevronRight size={18} color={COLORS.slate[400]} />
           </View>
         </View>
+      </View>
+
+      {/* Progress / Usage / Billing Row */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>{t('users.totalUsage') || 'Total Usage'}</Text>
+          <Text style={styles.statValue}>
+            {customer.usage ? formatBytes((customer.usage.tx || 0) + (customer.usage.rx || 0)) : '-'}
+          </Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>{t('financial.unpaid') || 'Tagihan'}</Text>
+          <Text style={[styles.statValue, (customer.totalUnpaid > 0) ? { color: COLORS.error } : { color: COLORS.success }]}>
+            {(customer.totalUnpaid > 0) ? `Rp ${customer.totalUnpaid.toLocaleString()}` : (t('dashboard.paid') || 'Lunas')}
+          </Text>
+        </View>
+        {(customer.agentName || customer.technicianName) && (
+          <View style={[styles.statItem, { flex: 1.5 }]}>
+            <Text style={styles.statLabel}>{t('users.staff') || 'Staf / Agen'}</Text>
+            <Text style={styles.statValue} numberOfLines={1}>
+              {customer.agentName || customer.technicianName || '-'}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Online Status Bar */}
@@ -248,6 +275,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: COLORS.slate[600],
+  },
+  statsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  statItem: {
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.slate[400],
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.slate[700],
   }
 });
 

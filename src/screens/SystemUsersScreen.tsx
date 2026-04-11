@@ -13,7 +13,8 @@ import {
   Alert,
   Modal,
   ScrollView,
-  StatusBar
+  StatusBar,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { 
   Users, 
@@ -26,7 +27,9 @@ import {
   Trash2,
   Edit,
   Save,
-  X as CloseIcon
+  X as CloseIcon,
+  ChevronDown,
+  CheckCircle2
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
@@ -65,6 +68,7 @@ export default function SystemUsersScreen() {
     technicianRate: '0'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roleModalVisible, setRoleModalVisible] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -417,30 +421,16 @@ export default function SystemUsersScreen() {
               />
 
               <Text style={styles.label}>{t('systemUsers.systemRole')}</Text>
-              <View style={styles.rolePickerContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {['admin', 'manager', 'staff', 'partner', 'viewer'].filter(r => {
-                    const mappedRole = r;
-                    if (currentUser?.role === 'superadmin') return true;
-                    if (currentUser?.role === 'admin') return mappedRole !== 'admin';
-                    return false;
-                  }).map((mappedRole) => {
-                    const label = t(`systemUsers.roles.${mappedRole}`);
-                    return (
-                      <TouchableOpacity 
-                        key={mappedRole}
-                         style={[styles.roleOption, (formData.role === mappedRole) && styles.roleOptionActive, { marginRight: 8 }]}
-                         onPress={() => setFormData({...formData, role: mappedRole})}
-                       >
-                         <Text style={[styles.roleOptionText, (formData.role === mappedRole) && styles.roleOptionTextActive]}>
-                           {label}
-                         </Text>
-                       </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-                <Text style={styles.roleHint}>{t('systemUsers.adminHint')}</Text>
-              </View>
+              <TouchableOpacity
+                style={styles.dropdownTrigger}
+                onPress={() => setRoleModalVisible(true)}
+              >
+                <Text style={styles.dropdownTriggerText}>
+                  {formData.role === 'staff' ? "Staff (Agent/Technician)" : t(`systemUsers.roles.${formData.role}`)}
+                </Text>
+                <ChevronDown size={20} color={COLORS.slate[400]} />
+              </TouchableOpacity>
+              <Text style={styles.roleHint}>{t('systemUsers.adminHint')}</Text>
 
               <View style={styles.businessRoleContainer}>
                 <Text style={styles.businessRoleTitle}>{t('systemUsers.businessRole')}</Text>
@@ -450,45 +440,45 @@ export default function SystemUsersScreen() {
                   onPress={() => setFormData({...formData, isAgent: !formData.isAgent})}
                 >
                   <View style={[styles.customCheckbox, formData.isAgent && styles.customCheckboxActive]}>
-                    {formData.isAgent && <View style={styles.customCheckboxInner} />}
+                    {formData.isAgent && <CheckCircle2 size={16} color={COLORS.white} />}
                   </View>
                   <Text style={styles.businessRoleLabel}>{t('systemUsers.asAgent')}</Text>
                 </TouchableOpacity>
+
+                {formData.isAgent && (
+                  <View style={styles.commissionInputWrapper}>
+                    <Text style={styles.labelSmall}>{t('users.agentRate')}</Text>
+                    <TextInput
+                      style={styles.modalInputSmall}
+                      value={formData.agentRate}
+                      onChangeText={(text) => setFormData({...formData, agentRate: text})}
+                      keyboardType="numeric"
+                      placeholder="0"
+                    />
+                  </View>
+                )}
 
                 <TouchableOpacity 
                   style={styles.businessRoleOption} 
                   onPress={() => setFormData({...formData, isTechnician: !formData.isTechnician})}
                 >
                   <View style={[styles.customCheckbox, formData.isTechnician && styles.customCheckboxActive]}>
-                    {formData.isTechnician && <View style={styles.customCheckboxInner} />}
+                    {formData.isTechnician && <CheckCircle2 size={16} color={COLORS.white} />}
                   </View>
                   <Text style={styles.businessRoleLabel}>{t('systemUsers.asTechnician')}</Text>
                 </TouchableOpacity>
 
-                {formData.isAgent && (
-                  <>
-                    <Text style={styles.label}>{t('users.agentRate')}</Text>
-                    <TextInput
-                      style={styles.modalInput}
-                      value={formData.agentRate}
-                      onChangeText={(text) => setFormData({...formData, agentRate: text})}
-                      keyboardType="numeric"
-                      placeholder="%"
-                    />
-                  </>
-                )}
-
                 {formData.isTechnician && (
-                  <>
-                    <Text style={styles.label}>{t('users.technicianRate')}</Text>
+                  <View style={styles.commissionInputWrapper}>
+                    <Text style={styles.labelSmall}>{t('users.technicianRate')}</Text>
                     <TextInput
-                      style={styles.modalInput}
+                      style={styles.modalInputSmall}
                       value={formData.technicianRate}
                       onChangeText={(text) => setFormData({...formData, technicianRate: text})}
                       keyboardType="numeric"
-                      placeholder="%"
+                      placeholder="0"
                     />
-                  </>
+                  </View>
                 )}
               </View>
 
@@ -513,6 +503,36 @@ export default function SystemUsersScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Role Selection Modal */}
+      <Modal visible={roleModalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setRoleModalVisible(false)}>
+          <View style={styles.roleModalOverlay}>
+            <View style={styles.roleSelectionBox}>
+              <Text style={styles.roleModalTitle}>{t('systemUsers.selectRole') || 'Select System Role'}</Text>
+              {['admin', 'manager', 'staff', 'partner', 'viewer'].filter(r => {
+                if (currentUser?.role === 'superadmin') return true;
+                if (currentUser?.role === 'admin') return r !== 'admin' && r !== 'superadmin';
+                return false;
+              }).map((r) => (
+                <TouchableOpacity 
+                   key={r} 
+                   style={[styles.roleSelectItem, formData.role === r && styles.roleSelectItemActive]}
+                   onPress={() => {
+                     setFormData({...formData, role: r});
+                     setRoleModalVisible(false);
+                   }}
+                >
+                  <Text style={[styles.roleSelectText, formData.role === r && styles.roleSelectTextActive]}>
+                    {r === 'staff' ? "Staff (Agent/Technician)" : t(`systemUsers.roles.${r}`)}
+                  </Text>
+                  {formData.role === r && <CheckCircle2 size={18} color="#2563eb" />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
@@ -781,9 +801,9 @@ const styles = StyleSheet.create({
     borderColor: '#2563eb',
   },
   roleOptionText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
     color: '#64748b',
+    fontWeight: '700',
   },
   roleOptionTextActive: {
     color: '#ffffff',
@@ -792,49 +812,129 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94a3b8',
     marginTop: 8,
-    fontWeight: '500',
     fontStyle: 'italic',
+    marginLeft: 4,
   },
   businessRoleContainer: {
     marginTop: 32,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: COLORS.slate[100],
   },
   businessRoleTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 20,
+    color: COLORS.slate[900],
+    marginBottom: 16,
   },
   businessRoleOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 16,
+    padding: 4,
+  },
+  businessRoleLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.slate[700],
+    marginLeft: 12,
   },
   customCheckbox: {
     width: 24,
     height: 24,
-    borderRadius: 8,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate[300],
     justifyContent: 'center',
     alignItems: 'center',
   },
   customCheckboxActive: {
-    borderColor: '#2563eb',
     backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
   },
-  customCheckboxInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    backgroundColor: '#ffffff',
+  commissionInputWrapper: {
+    marginLeft: 36,
+    marginBottom: 20,
   },
-  businessRoleLabel: {
-    fontSize: 15,
-    color: '#475569',
+  labelSmall: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.slate[400],
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  modalInputSmall: {
+    backgroundColor: COLORS.slate[50],
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    fontSize: 14,
+    color: COLORS.slate[900],
     fontWeight: '700',
+    borderWidth: 1.2,
+    borderColor: COLORS.slate[100],
+    width: 120,
+  },
+  dropdownTrigger: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.slate[50],
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1.2,
+    borderColor: COLORS.slate[100],
+  },
+  dropdownTriggerText: {
+    fontSize: 15,
+    color: COLORS.slate[900],
+    fontWeight: '600',
+  },
+  roleModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  roleSelectionBox: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  roleModalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: COLORS.slate[900],
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  roleSelectItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  roleSelectItemActive: {
+    backgroundColor: '#f1f5f9',
+  },
+  roleSelectText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.slate[600],
+  },
+  roleSelectTextActive: {
+    color: '#2563eb',
+    fontWeight: '800',
   },
 });

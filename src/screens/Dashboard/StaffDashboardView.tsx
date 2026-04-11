@@ -32,7 +32,8 @@ import {
   DollarSign,
   AlertCircle,
   Wallet,
-  BadgeDollarSign
+  BadgeDollarSign,
+  Trash2
 } from 'lucide-react-native';
 import DonutChart from '../../components/DonutChart';
 import FinancialWidget from '../../components/FinancialWidget';
@@ -42,6 +43,7 @@ import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 import { useLanguage } from '../../context/LanguageContext';
 import { resolveUrl } from '../../utils/url';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -60,6 +62,7 @@ export default function StaffDashboardView() {
     activeCustomers: 0,
     todaysRevenue: 0,
     pendingCount: 0,
+    pendingPayments: [] as any[],
     totalUnpaid: 0,
     transactions: [] as any[],
     recentTransactions: [] as any[],
@@ -76,22 +79,22 @@ export default function StaffDashboardView() {
   const fetchStats = async () => {
     try {
       setLoadingStats(true);
-      const [statsRes, activeRes] = await Promise.all([
+      const [statsRes, dashboardRes] = await Promise.all([
         apiClient.get('/api/billing/stats'),
-        apiClient.get('/api/pppoe/active').catch(() => ({ data: [] }))
+        apiClient.get('/api/dashboard/stats').catch(() => ({ data: {} }))
       ]);
 
       const statsData = statsRes.data || {};
-      setStats(statsData);
+      const dashboardData = dashboardRes.data || {};
 
-      const realTimeCount = Array.isArray(activeRes.data) ? activeRes.data.length : 0;
-      const proxyCount = statsData.pppoeActive || 0;
+      setStats({
+        ...statsData,
+        pppoeActive: dashboardData.pppoeActive || 0,
+        pppoeOffline: dashboardData.pppoeOffline || 0,
+        totalCustomers: dashboardData.totalCustomers || statsData.totalCustomers,
+      });
 
-      if (realTimeCount > 0) {
-        setOnlineCount(realTimeCount);
-      } else {
-        setOnlineCount(proxyCount);
-      }
+      setOnlineCount(dashboardData.pppoeActive || 0);
     } catch (e) {
       console.error('Failed to fetch staff stats', e);
     } finally {
@@ -119,6 +122,24 @@ export default function StaffDashboardView() {
     await fetchStats();
     await fetchSettings();
     setRefreshing(false);
+  };
+
+  const getPendingInfo = (item: any) => {
+    if (item.type === 'payment') return t('dashboard.paymentPending');
+    if (item.type === 'registration') {
+      if (item.subType === 'edit') return t('dashboard.editPending');
+      if (item.subType === 'delete') return t('dashboard.deletionPending');
+      return t('dashboard.registrationPending');
+    }
+    return t('dashboard.waitingPayment');
+  };
+
+  const getPendingIcon = (item: any) => {
+    if (item.type === 'registration') {
+      if (item.subType === 'delete') return Trash2;
+      return UserPlus;
+    }
+    return Clock;
   };
 
   const headerHeight = insets.top + 120;
@@ -199,18 +220,26 @@ export default function StaffDashboardView() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('dashboard.customerStatus')}</Text>
             </View>
-            <View style={styles.chartCard}>
+            <LinearGradient
+              colors={['#0ea5e9', '#10b981', '#059669']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.chartCard}
+            >
+              <View style={styles.chartBgIcon}>
+                <Users size={110} color="rgba(255,255,255,0.07)" strokeWidth={1.5} />
+              </View>
               <DonutChart
                 size={150}
                 strokeWidth={24}
                 centerValue={stats?.totalCustomers || 0}
                 centerLabel={t('users.all') || 'Semua'}
                 segments={[
-                  { value: onlineCount, color: '#10b981', label: t('users.online') || 'Online' },
-                  { value: Math.max(0, (stats?.totalCustomers || 0) - onlineCount), color: '#ef4444', label: t('users.offline') || 'Offline' },
+                  { value: onlineCount, color: '#22d3ee', label: t('users.online') || 'Online' },
+                  { value: Math.max(0, (stats?.totalCustomers || 0) - onlineCount), color: '#fbbf24', label: t('users.offline') || 'Offline' },
                 ]}
               />
-            </View>
+            </LinearGradient>
           </View>
 
           {/* Section: Financial Widget */}
@@ -238,48 +267,77 @@ export default function StaffDashboardView() {
             </View>
             <View style={styles.menuGrid}>
               <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#2563eb18' }]}>
-                  <UserPlus size={26} color="#2563eb" />
+                <View style={[styles.gridIconBox, { backgroundColor: '#10b981' }]}>
+                  <UserPlus size={26} color="#ffffff" />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{t('users.addUser')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('CustomerList')}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#10b98118' }]}>
-                  <Users size={26} color="#10b981" />
+                <View style={[styles.gridIconBox, { backgroundColor: '#6366f1' }]}>
+                  <Users size={26} color="#ffffff" />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.users')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('BillingTab')}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#f59e0b18' }]}>
-                  <CreditCard size={26} color="#f59e0b" />
+                <View style={[styles.gridIconBox, { backgroundColor: '#f59e0b' }]}>
+                  <CreditCard size={26} color="#ffffff" />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.billing')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('FinancialReport')}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#8b5cf618' }]}>
-                  <FileText size={26} color="#8b5cf6" />
+                <View style={[styles.gridIconBox, { backgroundColor: '#8b5cf6' }]}>
+                  <FileText size={26} color="#ffffff" />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{t('financial.title') || 'Laporan'}</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('SettingsTab')}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#64748b18' }]}>
-                  <Settings size={26} color="#64748b" />
-                </View>
-                <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.settings')}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.gridItem} onPress={() => logout()}>
-                <View style={[styles.gridIconBox, { backgroundColor: '#ef444418' }]}>
-                  <LogOut size={26} color="#ef4444" />
-                </View>
-                <Text style={[styles.gridLabel, { color: '#ef4444' }]} numberOfLines={2}>{t('common.logout') || 'Keluar'}</Text>
-              </TouchableOpacity>
             </View>
           </View>
+
+          {/* Pending Approval Section */}
+          {(stats?.pendingCount > 0 || (stats?.pendingPayments && stats?.pendingPayments.length > 0)) && (
+             <View style={styles.section}>
+                <View style={[styles.sectionHeader, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                  <Clock size={16} color="#ef4444" />
+                  <Text style={[styles.sectionTitle, { color: '#ef4444' }]}>{t('dashboard.pendingApproval')} ({stats?.pendingCount || 0})</Text>
+                </View>
+               <View style={styles.glassCard}>
+                 {(stats?.pendingPayments || []).slice(0, 5).map((item: any) => {
+                   const ItemIcon = getPendingIcon(item);
+                   return (
+                     <TouchableOpacity 
+                        key={item.id} 
+                        style={styles.transactionItem}
+                        onPress={() => {
+                           if (item.type === 'registration') {
+                              // Map subType to main type for RegistrationReview
+                              const mappedItem = { ...item, type: item.subType || item.type };
+                              navigation.navigate('RegistrationReview', { registration: mappedItem, readOnly: true });
+                           } else if (item.type === 'payment') {
+                              navigation.navigate('UnpaidBills');
+                           } else {
+                              navigation.navigate('AllUsers');
+                           }
+                        }}
+                     >
+                        <View style={styles.transactionLeft}>
+                           <View style={[styles.transactionIcon, { backgroundColor: '#f1f5f9', borderColor: '#e2e8f0' }]}>
+                              <ItemIcon size={16} color="#64748b" />
+                           </View>
+                           <View>
+                              <Text style={styles.customerName}>{item.customerName || item.name}</Text>
+                              <Text style={styles.transactionDate}>{getPendingInfo(item)}</Text>
+                           </View>
+                        </View>
+                         <ChevronRight size={18} color="#cbd5e1" />
+                     </TouchableOpacity>
+                   );
+                 })}
+               </View>
+             </View>
+          )}
 
           {/* Section: Recent Transactions */}
           <View style={styles.section}>
@@ -596,16 +654,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chartCard: {
-    backgroundColor: 'rgba(255,255,255,0.97)',
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 24,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(241,245,249,0.8)',
+    overflow: 'hidden',
+    position: 'relative',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12 },
-      android: { elevation: 3 },
+      ios: { shadowColor: '#0ea5e9', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16 },
+      android: { elevation: 10 },
     }),
+  },
+  chartBgIcon: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    opacity: 1,
   },
   menuGrid: {
     flexDirection: 'row',
@@ -620,14 +683,14 @@ const styles = StyleSheet.create({
   gridIconBox: {
     width: 60,
     height: 60,
-    borderRadius: 20,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 0,
+    borderColor: 'transparent',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 8 },
-      android: { elevation: 2 },
+      ios: { shadowColor: '#0ea5e9', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      android: { elevation: 6 },
     }),
   },
   gridLabel: {

@@ -5,6 +5,7 @@ import SuperadminDashboardView from './Dashboard/SuperadminDashboardView';
 import StaffDashboardView from './Dashboard/StaffDashboardView';
 import CustomerDashboardView from './Dashboard/CustomerDashboardView';
 import { View, ActivityIndicator } from 'react-native';
+import { COLORS } from '../constants/theme';
 
 export default function DashboardScreen() {
   const { user, loading } = useAuth();
@@ -12,7 +13,7 @@ export default function DashboardScreen() {
   if (loading || !user) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }

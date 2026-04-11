@@ -15,6 +15,7 @@ interface DonutChartProps {
   strokeWidth?: number;
   centerLabel?: string;
   centerValue?: string | number;
+  darkBackground?: boolean;
 }
 
 export default function DonutChart({
@@ -23,6 +24,7 @@ export default function DonutChart({
   strokeWidth = 22,
   centerLabel,
   centerValue,
+  darkBackground = false,
 }: DonutChartProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -69,7 +71,7 @@ export default function DonutChart({
             cy={cy}
             r={radius}
             fill="none"
-            stroke="#f1f5f9"
+            stroke={darkBackground ? 'rgba(255,255,255,0.15)' : '#f1f5f9'}
             strokeWidth={strokeWidth}
           />
           <G>{arcs}</G>
@@ -78,10 +80,10 @@ export default function DonutChart({
         {(centerValue !== undefined || centerLabel) && (
           <View style={[styles.centerTextContainer, { width: size, height: size }]}>
             {centerValue !== undefined && (
-              <Text style={styles.centerValue}>{centerValue}</Text>
+              <Text style={[styles.centerValue, darkBackground && { color: '#ffffff' }]}>{centerValue}</Text>
             )}
             {centerLabel && (
-              <Text style={styles.centerLabel} numberOfLines={1}>{centerLabel}</Text>
+              <Text style={[styles.centerLabel, darkBackground && { color: 'rgba(255,255,255,0.7)' }]} numberOfLines={1}>{centerLabel}</Text>
             )}
           </View>
         )}
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   centerLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.slate[400],
+    color: '#000000',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
@@ -148,12 +150,12 @@ const styles = StyleSheet.create({
   legendValue: {
     fontSize: 14,
     fontWeight: '800',
-    color: COLORS.slate[800],
+    color: '#000000',
   },
   legendLabel: {
     fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.slate[400],
+    fontWeight: '700',
+    color: '#000000',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

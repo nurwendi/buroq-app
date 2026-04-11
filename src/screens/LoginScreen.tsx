@@ -141,7 +141,7 @@ export default function LoginScreen() {
           </ImageBackground>
         ) : (
           <LinearGradient
-            colors={['#eff6ff', '#eef2ff']}
+            colors={[COLORS.primaryLight, '#eef2ff']}
             style={styles.backgroundImage}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   darkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.4)', // Slate-900 with transparency
+    backgroundColor: COLORS.slate[900] + '66', // Slate-900 with transparency (approx 0.4)
   },
   container: {
     flex: 1,
@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     overflow: 'hidden',
-    backgroundColor: 'rgba(15, 23, 42, 0.8)', // Darker background to make text readable against light gradient
-    shadowColor: '#000',
+    backgroundColor: COLORS.slate[900] + 'CC', // Darker background (approx 0.8)
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -315,12 +315,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 14,
-    backgroundColor: 'rgba(37, 99, 235, 0.15)', // Primary blue tint
+    backgroundColor: COLORS.primary + '26', // Primary blue tint (approx 0.15)
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.4)',
+    borderColor: COLORS.primary + '66', // approx 0.4
   },
   input: {
     flex: 1,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   errorText: {
-    color: '#fca5a5',
+    color: COLORS.error,
     fontSize: 13,
     textAlign: 'center',
     fontWeight: '700',

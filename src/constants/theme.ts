@@ -8,6 +8,7 @@ export const COLORS = {
   primary: '#2563eb', // Blue-600
   primaryLight: '#eff6ff', // Blue-50
   primaryDark: '#1e3a8a', // Blue-900
+  secondary: '#6366f1', // Indigo-500
   
   // Slate / Neutrals
   slate: {
@@ -36,6 +37,18 @@ export const COLORS = {
   white: '#ffffff',
   black: '#000000',
   transparent: 'transparent',
+
+  // Modern Palette for Icons/Charts
+  palette: {
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
+    emerald: '#10b981',
+    cyan: '#06b6d4',
+    slate: '#64748b',
+    crimson: '#dc2626',
+  }
 };
 
 export const SPACING = {

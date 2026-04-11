@@ -38,13 +38,16 @@ import {
   Router,
   Users,
   Banknote,
-  Globe
+  Globe,
+  Trash2
 } from 'lucide-react-native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { resolveUrl } from '../utils/url';
+import { formatBytes } from '../utils/format';
 import GradientHeader from '../components/GradientHeader';
+import { COLORS } from '../constants/theme';
 import { StatusBar } from 'react-native';
 
 export default function CustomerDetailScreen({ route, navigation }: any) {
@@ -211,13 +214,48 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     }
   };
 
-  const formatBytes = (bytes: number) => {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const handleDelete = async () => {
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const username = customer.username || customer.customerId;
+
+    Alert.alert(
+      t('common.confirm'),
+      t('approvals.deleteCustomerConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsSubmitting(true);
+              if (isAdmin) {
+                // Direct Delete
+                await apiClient.delete(`/api/customers/${username}`);
+                Alert.alert(t('common.success'), t('approvals.deleteDirectSuccess'));
+                navigation.goBack();
+              } else {
+                // Request Deletion Approval
+                await apiClient.post('/api/registrations', {
+                  type: 'delete',
+                  targetUsername: username,
+                  name: customer.name || customer.username,
+                  agentId: currentUser?.id
+                });
+                Alert.alert(t('common.success'), t('approvals.deleteRequestSuccess'));
+              }
+            } catch (e: any) {
+              Alert.alert(t('common.error'), e?.response?.data?.error || t('common.deleteError'));
+            } finally {
+              setIsSubmitting(false);
+            }
+          }
+        }
+      ]
+    );
   };
+
+  // Using shared formatBytes utility from ../utils/format
 
   return (
     <View style={styles.container}>
@@ -318,9 +356,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
             ) : (
               <View style={{ flex: 1 }}>
                 <View style={styles.statusRow}>
-                  <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
-                    <Activity size={12} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
-                    <Text style={[styles.badgeText, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
+                  <View style={[styles.badge, stats?.session?.active ? { backgroundColor: COLORS.success + '20', borderColor: COLORS.success + '40' } : { backgroundColor: COLORS.error + '20', borderColor: COLORS.error + '40' }]}>
+                    <Activity size={12} color={stats?.session?.active ? COLORS.success : COLORS.error} />
+                    <Text style={[styles.badgeText, { color: stats?.session?.active ? COLORS.success : COLORS.error }]}>
                       {stats?.session?.active ? t('users.online') : t('users.offline')}
                     </Text>
                   </View>
@@ -572,6 +610,18 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
               </>
            )}
         </View>
+
+        {/* Delete Button (Only for roles that can manage) */}
+        {(['admin', 'superadmin', 'staff', 'agent'].includes(currentUser?.role || '')) && (
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            disabled={isSubmitting}
+          >
+            <Trash2 size={20} color="#ef4444" />
+            <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* WiFi Edit Modal */}
@@ -1332,5 +1382,22 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#fee2e2',
+    backgroundColor: '#fef2f2',
+    marginBottom: 40,
+    gap: 10,
+  },
+  deleteButtonText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '800',
   }
 });
