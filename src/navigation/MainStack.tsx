@@ -28,6 +28,8 @@ import BroadcastScreen from '../screens/BroadcastScreen';
 import GenieAcsScreen from '../screens/GenieAcsScreen';
 import SuperadminCustomerListScreen from '../screens/SuperadminCustomerListScreen';
 import PendingRegistrationsScreen from '../screens/PendingRegistrationsScreen';
+import RegistrationReviewScreen from '../screens/RegistrationReviewScreen';
+import ActiveConnectionsScreen from '../screens/ActiveConnectionsScreen';
 
 const Stack = createStackNavigator();
 
@@ -65,6 +67,8 @@ export default function MainStack() {
       <Stack.Screen name="GenieACS" component={GenieAcsScreen} />
       <Stack.Screen name="SuperadminCustomerList" component={SuperadminCustomerListScreen} />
       <Stack.Screen name="PendingRegistrations" component={PendingRegistrationsScreen} />
+      <Stack.Screen name="RegistrationReview" component={RegistrationReviewScreen} />
+      <Stack.Screen name="ActiveConnections" component={ActiveConnectionsScreen} />
     </Stack.Navigator>
   );
 }

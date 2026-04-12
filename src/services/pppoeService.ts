@@ -14,5 +14,18 @@ export const pppoeService = {
       console.warn('Failed to fetch active PPPoE connections', error);
       return [];
     }
+  },
+
+  /**
+   * Disconnect a specific active connection (Kick).
+   */
+  disconnectSession: async (id: string) => {
+    try {
+      const response = await apiClient.delete(`${ENDPOINTS.PPPOE_ACTIVE}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.warn('Failed to disconnect session', error);
+      throw error;
+    }
   }
 };

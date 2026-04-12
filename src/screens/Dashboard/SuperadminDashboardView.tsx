@@ -316,9 +316,6 @@ export default function SuperadminDashboardView() {
 
           {/* Section: Quick Stats */}
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-               <Text style={styles.sectionTitle}>{t('dashboard.customerStatus')}</Text>
-            </View>
             <View style={styles.statsGrid}>
               <View style={{ width: '48%' }}>
                 <StatCard 

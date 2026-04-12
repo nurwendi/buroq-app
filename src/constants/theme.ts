@@ -8,6 +8,7 @@ export const COLORS = {
   primary: '#2563eb', // Blue-600
   primaryLight: '#eff6ff', // Blue-50
   primaryDark: '#1e3a8a', // Blue-900
+  secondary: '#6366f1', // Indigo-500
   
   // Slate / Neutrals
   slate: {
