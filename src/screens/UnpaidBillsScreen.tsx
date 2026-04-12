@@ -11,7 +11,7 @@ import {
   Platform,
   StatusBar
 } from 'react-native';
-import { Search, CreditCard, ChevronRight, AlertCircle, Clock, Banknote } from 'lucide-react-native';
+import { Search, CreditCard, ChevronRight, AlertCircle, Clock, Banknote, FileText } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
@@ -102,6 +102,13 @@ export default function UnpaidBillsScreen() {
       <GradientHeader 
         title={t('billing.unpaidBills')} 
         onBackPress={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity onPress={() => navigation.navigate('PaymentHistory', { name: t('billing.history') })} style={{
+            width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)'
+          }}>
+            <FileText size={22} color="#ffffff" />
+          </TouchableOpacity>
+        }
       />
 
       <View style={styles.searchContainer}>

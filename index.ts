@@ -1,5 +1,6 @@
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
+import './src/utils/BackgroundService';
 
 import App from './App';
 

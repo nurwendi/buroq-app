@@ -15,20 +15,24 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
-  Users, 
-  Shield, 
-  Server, 
+  Users,
+  Shield,
+  Server,
   Activity,
   Settings,
   Megaphone,
   ChevronRight,
   PlusCircle,
   LogOut,
-  FileText
+  FileText,
+  AlertCircle,
+  UserPlus
 } from 'lucide-react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAlert } from '../../context/AlertContext';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 
@@ -49,6 +53,7 @@ const ProgressMeter = ({ value, label, color }: { value: number, label: string, 
 export default function SuperadminDashboardView() {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<any>({
@@ -80,8 +85,14 @@ export default function SuperadminDashboardView() {
 
   const fetchStats = async () => {
     try {
-      const response = await apiClient.get('/api/dashboard/stats');
-      setStats(response.data);
+      const [statsRes, regsRes] = await Promise.all([
+        apiClient.get('/api/dashboard/stats'),
+        apiClient.get('/api/registrations').catch(() => ({ data: [] }))
+      ]);
+      setStats({
+        ...statsRes.data,
+        pendingRegistrationsCount: Array.isArray(regsRes.data) ? regsRes.data.length : 0
+      });
     } catch (e) {
       console.error('Failed to fetch superadmin stats', e);
     }
@@ -325,6 +336,31 @@ export default function SuperadminDashboardView() {
                   color="#10b981" 
                 />
               </TouchableOpacity>
+              
+              <View style={{ width: '100%', flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('UnpaidBills')}>
+                  <StatCard 
+                    title={t('financial.unpaid') || 'Piutang Global'} 
+                    value={stats?.totalUnpaid || 0} 
+                    icon={AlertCircle} 
+                    color="red" 
+                    subtitle={t('billing.globalReceivables') || 'Total Piutang Sistem'}
+                    isCurrency
+                  />
+                </TouchableOpacity>
+
+                {(stats?.pendingRegistrationsCount || 0) > 0 && (
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('PendingRegistrations')}>
+                    <StatCard 
+                      title={'Pendaftaran Baru'} 
+                      value={stats?.pendingRegistrationsCount || 0} 
+                      icon={UserPlus} 
+                      color="orange" 
+                      subtitle={t('dashboard.awaitingValidation') || 'Menunggu Validasi'}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
 
@@ -399,7 +435,15 @@ export default function SuperadminDashboardView() {
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#ef4444' }]} onPress={() => logout()}>
+            <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#ef4444' }]} onPress={() => {
+                showAlert({
+                  title: t('profile.logoutConfirmTitle'),
+                  message: t('profile.logoutConfirmMsg'),
+                  type: 'warning',
+                  confirmText: t('profile.logoutBtn'),
+                  onConfirm: () => logout()
+                });
+            }}>
                <View style={[styles.menuListIconWrapper, { backgroundColor: '#ef444415' }]}>
                   <LogOut size={22} color={'#ef4444'} />
                </View>

@@ -44,7 +44,9 @@ import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { resolveUrl } from '../utils/url';
+import { formatBytes } from '../utils/format';
 import GradientHeader from '../components/GradientHeader';
+import { COLORS } from '../constants/theme';
 import { StatusBar } from 'react-native';
 
 export default function CustomerDetailScreen({ route, navigation }: any) {
@@ -211,13 +213,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     }
   };
 
-  const formatBytes = (bytes: number) => {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  // Using shared formatBytes utility from ../utils/format
 
   return (
     <View style={styles.container}>
@@ -318,9 +314,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
             ) : (
               <View style={{ flex: 1 }}>
                 <View style={styles.statusRow}>
-                  <View style={[styles.badge, stats?.session?.active ? styles.badgeOnline : styles.badgeOffline]}>
-                    <Activity size={12} color={stats?.session?.active ? '#10b981' : '#ef4444'} />
-                    <Text style={[styles.badgeText, { color: stats?.session?.active ? '#065f46' : '#991b1b' }]}>
+                  <View style={[styles.badge, stats?.session?.active ? { backgroundColor: COLORS.success + '20', borderColor: COLORS.success + '40' } : { backgroundColor: COLORS.error + '20', borderColor: COLORS.error + '40' }]}>
+                    <Activity size={12} color={stats?.session?.active ? COLORS.success : COLORS.error} />
+                    <Text style={[styles.badgeText, { color: stats?.session?.active ? COLORS.success : COLORS.error }]}>
                       {stats?.session?.active ? t('users.online') : t('users.offline')}
                     </Text>
                   </View>

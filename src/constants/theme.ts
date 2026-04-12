@@ -36,6 +36,18 @@ export const COLORS = {
   white: '#ffffff',
   black: '#000000',
   transparent: 'transparent',
+
+  // Modern Palette for Icons/Charts
+  palette: {
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
+    emerald: '#10b981',
+    cyan: '#06b6d4',
+    slate: '#64748b',
+    crimson: '#dc2626',
+  }
 };
 
 export const SPACING = {

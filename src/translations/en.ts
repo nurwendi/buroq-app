@@ -297,6 +297,8 @@ export const en = {
         addTitle: 'Add Customer',
         editTitle: 'Edit Customer',
         pppoeCredentials: 'PPPoE Credentials',
+        selectProfile: 'Select PPPoE Profile',
+        profilePlaceholder: 'Select Profile',
         systemId: 'Customer ID (System ID)',
         usernameLabel: 'Username / Client ID',
         passwordLabel: 'Password',
