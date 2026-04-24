@@ -230,33 +230,37 @@ export default function StaffDashboardView() {
         <View style={styles.bodyContent}>
 
 
-          {/* Section: Customer Status — Donut Chart */}
-          <View style={styles.section}>
-            <LinearGradient
-              colors={['#0ea5e9', '#10b981', '#059669']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.chartCard}
-            >
-              <View style={{ position: 'absolute', top: 16, left: 16 }}>
-                <Text style={[styles.sectionTitle, { color: 'rgba(255,255,255,0.9)', textShadowColor: 'rgba(0,0,0,0.2)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }]}>{t('dashboard.customerStatus')}</Text>
-              </View>
-              <View style={styles.chartBgIcon}>
-                <Users size={110} color="rgba(255,255,255,0.07)" strokeWidth={1.5} />
-              </View>
-              <DonutChart
-                size={150}
-                strokeWidth={24}
-                centerValue={stats?.totalCustomers || 0}
-                centerLabel={t('users.all') || 'Semua'}
-                darkBackground
-                segments={[
-                  { value: stats?.pppoeActive  || 0, color: '#10b981', label: t('dashboard.pppoeActive')  || 'Online' },
-                  { value: stats?.pppoeOffline || 0, color: '#ef4444', label: t('dashboard.pppoeOffline') || 'Offline' },
-                ]}
-              />
-            </LinearGradient>
-          </View>
+           {/* Section: Customer Status — Donut Chart */}
+           <TouchableOpacity 
+             activeOpacity={0.9} 
+             onPress={() => navigation.navigate('CustomerList')}
+             style={styles.section}
+           >
+             <LinearGradient
+               colors={['#0f172a', '#1e293b', '#0f172a']}
+               start={{ x: 0, y: 0 }}
+               end={{ x: 1, y: 1 }}
+               style={[styles.chartCard, { borderWidth: 1, borderColor: '#334155' }]}
+             >
+               <View style={{ position: 'absolute', top: 16, left: 16 }}>
+                 <Text style={[styles.sectionTitle, { color: '#ffffff', fontWeight: 'bold' }]}>{t('dashboard.customerStatus')}</Text>
+               </View>
+               <View style={styles.chartBgIcon}>
+                 <Users size={110} color="rgba(255,255,255,0.03)" strokeWidth={1.5} />
+               </View>
+               <DonutChart
+                 size={150}
+                 strokeWidth={24}
+                 centerValue={stats?.totalCustomers || 0}
+                 centerLabel={t('users.all') || 'Semua'}
+                 darkBackground
+                 segments={[
+                   { value: stats?.pppoeActive  || 0, color: '#34d399', label: t('dashboard.pppoeActive')  || 'Online' },
+                   { value: stats?.pppoeOffline || 0, color: '#f87171', label: t('dashboard.pppoeOffline') || 'Offline' },
+                 ]}
+               />
+             </LinearGradient>
+           </TouchableOpacity>
 
           {/* Section: Financial Widget & Pending Stats */}
           <View style={styles.section}>
