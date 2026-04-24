@@ -7,11 +7,12 @@ import {
   TextInput, 
   TouchableOpacity, 
   ActivityIndicator, 
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Linking,
-  StatusBar
+  StatusBar,
+  Modal,
+  FlatList
 } from 'react-native';
 import { 
   User, 
@@ -28,7 +29,9 @@ import {
   Server,
   Info,
   Key,
-  Activity
+  Activity,
+  ChevronDown,
+  Search
 } from 'lucide-react-native';
 import * as Contacts from 'expo-contacts';
 import * as Location from 'expo-location';
@@ -36,6 +39,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from '../constants/theme';
 
@@ -83,6 +87,7 @@ export default function CustomerFormScreen() {
   const route = useRoute<any>();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const { customer, mode = 'add' } = route.params || {};
 
   const [loading, setLoading] = useState(false);
@@ -106,10 +111,19 @@ export default function CustomerFormScreen() {
     service: 'pppoe',
   });
 
+  const [originalCustomer] = useState({
+    username: customer?.username || '',
+    password: customer?.password || '',
+    profile: customer?.profile?.name || customer?.profileId || '',
+    service: 'pppoe',
+  });
+
   const [profiles, setProfiles] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [routers, setRouters] = useState<any[]>([]);
+  const [showProfilePicker, setShowProfilePicker] = useState(false);
+  const [profileSearch, setProfileSearch] = useState('');
 
   useEffect(() => {
     fetchInitialData();
@@ -118,7 +132,7 @@ export default function CustomerFormScreen() {
   const fetchInitialData = async () => {
     try {
       const [profilesRes, usersRes, settingsRes] = await Promise.all([
-        apiClient.get('/api/profiles'),
+        apiClient.get('/api/pppoe/profiles'),
         apiClient.get('/api/admin/users'),
         apiClient.get('/api/settings')
       ]);
@@ -146,14 +160,13 @@ export default function CustomerFormScreen() {
             setFormData(prev => ({ ...prev, ...updates }));
         }
       } else if (mode === 'edit') {
-        // Fallback for routerIds if missing from lite customer object but present in session/stats
         if ((!formData.routerIds || formData.routerIds.length === 0) && customer?.session?.routerId) {
             setFormData(prev => ({ ...prev, routerIds: [customer.session.routerId] }));
         }
       }
     } catch (e) {
       console.error('Failed to fetch initial data', e);
-      Alert.alert(t('common.error'), t('users.dataSupportError'));
+      showAlert({ title: t('common.error'), message: t('users.dataSupportError'), type: 'error' });
     } finally {
       setFetchingData(false);
     }
@@ -173,7 +186,7 @@ export default function CustomerFormScreen() {
     }
 
     if (missingFields.length > 0) {
-      Alert.alert(t('common.error'), t('messages.validationError', { fields: '\n- ' + missingFields.join('\n- ') }));
+      showAlert({ title: t('common.error'), message: t('messages.validationError', { fields: '\n- ' + missingFields.join('\n- ') }), type: 'error' });
       return;
     }
 
@@ -195,28 +208,59 @@ export default function CustomerFormScreen() {
           agentId: formData.agentId,
           technicianId: formData.technicianId
         };
-
         const res = await apiClient.post('/api/pppoe/users', pppoePayload);
         
         if (res.data.message && res.data.message.includes('approval')) {
-            Alert.alert(t('common.info'), res.data.message, [
-                { text: t('common.ok'), onPress: () => navigation.goBack() }
-            ]);
+            showAlert({ title: t('common.info'), message: res.data.message, type: 'info', onConfirm: () => navigation.goBack() });
+            return;
+        }
+
+        if (['staff', 'agent', 'technician'].includes(user?.role)) {
+            await apiClient.post('/api/registrations', {
+                type: 'register',
+                username: formData.username,
+                name: formData.name,
+                password: formData.password,
+                profile: formData.profile,
+                service: 'pppoe',
+                address: formData.address,
+                phone: formData.phone,
+                email: formData.email,
+                coordinates: formData.coordinates,
+                comment: formData.comment,
+                agentId: formData.agentId || user.id,
+                technicianId: formData.technicianId
+            });
+            showAlert({ title: t('common.info'), message: t('messages.editRequestSubmitted') || 'Pendaftaran masuk ke antrean persetujuan', type: 'info', onConfirm: () => navigation.goBack() });
             return;
         }
 
         await apiClient.post('/api/customers', formData);
         
       } else {
-        if (['staff', 'agent', 'technician'].includes(user?.role)) {
+        // Edit Mode Logic
+        if (['staff', 'agent', 'technician', 'partner', 'editor'].includes(user?.role)) {
+            const hasPppoeChanges = (
+                formData.username !== originalCustomer.username ||
+                (formData.password && formData.password !== '') ||
+                formData.profile !== originalCustomer.profile ||
+                formData.service !== originalCustomer.service
+            );
+
+            if (!hasPppoeChanges) {
+                await apiClient.post('/api/customers', { ...formData, username: originalCustomer.username });
+                showAlert({ title: t('common.success'), message: t('users.updateSuccess'), type: 'success', onConfirm: () => navigation.goBack() });
+                return;
+            }
+
             await apiClient.post('/api/registrations', {
                 type: 'edit',
-                targetUsername: formData.username,
+                targetUsername: originalCustomer.username || formData.username,
                 newValues: {
                     username: formData.username,
                     password: formData.password,
                     profile: formData.profile,
-                    service: 'pppoe',
+                    service: formData.service,
                     name: formData.name,
                     address: formData.address,
                     phone: formData.phone,
@@ -228,21 +272,31 @@ export default function CustomerFormScreen() {
                 },
                 agentId: user.id
             });
-            Alert.alert(t('common.info'), t('messages.editRequestSubmitted'), [
-                { text: t('common.ok'), onPress: () => navigation.goBack() }
-            ]);
+            showAlert({ title: t('common.info'), message: t('messages.editRequestSubmitted') || 'Perubahan PPPoE menunggu persetujuan', type: 'info', onConfirm: () => navigation.goBack() });
             return;
         }
 
-        await apiClient.post('/api/customers', formData);
+        // Admin/Superadmin Edit
+        try {
+            const editId = encodeURIComponent(originalCustomer.username || formData.username);
+            await apiClient.put(`/api/pppoe/users/${editId}`, {
+                name: formData.username,
+                password: formData.password,
+                profile: formData.profile,
+                service: formData.service,
+                comment: formData.comment
+            });
+        } catch (routerError) {
+             console.log("Router update skipped or failed. Proceeding DB sync.", routerError);
+        }
+
+        await apiClient.post('/api/customers', { ...formData, id: customer?.id });
       }
       
-      Alert.alert(t('common.success'), mode === 'add' ? t('users.addSuccess') : t('users.updateSuccess'), [
-        { text: t('common.ok'), onPress: () => navigation.goBack() }
-      ]);
+      showAlert({ title: t('common.success'), message: mode === 'add' ? t('users.addSuccess') : t('users.updateSuccess'), type: 'success', onConfirm: () => navigation.goBack() });
     } catch (e: any) {
       console.error('Save failed:', e.response?.data || e.message);
-      Alert.alert(t('common.error'), e.response?.data?.error || t('users.saveError'));
+      showAlert({ title: t('common.error'), message: e.response?.data?.error || t('users.saveError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -281,16 +335,12 @@ export default function CustomerFormScreen() {
         ? t('users.contactPermissionMsg') 
         : t('users.contactPermissionPermanentMsg');
       
-      Alert.alert(
-        t('users.permissionDenied'), 
-        message,
-        canAskAgain 
-          ? [{ text: t('common.ok'), style: 'cancel' }]
-          : [
-              { text: t('common.settings'), onPress: () => Linking.openSettings() },
-              { text: t('common.cancel'), style: 'cancel' }
-            ]
-      );
+      showAlert({
+        title: t('users.permissionDenied'),
+        message: message,
+        type: 'error',
+        onConfirm: !canAskAgain ? () => Linking.openSettings() : undefined
+      });
     }
   };
 
@@ -301,16 +351,12 @@ export default function CustomerFormScreen() {
         ? t('users.locationPermissionMsg') 
         : t('users.locationPermissionPermanentMsg');
       
-      Alert.alert(
-        t('users.permissionDenied'), 
-        message,
-        canAskAgain 
-          ? [{ text: t('common.ok'), style: 'cancel' }]
-          : [
-              { text: t('common.settings'), onPress: () => Linking.openSettings() },
-              { text: t('common.cancel'), style: 'cancel' }
-            ]
-      );
+      showAlert({
+        title: t('users.permissionDenied'),
+        message: message,
+        type: 'error',
+        onConfirm: !canAskAgain ? () => Linking.openSettings() : undefined
+      });
       return;
     }
 
@@ -320,7 +366,7 @@ export default function CustomerFormScreen() {
       const coords = `${location.coords.latitude}, ${location.coords.longitude}`;
       setFormData(prev => ({ ...prev, coordinates: coords }));
     } catch (e) {
-      Alert.alert(t('common.error'), t('users.gpsError'));
+      showAlert({ title: t('common.error'), message: t('users.gpsError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -334,6 +380,12 @@ export default function CustomerFormScreen() {
       </View>
     );
   }
+
+  const filteredProfiles = profiles.filter(p => 
+    p.name.toLowerCase().includes(profileSearch.toLowerCase())
+  );
+
+  const selectedProfile = profiles.find(p => p.name === formData.profile);
 
 
 
@@ -374,20 +426,23 @@ export default function CustomerFormScreen() {
               secureTextEntry
             />
 
-            <View style={styles.inputGroupSpecial}>
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('users.profile')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                 {profiles.map((p) => (
-                   <TouchableOpacity 
-                      key={p.id || p.name} 
-                      style={[styles.chip, formData.profile === p.name && styles.chipActive]}
-                      onPress={() => setFormData({ ...formData, profile: p.name })}
-                   >
-                      <Text style={[styles.chipText, formData.profile === p.name && styles.chipTextActive]}>{p.name}</Text>
-                      {formData.profile === p.name && <Check size={14} color={COLORS.white} style={{ marginLeft: 4 }} />}
-                   </TouchableOpacity>
-                 ))}
-              </ScrollView>
+              <TouchableOpacity 
+                style={[styles.inputWrapper, { paddingRight: 12 }]}
+                onPress={() => setShowProfilePicker(true)}
+              >
+                <View style={styles.iconBox}>
+                  <Package size={20} color={COLORS.slate[500]} />
+                </View>
+                <Text style={[
+                  styles.input, 
+                  !formData.profile && { color: COLORS.slate[400] }
+                ]}>
+                  {formData.profile || t('users.profilePlaceholder')}
+                </Text>
+                <ChevronDown size={20} color={COLORS.slate[400]} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.divider} />
@@ -540,6 +595,81 @@ export default function CustomerFormScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Profile Picker Modal */}
+      <Modal
+        visible={showProfilePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowProfilePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('users.selectProfile')}</Text>
+              <TouchableOpacity onPress={() => setShowProfilePicker(false)} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>{t('common.close')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchContainer}>
+              <Search size={18} color={COLORS.slate[400]} style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={t('common.search')}
+                value={profileSearch}
+                onChangeText={setProfileSearch}
+                placeholderTextColor={COLORS.slate[400]}
+              />
+            </View>
+
+            <FlatList
+              data={filteredProfiles}
+              keyExtractor={(item) => item.id || item.name}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={[
+                    styles.pickerItem,
+                    formData.profile === item.name && styles.pickerItemActive
+                  ]}
+                  onPress={() => {
+                    setFormData({ ...formData, profile: item.name });
+                    setShowProfilePicker(false);
+                  }}
+                >
+                  <View style={styles.pickerItemLeft}>
+                    <View style={[
+                      styles.pickerDot,
+                      { backgroundColor: item.name.toLowerCase().includes('isolir') ? COLORS.error : COLORS.primary }
+                    ]} />
+                    <View>
+                      <Text style={[
+                        styles.pickerItemText,
+                        formData.profile === item.name && styles.pickerItemTextActive
+                      ]}>
+                        {item.name}
+                      </Text>
+                      {item.price > 0 && (
+                        <Text style={styles.pickerItemSubtext}>Rp {item.price.toLocaleString()}</Text>
+                      )}
+                    </View>
+                  </View>
+                  {formData.profile === item.name && (
+                    <Check size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Package size={48} color={COLORS.slate[200]} />
+                  <Text style={styles.emptyText}>{t('common.noData')}</Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -724,6 +854,104 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    height: '70%',
+    padding: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: COLORS.slate[900],
+    letterSpacing: -0.5,
+  },
+  closeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  closeButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.slate[50],
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 48,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.slate[100],
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.slate[900],
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginBottom: 4,
+  },
+  pickerItemActive: {
+    backgroundColor: COLORS.slate[50],
+  },
+  pickerItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  pickerDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  pickerItemText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.slate[700],
+  },
+  pickerItemTextActive: {
+    color: COLORS.primary,
+    fontWeight: '900',
+  },
+  pickerItemSubtext: {
+    fontSize: 12,
+    color: COLORS.slate[400],
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 60,
+  },
+  emptyText: {
+    marginTop: 12,
+    color: COLORS.slate[300],
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 

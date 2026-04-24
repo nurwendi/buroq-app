@@ -1,0 +1,484 @@
+import { NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/api-auth';
+import db from '@/lib/db';
+import { getMikrotikClient } from '@/lib/mikrotik';
+import { getConfig, getUserConnectionId } from '@/lib/config';
+import { generateCustomerId } from '@/lib/customer-utils';
+
+export async function GET(request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const isLite = searchParams.get('lite') === 'true';
+        const user = await getUserFromRequest(request); // Await the promise!
+        let where = {};
+
+        if (user) {
+            // Role-based filtering
+            if (user.role === 'admin') {
+                where.ownerId = user.id;
+            } else if (user.role === 'superadmin') {
+                // No filter
+            } else if (['agent', 'partner', 'technician', 'staff', 'editor', 'manager'].includes(user.role)) {
+                // Restricted Access: See ONLY assigned customers (matched with active/route logic)
+                const identityFilters = [];
+                
+                // If it's a manager, they might still see everything of the owner, 
+                // but let's check if the user wants strict restriction even for managers.
+                // Re-reading user request: "staff" usually refers to non-admins.
+                
+                if (user.role === 'manager') {
+                    // Managers see everything of the owner
+                    where.ownerId = user.ownerId || user.id;
+                } else {
+                    // Staff, Agent, Partner, Technician, Editor
+                    if (user.role === 'agent' || user.isAgent) identityFilters.push({ agentId: user.id });
+                    if (user.role === 'technician' || user.isTechnician) identityFilters.push({ technicianId: user.id });
+
+                    // If generic staff/editor with no specific flag, check BOTH by default to be safe
+                    if (identityFilters.length === 0) {
+                        identityFilters.push({ agentId: user.id });
+                        identityFilters.push({ technicianId: user.id });
+                    }
+
+                    where = {
+                        AND: [
+                            { ownerId: user.ownerId || 'impossible_owner' },
+                            { OR: identityFilters }
+                        ]
+                    };
+                }
+            } else {
+                // Backup for other roles
+                if (user.ownerId) where.ownerId = user.ownerId;
+            }
+        }
+
+
+        const queryOptions = { where };
+
+        if (isLite) {
+            queryOptions.select = {
+                username: true,
+                name: true,
+                customerId: true,
+                phone: true,
+                address: true,
+                avatar: true,
+                email: true,
+                agentId: true,
+                technicianId: true,
+                agent: { select: { fullName: true, username: true } },
+                technician: { select: { fullName: true, username: true } },
+                ownerId: true,
+                profileId: true,
+                profile: {
+                    select: {
+                        name: true,
+                        price: true
+                    }
+                },
+                id: true
+            };
+        } else {
+            queryOptions.include = {
+                agent: { select: { fullName: true, username: true, id: true } },
+                technician: { select: { fullName: true, username: true, id: true } }
+            };
+        }
+
+        const customersList = await db.customer.findMany(queryOptions);
+
+        // Fetch all pending payments to calculate Unpaid balance for each customer
+        const allPendingPayments = await db.payment.findMany({
+            where: { 
+                status: 'pending',
+                method: { not: 'EXPENSE' },
+                ...(where.ownerId ? { ownerId: where.ownerId } : {})
+            },
+            select: { username: true, amount: true }
+        });
+
+        // Group unpaid amounts by username
+        const unpaidMap = allPendingPayments.reduce((acc, p) => {
+            acc[p.username] = (acc[p.username] || 0) + Number(p.amount);
+            return acc;
+        }, {});
+
+        // OPTIONAL: Fetch usage stats if needed for lite mode (might be heavy if many customers)
+        // For now, let's include it only if lite=true to assist mobile dashboard
+        let usageMap = {};
+        if (isLite) {
+            try {
+                const { getMonthlyUsageBulk } = await import('@/lib/usage-tracker');
+                const usernames = customersList.map(c => c.username);
+                usageMap = await getMonthlyUsageBulk(usernames);
+            } catch (e) { console.warn('Bulk usage fetch failed', e.message); }
+        }
+
+        // --- NEW: Live-Merge with Mikrotik for Admins/Staf ---
+        // If DB is empty or for live-view purposes, pull raw Mikrotik data if Admin
+        let mergedList = [...customersList];
+        
+        if (user && ['admin', 'superadmin'].includes(user.role)) {
+            try {
+                const config = await getConfig();
+                const connectionId = getUserConnectionId(user, config);
+                let effectiveId = connectionId;
+                if (!effectiveId && user.ownerId) {
+                    effectiveId = config.connections?.find(c => c.ownerId === user.ownerId)?.id;
+                }
+
+                const client = await getMikrotikClient(effectiveId);
+                const mikrotikUsers = await client.write('/ppp/secret/print');
+                
+                if (Array.isArray(mikrotikUsers)) {
+                    const existingUsernames = new Set(customersList.map(c => c.username));
+                    
+                    mikrotikUsers.forEach(u => {
+                        if (!existingUsernames.has(u.name)) {
+                            // Add as virtual customer object
+                            mergedList.push({
+                                username: u.name,
+                                name: u.name, // Fallback
+                                customerId: u.comment || u.name, // Use comment as ID if exists
+                                phone: '-',
+                                address: '-',
+                                profile: { name: u.profile, price: 0 },
+                                isVirtual: true // Mark for local logic if needed
+                            });
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('[API] Live Mikrotik merge failed:', err.message);
+                // Fallback to DB-only
+            }
+        }
+
+        // Convert array to object to maintain API compatibility
+        const customers = mergedList.reduce((acc, curr) => {
+            const username = curr.username;
+            const agentName = curr.agent?.fullName || curr.agent?.username || null;
+            const technicianName = curr.technician?.fullName || curr.technician?.username || null;
+
+            acc[username] = {
+                ...curr,
+                isIsolir: curr.profile?.name?.toLowerCase().includes('isolir') || false,
+                totalUnpaid: unpaidMap[username] || 0,
+                usage: usageMap[username] || { rx: 0, tx: 0 },
+                agentName,
+                technicianName
+            };
+            return acc;
+        }, {});
+
+        return NextResponse.json(customers);
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function POST(request) {
+    try {
+        const body = await request.json();
+        const { username, name, address, phone, email, password, profileId, profile, coordinates, comment, disabled, service } = body; // Extract extra fields, IGNORE customerId
+
+
+        // Radius Sync Flags
+        const createRadiusUser = true;
+
+        console.log(`[API] Updating customer data for username: ${username}`, body);
+
+        if (!username) {
+            return NextResponse.json({ error: 'Username is required' }, { status: 400 });
+        }
+
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        let agentId = body.agentId || null;
+        let technicianId = body.technicianId || null;
+        let ownerId = body.ownerId || null; // Allow superadmin to specify?
+
+        // Auto-assign ownerId based on User
+        if (user.role === 'admin') {
+            ownerId = user.id; // Admin owns the customer
+        } else if (user.role === 'superadmin') {
+            // Keep provided ownerId or null. If null, creates 'global' customer?
+            // Ideally should require ownerId if strictly multi-tenant.
+        } else {
+            // Staff -> assign to their owner
+            if (user.ownerId) ownerId = user.ownerId;
+        }
+
+        // Auto-assign agent/tech if IsAgent/IsTechnician
+        if (user.isAgent && !agentId) agentId = user.id;
+        if (user.isTechnician && !technicianId) technicianId = user.id;
+
+        // Verify Ownership / Existence
+        // We must scope this by ownerId if we have it, or findFirst if we don't (risky)
+        // With ownerId determined, we can check specifically.
+
+        let existingCustomer = null;
+        if (ownerId) {
+            existingCustomer = await db.customer.findUnique({
+                where: {
+                    username_ownerId: { username, ownerId }
+                }
+            });
+        } else {
+            // Fallback for global lookups (superadmin without ownerId)
+            // Using findFirst as username is not unique globally
+            existingCustomer = await db.customer.findFirst({ where: { username } });
+        }
+
+        if (existingCustomer) {
+            if (user.role === 'admin' && existingCustomer.ownerId !== user.id) {
+                return NextResponse.json({ error: "Unauthorized: not your customer" }, { status: 403 });
+            }
+            if ((user.role === 'agent' || user.role === 'staff') && existingCustomer.agentId !== user.id) {
+                // Check if they belong to same owner at least
+                if (existingCustomer.ownerId !== user.ownerId) {
+                    return NextResponse.json({ error: "Unauthorized: not your tenant" }, { status: 403 });
+                }
+            }
+        }
+
+        // Resolve profile name to ID if only name is provided
+        let effectiveProfileId = profileId;
+        if (!effectiveProfileId && profile) {
+            const profileObj = await db.profile.findUnique({ where: { name: profile } });
+            if (profileObj) effectiveProfileId = profileObj.id;
+        }
+
+        // Verify agent/tech existence if IDs provided
+        if (agentId) {
+            const agent = await db.user.findUnique({ where: { id: agentId } });
+            if (!agent) agentId = null;
+        }
+        if (technicianId) {
+            const tech = await db.user.findUnique({ where: { id: technicianId } });
+            if (!tech) technicianId = null;
+        }
+
+        // Handle Customer ID Auto-generation
+        let finalCustomerId = null;
+
+        if (existingCustomer && existingCustomer.customerId) {
+            finalCustomerId = existingCustomer.customerId;
+        } else {
+            // Generate new Customer ID
+            finalCustomerId = await generateCustomerId(ownerId);
+        }
+
+        // Upsert Logic
+        // We MUST rely on the composite key for upsert if we want it to work with @@unique([username, ownerId])
+        // If ownerId is null, we pass null.
+
+        // Check for orphan adoption
+        if (ownerId && username) {
+            // Check if there is an orphan record with this username
+            // Only adopt if we are not editing an existing owned record (which we shouldn't be here if upsert logic is correct, but let's be safe)
+            // Actually, if we are here, we are about to Upsert based on (username, ownerId).
+            // If that pair doesn't exist, we might be about to collide with an orphan's customerId.
+
+            const orphan = await db.customer.findFirst({
+                where: {
+                    username: username,
+                    ownerId: null
+                }
+            });
+
+            if (orphan) {
+                console.log(`[API] Found orphan customer ${username}. Adopting to owner ${ownerId}.`);
+                // Update the orphan to belong to this owner
+                await db.customer.update({
+                    where: { id: orphan.id },
+                    data: { ownerId: ownerId }
+                });
+            }
+        }
+
+
+        // Manual Upsert to avoid Prisma Unique Constraint nuances with Compound Keys
+        let existing = null;
+        if (body.id) {
+            // Priority 1: Find by ID (for safe renames)
+            existing = await db.customer.findUnique({ where: { id: body.id } });
+        }
+        
+        if (!existing) {
+            if (ownerId) {
+                existing = await db.customer.findUnique({
+                    where: {
+                        username_ownerId: {
+                            username: username,
+                            ownerId: ownerId
+                        }
+                    }
+                });
+            } else {
+                // Should properly match the unique index anyway, but findFirst is safer if undefined
+                existing = await db.customer.findFirst({
+                    where: {
+                        username: username,
+                        ownerId: null
+                    }
+                });
+            }
+        }
+
+        let customer;
+        if (existing) {
+            customer = await db.customer.update({
+                where: { id: existing.id },
+                data: {
+                    username: username,
+                    name: name,
+                    address: address,
+                    phone: phone,
+                    email: email,
+                    customerId: finalCustomerId,
+                    agentId: agentId,
+                    technicianId: technicianId,
+                    ownerId: ownerId,
+                    coordinates: coordinates || undefined,
+                    comment: comment || undefined,
+                    password: password || undefined,
+                    profileId: effectiveProfileId || undefined
+                }
+            });
+        } else {
+            customer = await db.customer.create({
+                data: {
+                    username: username,
+                    name: name || "",
+                    address: address || "",
+                    phone: phone || "",
+                    email: email || "",
+                    customerId: finalCustomerId,
+                    agentId: agentId,
+                    technicianId: technicianId,
+                    ownerId: ownerId,
+                    coordinates: coordinates || undefined,
+                    comment: comment || undefined,
+                    password: password || undefined,
+                    profileId: effectiveProfileId || undefined
+                }
+            });
+        }
+
+        // ---------------------------------------------------------
+        // AUTO-SYNC TO RADIUS (User & Group)
+        // ---------------------------------------------------------
+        if (createRadiusUser) {
+            try {
+                // 1. Sync Password (radcheck)
+                if (password) {
+                    const existingCheck = await db.radCheck.findFirst({
+                        where: { username, attribute: 'Cleartext-Password' }
+                    });
+
+                    if (existingCheck) {
+                        await db.radCheck.update({
+                            where: { id: existingCheck.id },
+                            data: { value: password }
+                        });
+                    } else {
+                        await db.radCheck.create({
+                            data: {
+                                username,
+                                attribute: 'Cleartext-Password',
+                                op: ':=',
+                                value: password
+                            }
+                        });
+                    }
+                    console.log(`[Radius-Sync] Synced password for ${username}`);
+                }
+
+                // 2. Sync Profile/Group (radusergroup)
+                if (profileId) {
+                    const profile = await db.profile.findUnique({ where: { id: profileId } });
+                    if (profile) {
+                        // Check if group assignment exists
+                        // Note: RadUserGroup uses composite logic usually, but here ID is primary.
+                        // We check by username. User usually has 1 main profile.
+
+                        // Clear existing group to avoid duplicates/conflicts? 
+                        // Or just update if specific logic used?
+                        // Simple approach: Delete all groups for user and add new one.
+
+                        await db.radUserGroup.deleteMany({ where: { username } });
+
+                        await db.radUserGroup.create({
+                            data: {
+                                username,
+                                groupname: profile.name,
+                                priority: 1
+                            }
+                        });
+                        console.log(`[Radius-Sync] Assigned user ${username} to group ${profile.name}`);
+                    }
+                }
+
+                // 3. Sync IP Pool (Framed-Pool) if Owner has specific pool
+                if (ownerId) {
+                    const owner = await db.user.findUnique({ where: { id: ownerId } });
+                    if (owner && owner.radiusPool) {
+                        const poolName = owner.radiusPool;
+
+                        // Upsert Framed-Pool in RadReply
+                        const existingReply = await db.radReply.findFirst({
+                            where: { username, attribute: 'Framed-Pool' }
+                        });
+
+                        if (existingReply) {
+                            if (existingReply.value !== poolName) {
+                                await db.radReply.update({
+                                    where: { id: existingReply.id },
+                                    data: { value: poolName }
+                                });
+                            }
+                        } else {
+                            await db.radReply.create({
+                                data: {
+                                    username,
+                                    attribute: 'Framed-Pool',
+                                    op: '=',
+                                    value: poolName
+                                }
+                            });
+                        }
+                        console.log(`[Radius-Sync] Assigned user ${username} to pool ${poolName}`);
+                    }
+                }
+
+            } catch (rErr) {
+                console.error("[Radius-Sync] Error syncing to Radius tables:", rErr);
+                // Do not fail the whole request, just log it.
+            }
+        }
+
+        // Notify Technician if assigned/changed
+        if (technicianId && (!existing || existing.technicianId !== technicianId)) {
+            try {
+                const { sendNotification } = await import('@/lib/notifications-db');
+                await sendNotification({
+                    title: 'Tugas Baru',
+                    message: `Anda telah ditugaskan untuk mengelola pelanggan ${customer.name} (${customer.username}).`,
+                    type: 'info',
+                    ownerId: ownerId,
+                    recipients: [{ userId: technicianId }]
+                });
+            } catch (notifyError) {
+                console.error('[API] Failed to notify technician:', notifyError.message);
+            }
+        }
+
+        return NextResponse.json({ success: true, customer });
+    } catch (error) {
+        console.error('[API] Error saving customer data:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

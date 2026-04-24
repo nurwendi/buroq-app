@@ -10,6 +10,14 @@ export const ENDPOINTS = {
 
   // PPPoE
   PPPOE_ACTIVE: '/api/pppoe/active',
+  PPPOE_USERS: '/api/pppoe/users',
+  PPPOE_PROFILES: '/api/pppoe/profiles',
+
+  // Registrations / Approvals
+  REGISTRATIONS: '/api/registrations',
+
+  // Admin
+  ADMIN_USERS: '/api/admin/users',
 
   // Billing & Payments
   PAYMENTS: '/api/billing/payments',

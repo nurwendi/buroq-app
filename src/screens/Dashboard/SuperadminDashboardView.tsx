@@ -15,20 +15,27 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
-  Users, 
-  Shield, 
-  Server, 
+  Users,
+  Shield,
+  Server,
   Activity,
   Settings,
   Megaphone,
   ChevronRight,
   PlusCircle,
   LogOut,
-  FileText
+  FileText,
+  AlertCircle,
+  UserPlus
 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import DonutChart from '../../components/DonutChart';
+import { COLORS } from '../../constants/theme';
+
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAlert } from '../../context/AlertContext';
 import apiClient from '../../api/client';
 import StatCard from '../../components/StatCard';
 
@@ -49,6 +56,7 @@ const ProgressMeter = ({ value, label, color }: { value: number, label: string, 
 export default function SuperadminDashboardView() {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<any>({
@@ -80,10 +88,38 @@ export default function SuperadminDashboardView() {
 
   const fetchStats = async () => {
     try {
-      const response = await apiClient.get('/api/dashboard/stats');
-      setStats(response.data);
-    } catch (e) {
+      // dashboard/stats → router info, pppoeActive/Offline, cpu, memory
+      // admin/stats → financial data (grossRevenue, netRevenue), pendingCounts
+      const [dashboardRes, adminRes] = await Promise.all([
+        apiClient.get('/api/dashboard/stats'),
+        apiClient.get('/api/admin/stats').catch(() => ({ data: {} }))
+      ]);
+      const dashData  = dashboardRes.data || {};
+      const adminData = adminRes.data     || {};
+
+      setStats({
+        ...dashData,
+        // Merge financial + pending from admin/stats
+        grossRevenue:              adminData.grossRevenue              || 0,
+        netRevenue:                adminData.netRevenue                || 0,
+        totalUnpaid:               adminData.totalUnpaid               || 0,
+        staffCommission:           adminData.staffCommission           || 0,
+        pendingRegistrationsCount: adminData.pendingRegistrationsCount || 0,
+        pendingPaymentsCount:      adminData.pendingPaymentsCount      || 0,
+        pendingCount:              adminData.pendingCount              || 0,
+        // totalCustomers from admin/stats (scoped correctly) fallback to dashboard
+        totalCustomers:            adminData.totalCustomers            || dashData.totalCustomers || 0,
+        // pppoeActive/Offline from dashboard/stats (most accurate for superadmin)
+        pppoeActive:               dashData.pppoeActive  || 0,
+        pppoeOffline:              dashData.pppoeOffline || 0,
+      });
+    } catch (e: any) {
       console.error('Failed to fetch superadmin stats', e);
+      showAlert({
+        title: t('common.error') || 'Error',
+        message: e.response?.data?.error || t('common.fetchError') || 'Failed to fetch dashboard statistics.',
+        type: 'error'
+      });
     }
   };
 
@@ -270,6 +306,34 @@ export default function SuperadminDashboardView() {
              </View>
           </View>
 
+          {/* Section: Customer Status — Donut Chart */}
+          <View style={styles.section}>
+            <LinearGradient
+              colors={['#0f172a', '#1e293b', '#334155']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.chartCard}
+            >
+              <View style={{ position: 'absolute', top: 16, left: 16 }}>
+                <Text style={[styles.sectionTitle, { color: 'rgba(255,255,255,0.9)', textShadowColor: 'rgba(0,0,0,0.2)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }]}>{t('dashboard.customerStatus')}</Text>
+              </View>
+              <View style={styles.chartBgIcon}>
+                <Users size={110} color="rgba(255,255,255,0.07)" strokeWidth={1.5} />
+              </View>
+              <DonutChart
+                size={150}
+                strokeWidth={24}
+                centerValue={stats?.totalCustomers || 0}
+                centerLabel={t('users.all') || 'Semua'}
+                darkBackground
+                segments={[
+                  { value: stats?.pppoeActive  || 0, color: '#10b981', label: t('dashboard.pppoeActive')  || 'Online' },
+                  { value: stats?.pppoeOffline || 0, color: '#ef4444', label: t('dashboard.pppoeOffline') || 'Offline' },
+                ]}
+              />
+            </LinearGradient>
+          </View>
+
           {/* Section: Owner Statistics */}
           {(ownerStats || []).length > 0 && (
             <View style={[styles.section, { marginBottom: 20 }]}>
@@ -303,6 +367,71 @@ export default function SuperadminDashboardView() {
             </View>
           )}
 
+          {/* Section: Router Status (Superadmin) */}
+          {(stats?.routers || []).length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{t('routers.title') || 'Status Router'}</Text>
+              </View>
+              <View style={{ gap: 10 }}>
+                {(stats.routers || []).map((router: any) => {
+                  const isOnline = router.status === 'online';
+                  const cpuLoad  = router.cpuLoad || 0;
+                  const memPct   = router.memoryTotal > 0
+                    ? Math.round((router.memoryUsed / router.memoryTotal) * 100)
+                    : 0;
+                  const formatMB = (b: number) => b > 0 ? (b / (1024 * 1024)).toFixed(0) + ' MB' : '0 MB';
+                  return (
+                    <View key={router.id} style={[styles.routerCard, { borderLeftColor: isOnline ? '#2563eb' : '#ef4444', borderLeftWidth: 4 }]}>
+                      <View style={styles.routerCardHeader}>
+                        <View style={styles.routerCardLeft}>
+                          <View style={[styles.routerIconBox, { backgroundColor: isOnline ? '#eff6ff' : '#fff1f2' }]}>
+                            <Activity size={18} color={isOnline ? '#2563eb' : '#ef4444'} />
+                          </View>
+                          <View>
+                            <Text style={styles.routerName}>{router.name || 'Router'}</Text>
+                            {isOnline && router.identity && (
+                              <Text style={styles.routerIdentity}>{router.identity}</Text>
+                            )}
+                            <Text style={styles.routerHost}>{router.host}</Text>
+                          </View>
+                        </View>
+                        <View style={[styles.routerBadge, { backgroundColor: isOnline ? '#dcfce7' : '#fee2e2' }]}>
+                          <Wifi size={10} color={isOnline ? '#16a34a' : '#dc2626'} />
+                          <Text style={[styles.routerBadgeText, { color: isOnline ? '#16a34a' : '#dc2626' }]}>
+                            {isOnline ? 'Online' : 'Offline'}
+                          </Text>
+                        </View>
+                      </View>
+                      {isOnline && (
+                        <View style={{ gap: 10 }}>
+                          <View>
+                            <View style={styles.barLabelRow}>
+                              <Text style={styles.barLabel}>CPU Load</Text>
+                              <Text style={[styles.barValue, { color: cpuLoad > 80 ? '#ef4444' : '#2563eb' }]}>{cpuLoad}%</Text>
+                            </View>
+                            <View style={styles.barTrack}>
+                              <View style={[styles.barFill, { width: `${cpuLoad}%`, backgroundColor: cpuLoad > 80 ? '#ef4444' : '#3b82f6' }]} />
+                            </View>
+                          </View>
+                          <View>
+                            <View style={styles.barLabelRow}>
+                              <Text style={styles.barLabel}>RAM ({formatMB(router.memoryUsed)})</Text>
+                              <Text style={[styles.barValue, { color: '#6366f1' }]}>{memPct}%</Text>
+                            </View>
+                            <View style={styles.barTrack}>
+                              <View style={[styles.barFill, { width: `${memPct}%`, backgroundColor: '#6366f1' }]} />
+                            </View>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
           {/* Section: Quick Stats */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -325,6 +454,31 @@ export default function SuperadminDashboardView() {
                   color="#10b981" 
                 />
               </TouchableOpacity>
+              
+              <View style={{ width: '100%', flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('UnpaidBills')}>
+                  <StatCard 
+                    title={t('financial.unpaid') || 'Piutang Global'} 
+                    value={stats?.totalUnpaid || 0} 
+                    icon={AlertCircle} 
+                    color="red" 
+                    subtitle={t('billing.globalReceivables') || 'Total Piutang Sistem'}
+                    isCurrency
+                  />
+                </TouchableOpacity>
+
+                {(stats?.pendingRegistrationsCount || 0) > 0 && (
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.navigate('PendingRegistrations')}>
+                    <StatCard 
+                      title={t('dashboard.pendingApproval') || 'Persetujuan User'} 
+                      value={stats?.pendingRegistrationsCount || 0} 
+                      icon={UserPlus} 
+                      color="orange" 
+                      subtitle={t('dashboard.awaitingValidation') || 'Menunggu Validasi'}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
 
@@ -371,6 +525,18 @@ export default function SuperadminDashboardView() {
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
 
+               {/* Approvals */}
+               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#f59e0b' }]} onPress={() => navigation.navigate('PendingRegistrations')}>
+                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#f59e0b15' }]}>
+                     <ClipboardCheck size={22} color="#f59e0b" />
+                  </View>
+                  <View style={styles.menuListTextWrapper}>
+                     <Text style={styles.menuListTitle}>{t('sidebar.approvals') || 'Persetujuan User'}</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.awaitingValidation')}</Text>
+                  </View>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </TouchableOpacity>
+
                {/* Report */}
                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#8b5cf6' }]} onPress={() => navigation.navigate('FinancialReport')}>
                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#8b5cf615' }]}>
@@ -399,7 +565,15 @@ export default function SuperadminDashboardView() {
                <ChevronRight size={20} color="#cbd5e1" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#ef4444' }]} onPress={() => logout()}>
+            <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#ef4444' }]} onPress={() => {
+                showAlert({
+                  title: t('profile.logoutConfirmTitle'),
+                  message: t('profile.logoutConfirmMsg'),
+                  type: 'warning',
+                  confirmText: t('profile.logoutBtn'),
+                  onConfirm: () => logout()
+                });
+            }}>
                <View style={[styles.menuListIconWrapper, { backgroundColor: '#ef444415' }]}>
                   <LogOut size={22} color={'#ef4444'} />
                </View>
@@ -412,8 +586,15 @@ export default function SuperadminDashboardView() {
           </View>
 
         </View>
-      </ScrollView>
-    </View>
+       </ScrollView>
+
+       {loading && !refreshing && (
+         <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={'#0f172a'} />
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
+         </View>
+       )}
+     </View>
   );
 }
 
@@ -765,9 +946,133 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     marginBottom: 4,
   },
+  chartCard: {
+    borderRadius: 28,
+    padding: 24,
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    ...Platform.select({
+      ios: { shadowColor: '#0f172a', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16 },
+      android: { elevation: 10 },
+    }),
+  },
+  chartBgIcon: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    opacity: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#334155',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   menuListSubtitle: {
     fontSize: 13,
     color: '#64748b',
     fontWeight: '500',
+  },
+
+  // ── Router Status Card ─────────────────────
+  routerCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    gap: 14,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+      android: { elevation: 3 },
+    }),
+  },
+  routerCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  routerCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    flex: 1,
+  },
+  routerIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  routerName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.3,
+  },
+  routerIdentity: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2563eb',
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  routerHost: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontFamily: 'monospace',
+    marginTop: 2,
+  },
+  routerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  routerBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  barLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  barLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  barValue: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  barTrack: {
+    height: 6,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 3,
   },
 });

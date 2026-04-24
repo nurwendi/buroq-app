@@ -5,11 +5,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
+import { AlertProvider } from './src/context/AlertContext';
 import Navigation from './src/navigation';
 import { requestInitialPermissions } from './src/utils/permissions';
 import { useAuth } from './src/context/AuthContext';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
 import apiClient from './src/api/client';
+import { registerBackgroundNotificationTask } from './src/utils/BackgroundService';
 
 const PushTokenHandler = () => {
   const { user, token } = useAuth();
@@ -28,6 +30,7 @@ const PushTokenHandler = () => {
 export default function App() {
   useEffect(() => {
     requestInitialPermissions();
+    registerBackgroundNotificationTask(5); // 5 minutes interval approved by user
   }, []);
 
   return (
@@ -35,11 +38,13 @@ export default function App() {
       <SafeAreaProvider>
         <AuthProvider>
           <LanguageProvider>
-            <PushTokenHandler />
-            <NavigationContainer>
-              <Navigation />
-              <StatusBar style="auto" />
-            </NavigationContainer>
+            <AlertProvider>
+              <PushTokenHandler />
+              <NavigationContainer>
+                <Navigation />
+                <StatusBar style="auto" />
+              </NavigationContainer>
+            </AlertProvider>
           </LanguageProvider>
         </AuthProvider>
       </SafeAreaProvider>

@@ -13,7 +13,7 @@ import {
   StatusBar,
   ImageBackground
 } from 'react-native';
-import { Search, Users } from 'lucide-react-native';
+import { Search, Users, Plus } from 'lucide-react-native';
 import apiClient from '../api/client';
 import { customerService } from '../services/customerService';
 import { pppoeService } from '../services/pppoeService';
@@ -239,6 +239,15 @@ export default function CustomerListScreen({ navigation }: any) {
           ]}
         />
       )}
+
+      {/* FAB for Adding New Customer */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={() => navigation.navigate('CustomerForm', { mode: 'add' })}
+        activeOpacity={0.8}
+      >
+        <Plus color={COLORS.white} size={28} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -347,6 +356,23 @@ const styles = StyleSheet.create({
     color: COLORS.slate[900],
     fontWeight: '900',
     letterSpacing: -0.5,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 999
   }
 });
 

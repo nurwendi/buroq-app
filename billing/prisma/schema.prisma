@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  username               String                  @unique
+  passwordHash           String
+  role                   String                  @default("viewer")
+  isTechnician           Boolean                 @default(false)
+  isAgent                Boolean                 @default(false)
+  agentRate              Float                   @default(0)
+  technicianRate         Float                   @default(0)
+  prefix                 String                  @default("")
+  fullName               String                  @default("")
+  phone                  String                  @default("")
+  address                String                  @default("")
+  avatar                 String                  @default("")
+  agentNumber            String                  @default("")
+  createdAt              DateTime                @default(now())
+  ownerId                String?
+  language               String                  @default("auto")
+  expoPushToken          String?
+  radiusPool             String?                 @default("")
+  isAutoIsolationEnabled Boolean                 @default(false)
+  autoIsolationDate      Int                     @default(20)
+  isolationType          String                  @default("disable")
+  commissions            Commission[]
+  customersAsAgent       Customer[]              @relation("AgentCustomers")
+  customersOwned         Customer[]              @relation("CustomerOwner")
+  customersAsTechnician  Customer[]              @relation("TechnicianCustomers")
+  logs                   Log[]                   @relation("LogOwner")
+  notificationsOwned     Notification[]          @relation("NotificationOwner")
+  notificationsSent      Notification[]          @relation("NotificationSender")
+  notificationRecords    NotificationRecipient[] @relation("NotificationUserRecipient")
+  payments               Payment[]               @relation("PaymentOwner")
+  gatewayConfig          PaymentGatewayConfig?   @relation("GatewayOwner")
+  profiles               Profile[]               @relation("ProfileOwner")
+  registrations          Registration[]          @relation("RegistrationOwner")
+  owner                  User?                   @relation("UserOwner", fields: [ownerId], references: [id])
+  users                  User[]                  @relation("UserOwner")
+}
+
+model SystemMetric {
+  id        String   @id @default(cuid())
+  type      String
+  value     Float
+  metadata  String?
+  timestamp DateTime @default(now())
+
+  @@index([type, timestamp])
+}
+
+model Customer {
+  id            String                  @id @default(cuid())
+  customerId    String                  @unique
+  username      String
+  password      String?
+  name          String                  @default("")
+  address       String                  @default("")
+  phone         String                  @default("")
+  email         String                  @default("")
+  agentId       String?
+  technicianId  String?
+  coordinates   String?
+  comment       String?
+  updatedAt     DateTime                @updatedAt
+  createdAt     DateTime                @default(now())
+  ownerId       String?
+  profileId     String?
+  language      String                  @default("auto")
+  avatar        String                  @default("")
+  expoPushToken String?
+  agent         User?                   @relation("AgentCustomers", fields: [agentId], references: [id])
+  owner         User?                   @relation("CustomerOwner", fields: [ownerId], references: [id])
+  profile       Profile?                @relation(fields: [profileId], references: [id])
+  technician    User?                   @relation("TechnicianCustomers", fields: [technicianId], references: [id])
+  notifications NotificationRecipient[] @relation("NotificationCustomerRecipient")
+
+  @@unique([username, ownerId])
+}
+
+model Payment {
+  id              String       @id @default(cuid())
+  invoiceNumber   String       @unique
+  username        String
+  amount          Float
+  method          String       @default("cash")
+  status          String       @default("pending")
+  date            DateTime
+  month           Int
+  year            Int
+  notes           String       @default("")
+  ownerId         String?
+  gatewayStatus   String?
+  paymentProvider String?
+  paymentType     String?
+  transactionId   String?
+  paymentUrl      String?
+  expiryTime      DateTime?
+  commissions     Commission[]
+  owner           User?        @relation("PaymentOwner", fields: [ownerId], references: [id])
+}
+
+model Commission {
+  id        String  @id @default(cuid())
+  paymentId String
+  userId    String
+  username  String
+  role      String
+  rate      Float
+  amount    Float
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Log {
+  id         String   @id @default(cuid())
+  mikrotikId String?
+  time       String?
+  message    String
+  username   String?
+  status     String?
+  createdAt  DateTime @default(now())
+  ownerId    String?
+  owner      User?    @relation("LogOwner", fields: [ownerId], references: [id])
+}
+
+model Registration {
+  id             String   @id @default(cuid())
+  type           String
+  status         String   @default("pending")
+  username       String
+  targetUsername String?
+  name           String?
+  address        String?
+  phone          String?
+  agentId        String?
+  password       String?
+  profile        String?
+  service        String?
+  comment        String?
+  coordinates    String?
+  technicianId   String?
+  routerIds      String?
+  newValues      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ownerId        String?
+  owner          User?    @relation("RegistrationOwner", fields: [ownerId], references: [id])
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
+
+model Profile {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  price       Float      @default(0)
+  speedUp     Int        @default(0)
+  speedDown   Int        @default(0)
+  description String?
+  ownerId     String?
+  customers   Customer[]
+  owner       User?      @relation("ProfileOwner", fields: [ownerId], references: [id])
+}
+
+model RadCheck {
+  id        Int    @id @default(autoincrement())
+  username  String
+  attribute String @default("")
+  op        String @default("==")
+  value     String @default("")
+
+  @@index([username], map: "username_idx")
+  @@map("radcheck")
+}
+
+model RadReply {
+  id        Int    @id @default(autoincrement())
+  username  String
+  attribute String @default("")
+  op        String @default("=")
+  value     String @default("")
+
+  @@index([username], map: "reply_username_idx")
+  @@map("radreply")
+}
+
+model RadGroupCheck {
+  id        Int    @id @default(autoincrement())
+  groupname String
+  attribute String @default("")
+  op        String @default("==")
+  value     String @default("")
+
+  @@index([groupname], map: "groupcheck_idx")
+  @@map("radgroupcheck")
+}
+
+model RadGroupReply {
+  id        Int    @id @default(autoincrement())
+  groupname String
+  attribute String @default("")
+  op        String @default("=")
+  value     String @default("")
+
+  @@index([groupname], map: "groupreply_idx")
+  @@map("radgroupreply")
+}
+
+model RadUserGroup {
+  id        Int    @id @default(autoincrement())
+  username  String
+  groupname String
+  priority  Int    @default(1)
+
+  @@index([username], map: "usergroup_username_idx")
+  @@map("radusergroup")
+}
+
+model RadAcct {
+  radacctid          BigInt    @id @default(autoincrement())
+  acctsessionid      String    @default("")
+  acctuniqueid       String    @unique(map: "acctuniqueid_unique") @default("")
+  username           String    @default("")
+  realm              String?   @default("")
+  nasipaddress       String    @default("")
+  nasportid          String?   @default("")
+  nasporttype        String?   @default("")
+  acctstarttime      DateTime?
+  acctupdatetime     DateTime?
+  acctstoptime       DateTime?
+  acctinterval       Int?
+  acctsessiontime    Int?
+  acctauthentic      String?
+  connectinfo_start  String?
+  connectinfo_stop   String?
+  acctinputoctets    BigInt?
+  acctoutputoctets   BigInt?
+  calledstationid    String    @default("")
+  callingstationid   String    @default("")
+  acctterminatecause String    @default("")
+  servicetype        String?
+  framedprotocol     String?
+  framedipaddress    String?
+
+  @@index([username])
+  @@index([acctstarttime], map: "radacct_start_idx")
+  @@index([acctstoptime], map: "radacct_stop_idx")
+  @@index([nasipaddress], map: "radacct_nasip_idx")
+  @@index([framedipaddress], map: "radacct_framedip_idx")
+  @@map("radacct")
+}
+
+model Nas {
+  id          Int     @id @default(autoincrement())
+  nasname     String  @unique
+  shortname   String?
+  type        String  @default("other")
+  ports       Int?
+  secret      String  @default("secret")
+  server      String?
+  community   String?
+  description String?
+
+  @@index([nasname])
+  @@map("nas")
+}
+
+model RadPostAuth {
+  id       Int      @id @default(autoincrement())
+  username String
+  pass     String
+  reply    String
+  authdate DateTime @default(now())
+
+  @@index([username, authdate], map: "postauth_idx")
+  @@map("radpostauth")
+}
+
+model PaymentGatewayConfig {
+  id            String   @id @default(cuid())
+  ownerId       String   @unique
+  provider      String   @default("midtrans")
+  isSandbox     Boolean  @default(true)
+  merchantId    String?
+  clientKey     String?
+  serverKey     String?
+  webhookSecret String?
+  updatedAt     DateTime @updatedAt
+  owner         User     @relation("GatewayOwner", fields: [ownerId], references: [id])
+}
+
+model Notification {
+  id         String                  @id @default(cuid())
+  type       String                  @default("info")
+  title      String
+  message    String
+  senderId   String?
+  ownerId    String?
+  createdAt  DateTime                @default(now())
+  owner      User?                   @relation("NotificationOwner", fields: [ownerId], references: [id])
+  sender     User?                   @relation("NotificationSender", fields: [senderId], references: [id])
+  recipients NotificationRecipient[]
+}
+
+model NotificationRecipient {
+  id             String       @id @default(cuid())
+  notificationId String
+  userId         String?
+  customerId     String?
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  customer       Customer?    @relation("NotificationCustomerRecipient", fields: [customerId], references: [id])
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User?        @relation("NotificationUserRecipient", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([notificationId])
+}

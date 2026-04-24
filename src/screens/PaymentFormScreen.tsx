@@ -7,13 +7,12 @@ import {
   TextInput, 
   TouchableOpacity, 
   ActivityIndicator, 
-  Alert,
-  Platform,
-  FlatList,
   StatusBar,
   KeyboardAvoidingView,
   Modal,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Platform,
+  FlatList
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -34,6 +33,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useAlert } from '../context/AlertContext';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import { printReceipt } from '../utils/printer';
 import { COLORS } from '../constants/theme';
@@ -44,6 +44,7 @@ export default function PaymentFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const { 
     customer: initialCustomer, 
     amount: initialAmount, 
@@ -64,6 +65,9 @@ export default function PaymentFormScreen() {
   const [amount, setAmount] = useState(
     initialAmount ? String(initialAmount) : 
     (initialCustomer?.billing?.amount ? String(initialCustomer.billing.amount) : '')
+  );
+  const [billingStatus, setBillingStatus] = useState<'paid' | 'unpaid' | null>(
+     initialCustomer?.billing?.status || null
   );
   const [method, setMethod] = useState('cash');
   const [notes, setNotes] = useState('');
@@ -123,7 +127,13 @@ export default function PaymentFormScreen() {
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/customer/stats?customerId=${username}`);
-      if (response.data?.billing?.amount !== undefined) {
+      
+      const bStatus = response.data?.billing?.status;
+      setBillingStatus(bStatus || null);
+
+      if (bStatus === 'paid') {
+        setAmount('0');
+      } else if (response.data?.billing?.amount !== undefined) {
         setAmount(String(response.data.billing.amount));
       } else {
         setAmount('0');
@@ -171,11 +181,11 @@ export default function PaymentFormScreen() {
 
   const handleSave = async () => {
     if (!selectedCustomer) {
-      Alert.alert(t('common.error'), t('billing.customerRequired'));
+      showAlert({ title: t('common.error'), message: t('billing.customerRequired'), type: 'error' });
       return;
     }
     if (!amount || isNaN(Number(amount))) {
-      Alert.alert(t('common.error'), t('billing.invalidAmount'));
+      showAlert({ title: t('common.error'), message: t('billing.invalidAmount'), type: 'error' });
       return;
     }
 
@@ -196,7 +206,7 @@ export default function PaymentFormScreen() {
       // If cash, automatically suggest printing?
       // For now, let the user trigger it.
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.response?.data?.error || t('billing.savePaymentError'));
+      showAlert({ title: t('common.error'), message: e.response?.data?.error || t('billing.savePaymentError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -219,13 +229,13 @@ export default function PaymentFormScreen() {
         agentPhone: user?.phone,
         period: `${months[selectedMonth]} ${selectedYear}`
       });
-      Alert.alert(t('common.success'), t('billing.printingReceipt'));
+      showAlert({ title: t('common.success'), message: t('billing.printingReceipt'), type: 'success' });
     } catch (e: any) {
       const errorMsg = e?.message || String(e);
       if (errorMsg.includes('belum disetting')) {
         setPrinterModalVisible(true);
       } else {
-        Alert.alert(t('billing.printingFailed'), errorMsg || t('billing.printReceiptError'));
+        showAlert({ title: t('billing.printingFailed'), message: errorMsg || t('billing.printReceiptError'), type: 'error' });
       }
     }
   };
@@ -316,10 +326,19 @@ export default function PaymentFormScreen() {
           </View>
 
           {/* Payment Details */}
-          <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>{t('billing.paymentDetails')}</Text>
+          {selectedCustomer && (
+            <>
+              <View style={styles.formCard}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('billing.paymentDetails')}</Text>
+                  {billingStatus === 'paid' && (
+                    <View style={{ backgroundColor: COLORS.success + '20', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
+                      <Text style={{ color: COLORS.success, fontWeight: '800', fontSize: 13 }}>{t('billing.paid') || 'LUNAS!'}</Text>
+                    </View>
+                  )}
+                </View>
 
-            <View style={styles.inputGroup}>
+                <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('billing.paymentAmount')}</Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.iconBox}>
@@ -394,18 +413,26 @@ export default function PaymentFormScreen() {
               </View>
             </View>
           </View>
+            </>
+          )}
 
-          <TouchableOpacity 
-            style={styles.saveButton} 
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.saveButtonText}>{t('billing.confirmPayment')}</Text>
-            )}
-          </TouchableOpacity>
+          {selectedCustomer && (
+            <TouchableOpacity 
+              style={styles.saveButton} 
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.saveButtonText}>{t('billing.confirmPayment')}</Text>
+              )}
+            </TouchableOpacity>
+          )}
+          
+          {/* Close conditional from Payment Details section */}
+          {selectedCustomer && <View style={{ height: 0 }} />}
+          
           <View style={{ height: 40 }} />
         </ScrollView>
 

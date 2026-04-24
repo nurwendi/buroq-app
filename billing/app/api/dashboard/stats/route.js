@@ -1,0 +1,271 @@
+import { NextResponse } from 'next/server';
+import { getMikrotikClient } from '@/lib/mikrotik';
+import { getUserFromRequest } from '@/lib/api-auth';
+import db from '@/lib/db';
+import os from 'os';
+
+export async function GET(request) {
+    try {
+        const currentUser = await getUserFromRequest(request);
+        if (!currentUser) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const config = await (await import('@/lib/config')).getConfig();
+        const { getUserConnectionId } = await import('@/lib/config');
+        const connectionId = getUserConnectionId(currentUser, config);
+
+        // Fallback: If no connection ID for staff/user, try owner's connection
+        let effectiveConnectionId = connectionId;
+        if (!effectiveConnectionId && currentUser.ownerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === currentUser.ownerId);
+            if (ownerConn) effectiveConnectionId = ownerConn.id;
+        }
+
+        // SUPERADMIN FALLBACK: Default to first connection if none selected
+        if (!effectiveConnectionId && currentUser.role === 'superadmin' && config.connections?.length > 0) {
+            effectiveConnectionId = config.connections[0].id;
+        }
+
+        // Calculate Server CPU Load (Delta over 200ms)
+        const startCpus = os.cpus();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        const endCpus = os.cpus();
+
+        let totalIdle = 0, totalTick = 0;
+        for (let i = 0; i < startCpus.length; i++) {
+            const cpu1 = startCpus[i];
+            const cpu2 = endCpus[i];
+
+            const idle = cpu2.times.idle - cpu1.times.idle;
+            let tick = 0;
+            for (let type in cpu1.times) {
+                tick += cpu2.times[type] - cpu1.times[type];
+            }
+            totalIdle += idle;
+            totalTick += tick;
+        }
+        const serverCpuLoad = totalTick > 0 ? Math.round(((totalTick - totalIdle) / totalTick) * 100) : 0;
+        const serverMemoryTotal = os.totalmem();
+        const serverMemoryFree = os.freemem();
+        const serverMemoryUsed = serverMemoryTotal - serverMemoryFree;
+
+        const allConnections = config.connections || [];
+        let targetConnections = [];
+
+        if (currentUser.role === 'superadmin') {
+            targetConnections = allConnections;
+        } else {
+            const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
+            targetConnections = allConnections.filter(c => c.ownerId === ownerId);
+        }
+
+        // Fetch each router's status in parallel
+        const routerStats = await Promise.all(targetConnections.map(async (conn) => {
+            try {
+                const connClient = await getMikrotikClient(conn.id);
+                // System Identity
+                const identityRes = await connClient.write('/system/identity/print');
+                const identity = identityRes[0]?.name || 'Unknown';
+
+                // Health/Resources
+                const resources = await connClient.write('/system/resource/print');
+                const res = resources[0] || {};
+
+                return {
+                    id: conn.id,
+                    name: conn.name,
+                    host: conn.host,
+                    ownerId: conn.ownerId,
+                    identity,
+                    status: 'online',
+                    cpuLoad: parseInt(res['cpu-load'] || 0),
+                    memoryUsed: parseInt(res['total-memory'] || 0) - parseInt(res['free-memory'] || 0),
+                    memoryTotal: parseInt(res['total-memory'] || 0)
+                };
+            } catch (err) {
+                return {
+                    id: conn.id,
+                    name: conn.name,
+                    host: conn.host,
+                    ownerId: conn.ownerId,
+                    status: 'offline'
+                };
+            }
+        }));
+
+        if (!effectiveConnectionId) {
+            return NextResponse.json({
+                pppoeActive: 0,
+                pppoeOffline: 0,
+                cpuLoad: 0,
+                memoryUsed: 0,
+                memoryTotal: 0,
+                uptime: 'N/A',
+                temperature: null,
+                voltage: null,
+                interfaces: [],
+                adminCount: 0,
+                totalCustomers: 0,
+                systemUserCount: 0,
+                serverCpuLoad,
+                serverMemoryUsed,
+                serverMemoryTotal,
+                routers: routerStats
+            });
+        }
+
+        let myActiveCount = 0;
+        let pppoeOffline = 0;
+        let cpuLoad = 0;
+        let memoryUsed = 0;
+        let memoryTotal = 0;
+        let temperature = null;
+        let voltage = null;
+        let interfaceStats = [];
+        let adminCount = 0;
+        let totalCustomers = 0;
+        let systemUserCount = 0;
+
+        try {
+            const client = await getMikrotikClient(effectiveConnectionId);
+            const activeConnections = await client.write('/ppp/active/print');
+            
+            let myTotalUsers = 0;
+            if (currentUser.role === 'superadmin') {
+                const allSecrets = await client.write('/ppp/secret/print');
+                myTotalUsers = allSecrets.length;
+                const activeMap = new Set(activeConnections.map(a => a.name));
+                myActiveCount = allSecrets.filter(s => activeMap.has(s.name)).length;
+            } else {
+                const allSecrets = await client.write('/ppp/secret/print');
+                let filterWhere = {};
+                if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+                    filterWhere = { ownerId: currentUser.id };
+                    if (currentUser.role === 'manager' && currentUser.ownerId) {
+                        filterWhere = { ownerId: currentUser.ownerId };
+                    }
+                } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
+                    filterWhere = {
+                        OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
+                    };
+                    if (currentUser.ownerId) {
+                        filterWhere = { AND: [{ ownerId: currentUser.ownerId }, filterWhere] };
+                    }
+                } else {
+                    filterWhere = { ownerId: 'impossible_id' };
+                }
+
+                let allowedUsernames = new Set();
+                if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
+                    const dbCustomers = await db.customer.findMany({
+                        where: filterWhere,
+                        select: { username: true }
+                    });
+                    dbCustomers.forEach(c => allowedUsernames.add(c.username));
+                }
+                const mySecrets = allSecrets.filter(s => allowedUsernames.has(s.name));
+                myTotalUsers = mySecrets.length;
+                const activeMap = new Set(activeConnections.map(a => a.name));
+                myActiveCount = mySecrets.filter(s => activeMap.has(s.name)).length;
+            }
+
+            pppoeOffline = Math.max(0, myTotalUsers - myActiveCount);
+
+            const resources = await client.write('/system/resource/print');
+            const resource = resources[0] || {};
+            cpuLoad = parseInt(resource['cpu-load'] || 0);
+            memoryUsed = parseInt(resource['total-memory'] || 0) - parseInt(resource['free-memory'] || 0);
+            memoryTotal = parseInt(resource['total-memory'] || 0);
+
+            try {
+                const health = await client.write('/system/health/print');
+                const tempItem = health.find(h => h.name === 'temperature' || h.name === 'cpu-temperature' || h.name === 'board-temperature');
+                const voltageItem = health.find(h => h.name === 'voltage' || h.name === 'monitor-voltage');
+                if (tempItem) temperature = parseInt(tempItem.value);
+                if (voltageItem) voltage = parseFloat(voltageItem.value);
+            } catch (e) {}
+
+            const ifaces = await client.write('/interface/print', ['=stats']);
+            interfaceStats = ifaces
+                .filter(iface => {
+                    const name = iface.name || '';
+                    return !name.startsWith('pppoe-out') && !name.startsWith('<pppoe-');
+                })
+                .map(iface => ({
+                    name: iface.name,
+                    type: iface.type,
+                    running: iface.running === 'true',
+                    txRate: parseInt(iface['tx-bits-per-second'] || 0),
+                    rxRate: parseInt(iface['rx-bits-per-second'] || 0)
+                }));
+        } catch (routerErr) {
+            console.error('Active router connection failed:', routerErr.message);
+            // Default values already set to 0/empty
+        }
+
+        if (currentUser.role === 'superadmin') {
+            const [ac, tc, sc] = await Promise.all([
+                db.user.count({ where: { role: 'admin' } }),
+                db.customer.count(),
+                db.user.count({ where: { role: { notIn: ['superadmin', 'admin', 'customer'] } } })
+            ]);
+            adminCount = ac;
+            totalCustomers = tc;
+            systemUserCount = sc;
+        } else {
+            const ownerId = (currentUser.role === 'manager' || ['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) ? currentUser.ownerId : currentUser.id;
+            
+            // For Admin: Count everything belonging to them
+            // For Staff/Agent: Count only their assigned customers
+            let statsWhere = { ownerId: ownerId || currentUser.id };
+            if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
+                statsWhere = {
+                    ...statsWhere,
+                    OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
+                };
+            }
+
+            if (ownerId || currentUser.id) {
+                [systemUserCount, totalCustomers] = await Promise.all([
+                    db.user.count({ where: { ownerId: ownerId || currentUser.id } }),
+                    db.customer.count({ where: statsWhere })
+                ]);
+            }
+        }
+
+        return NextResponse.json({
+            pppoeActive: myActiveCount,
+            pppoeOffline: pppoeOffline,
+            cpuLoad,
+            memoryUsed,
+            memoryTotal,
+            temperature,
+            voltage,
+            interfaces: interfaceStats,
+            adminCount,
+            totalCustomers,
+            systemUserCount,
+            serverCpuLoad,
+            serverMemoryUsed,
+            serverMemoryTotal,
+            routers: routerStats
+        });
+    } catch (error) {
+        console.error('Dashboard stats error:', error);
+        return NextResponse.json({
+            error: error.message,
+            pppoeActive: 0,
+            pppoeOffline: 0,
+            cpuLoad: 0,
+            memoryUsed: 0,
+            memoryTotal: 0,
+            temperature: null,
+            interfaces: [],
+            systemUserCount: 0,
+            routers: []
+        }, { status: 500 });
+    }
+}
+
+
