@@ -94,6 +94,11 @@ export default function StaffDashboardView() {
 
       setStats({
         ...statsData,
+        // Override with billingData for financials since staff scope uses billing/stats
+        grossRevenue:              billingData.grossRevenue || 0,
+        netRevenue:                billingData.netRevenue || 0,
+        staffCommission:           billingData.staffCommission || 0,
+        totalUnpaid:               billingData.totalUnpaid || 0,
         recentTransactions:        billingData.recentTransactions || [],
         pendingRegistrationsCount: statsData.pendingRegistrationsCount || 0,
         pendingPaymentsCount:      statsData.pendingPaymentsCount      || 0,
@@ -339,70 +344,7 @@ export default function StaffDashboardView() {
             </View>
           </View>
 
-          {/* Section: Router Status — sama dengan web RouterStatusCard */}
-          {(stats?.routers || []).length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{t('routers.title') || 'Status Router'}</Text>
-              </View>
-              <View style={{ gap: 10 }}>
-                {(stats.routers || []).map((router: any) => {
-                  const isOnline = router.status === 'online';
-                  const cpuLoad  = router.cpuLoad || 0;
-                  const memPct   = router.memoryTotal > 0
-                    ? Math.round((router.memoryUsed / router.memoryTotal) * 100)
-                    : 0;
-                  const formatMB = (b: number) => b > 0 ? (b / (1024 * 1024)).toFixed(0) + ' MB' : '0 MB';
-                  return (
-                    <View key={router.id} style={[styles.routerCard, { borderLeftColor: isOnline ? '#2563eb' : '#ef4444', borderLeftWidth: 4 }]}>
-                      <View style={styles.routerCardHeader}>
-                        <View style={styles.routerCardLeft}>
-                          <View style={[styles.routerIconBox, { backgroundColor: isOnline ? '#eff6ff' : '#fff1f2' }]}>
-                            <Activity size={18} color={isOnline ? '#2563eb' : '#ef4444'} />
-                          </View>
-                          <View>
-                            <Text style={styles.routerName}>{router.name || 'Router'}</Text>
-                            {isOnline && router.identity && (
-                              <Text style={styles.routerIdentity}>{router.identity}</Text>
-                            )}
-                            <Text style={styles.routerHost}>{router.host}</Text>
-                          </View>
-                        </View>
-                        <View style={[styles.routerBadge, { backgroundColor: isOnline ? '#dcfce7' : '#fee2e2' }]}>
-                          <Wifi size={10} color={isOnline ? '#16a34a' : '#dc2626'} />
-                          <Text style={[styles.routerBadgeText, { color: isOnline ? '#16a34a' : '#dc2626' }]}>
-                            {isOnline ? 'Online' : 'Offline'}
-                          </Text>
-                        </View>
-                      </View>
-                      {isOnline && (
-                        <View style={{ gap: 10 }}>
-                          <View>
-                            <View style={styles.barLabelRow}>
-                              <Text style={styles.barLabel}>CPU Load</Text>
-                              <Text style={[styles.barValue, { color: cpuLoad > 80 ? '#ef4444' : '#2563eb' }]}>{cpuLoad}%</Text>
-                            </View>
-                            <View style={styles.barTrack}>
-                              <View style={[styles.barFill, { width: `${cpuLoad}%`, backgroundColor: cpuLoad > 80 ? '#ef4444' : '#3b82f6' }]} />
-                            </View>
-                          </View>
-                          <View>
-                            <View style={styles.barLabelRow}>
-                              <Text style={styles.barLabel}>RAM ({formatMB(router.memoryUsed)})</Text>
-                              <Text style={[styles.barValue, { color: '#6366f1' }]}>{memPct}%</Text>
-                            </View>
-                            <View style={styles.barTrack}>
-                              <View style={[styles.barFill, { width: `${memPct}%`, backgroundColor: '#6366f1' }]} />
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          )}
+          {/* Router Status section removed for staff role per request */}
 
           {/* Section: Recent Transactions — sama persis dengan web */}
           <View style={styles.section}>

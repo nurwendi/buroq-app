@@ -151,6 +151,7 @@ export const id = {
     },
     dashboard: {
         title: 'Dashboard',
+        recentInvoices: 'Invoice Terbaru',
         wifiUpdateError: 'Gagal Memperbarui WiFi',
         totalUsers: 'Total Pelanggan',
         activeUsers: 'Pelanggan Aktif',

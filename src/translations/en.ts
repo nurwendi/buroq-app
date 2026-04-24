@@ -148,6 +148,7 @@ export const en = {
     },
     dashboard: {
         title: 'Dashboard',
+        recentInvoices: 'Recent Invoices',
         totalUsers: 'Total Customers',
         activeUsers: 'Active Customers',
         onlineUsers: 'Online Customers',
