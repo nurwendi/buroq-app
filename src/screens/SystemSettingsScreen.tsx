@@ -24,6 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useAlert } from '../context/AlertContext';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
 import { COLORS } from '../constants/theme';
@@ -32,6 +33,7 @@ export default function SystemSettingsScreen() {
   const navigation = useNavigation();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -59,7 +61,7 @@ export default function SystemSettingsScreen() {
       setSettings(response.data);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
-      Alert.alert(t('common.error'), t('systemSettings.fetchError'));
+      showAlert({ title: t('common.error'), message: t('systemSettings.fetchError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -69,10 +71,10 @@ export default function SystemSettingsScreen() {
     setSaving(true);
     try {
       await apiClient.post('/api/billing/settings', settings);
-      Alert.alert(t('common.success'), t('systemSettings.saveSuccess'));
+      showAlert({ title: t('common.success'), message: t('systemSettings.saveSuccess'), type: 'success' });
     } catch (error) {
       console.error('Failed to save settings:', error);
-      Alert.alert(t('common.error'), t('systemSettings.saveError'));
+      showAlert({ title: t('common.error'), message: t('systemSettings.saveError'), type: 'error' });
     } finally {
       setSaving(false);
     }

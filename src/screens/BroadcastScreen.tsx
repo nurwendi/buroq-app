@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
 import { COLORS } from '../constants/theme';
@@ -28,6 +29,8 @@ export default function BroadcastScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
+
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [targetType, setTargetType] = useState<TargetType>('customers');
@@ -40,16 +43,16 @@ export default function BroadcastScreen() {
 
   const handleSend = async () => {
     if (!title.trim()) {
-      Alert.alert(t('common.error'), t('broadcast.titleRequired'));
+      showAlert({ title: t('common.error'), message: t('broadcast.titleRequired'), type: 'error' });
       return;
     }
     if (!message.trim()) {
-      Alert.alert(t('common.error'), t('broadcast.messageRequired'));
+      showAlert({ title: t('common.error'), message: t('broadcast.messageRequired'), type: 'error' });
       return;
     }
 
     if (targetType === 'specific' && !targetUsername.trim()) {
-      Alert.alert(t('common.error'), t('broadcast.usernameRequired'));
+      showAlert({ title: t('common.error'), message: t('broadcast.usernameRequired'), type: 'error' });
       return;
     }
 
@@ -63,12 +66,19 @@ export default function BroadcastScreen() {
         username: targetType === 'specific' ? targetUsername.trim() : null,
       });
       
-      Alert.alert(t('common.success'), t('broadcast.sendSuccess'), [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showAlert({ 
+        title: t('common.success'), 
+        message: t('broadcast.sendSuccess'), 
+        type: 'success',
+        onConfirm: () => navigation.goBack()
+      });
     } catch (error: any) {
       console.error('Failed to send broadcast', error);
-      Alert.alert(t('common.error'), error.response?.data?.error || t('broadcast.sendError'));
+      showAlert({ 
+        title: t('common.error'), 
+        message: error.response?.data?.error || t('broadcast.sendError'), 
+        type: 'error' 
+      });
     } finally {
       setLoading(false);
     }

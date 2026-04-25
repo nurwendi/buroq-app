@@ -15,6 +15,7 @@ import { User, Shield, LogOut, ChevronRight, Phone, Mail, MapPin } from 'lucide-
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import apiClient from '../api/client';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
@@ -24,25 +25,20 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
 
   // Removed local resolveUrl function as it's now imported from '../utils/url'
 
   const handleLogout = () => {
-    Alert.alert(
-      t('profile.logoutConfirmTitle'),
-      t('profile.logoutConfirmMsg'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { 
-          text: t('profile.logoutBtn'), 
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            // AuthContext should handle redirection to Login
-          }
-        }
-      ]
-    );
+    showAlert({
+      title: t('profile.logoutConfirmTitle'),
+      message: t('profile.logoutConfirmMsg'),
+      type: 'warning',
+      confirmText: t('profile.logoutBtn'),
+      onConfirm: async () => {
+        await logout();
+      }
+    });
   };
 
   return (

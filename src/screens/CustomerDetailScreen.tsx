@@ -45,6 +45,7 @@ import {
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useAlert } from '../context/AlertContext';
 import { resolveUrl } from '../utils/url';
 import { formatBytes } from '../utils/format';
 import GradientHeader from '../components/GradientHeader';
@@ -55,6 +56,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
   const { customer } = route.params;
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
+  const { showAlert } = useAlert();
   const [stats, setStats] = useState<any>(null);
   const [acsDevice, setAcsDevice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -115,7 +117,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
     if (customer.phone) {
       Linking.openURL(`tel:${customer.phone}`);
     } else {
-      Alert.alert(t('common.info'), t('users.phoneNotAvailable'));
+      showAlert({ title: t('common.info'), message: t('users.phoneNotAvailable'), type: 'info' });
     }
   };
 
@@ -125,70 +127,60 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
       const formattedPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
       Linking.openURL(`whatsapp://send?phone=${formattedPhone}`);
     } else {
-      Alert.alert(t('common.info'), t('users.whatsappNotAvailable'));
+      showAlert({ title: t('common.info'), message: t('users.whatsappNotAvailable'), type: 'info' });
     }
   };
 
   const handleReboot = async () => {
     if (!acsDevice) return;
     
-    Alert.alert(
-      t('users.rebootTitle'),
-      t('users.rebootConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { 
-          text: t('users.rebootConfirmBtn'), 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsSubmitting(true);
-              await apiClient.post('/api/genieacs/reboot', { deviceId: acsDevice.id });
-              Alert.alert(t('common.success'), t('users.rebootSuccessMsg'));
-            } catch (e) {
-              Alert.alert(t('common.error'), t('users.rebootErrorMsg'));
-            } finally {
-              setIsSubmitting(false);
-            }
-          }
+    showAlert({
+      title: t('users.rebootTitle'),
+      message: t('users.rebootConfirm'),
+      type: 'warning',
+      confirmText: t('users.rebootConfirmBtn'),
+      onConfirm: async () => {
+        try {
+          setIsSubmitting(true);
+          await apiClient.post('/api/genieacs/reboot', { deviceId: acsDevice.id });
+          showAlert({ title: t('common.success'), message: t('users.rebootSuccessMsg'), type: 'success' });
+        } catch (e) {
+          showAlert({ title: t('common.error'), message: t('users.rebootErrorMsg'), type: 'error' });
+        } finally {
+          setIsSubmitting(false);
         }
-      ]
-    );
+      }
+    });
   };
 
   const handleDropSession = async () => {
     if (!stats?.session?.active || !stats?.session?.id) return;
 
-    Alert.alert(
-      t('users.kickTitle'),
-      t('users.kickConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('users.kick'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsSubmitting(true);
-              await apiClient.delete(`/api/pppoe/active/${stats.session.id}`);
-              Alert.alert(t('common.success'), t('users.kickSuccess'));
-              fetchCustomerStats(); // Refresh stats
-            } catch (e) {
-              Alert.alert(t('common.error'), t('users.kickError'));
-            } finally {
-              setIsSubmitting(false);
-            }
-          }
+    showAlert({
+      title: t('users.kickTitle'),
+      message: t('users.kickConfirm'),
+      type: 'warning',
+      confirmText: t('users.kick'),
+      onConfirm: async () => {
+        try {
+          setIsSubmitting(true);
+          await apiClient.delete(`/api/pppoe/active/${stats.session.id}`);
+          showAlert({ title: t('common.success'), message: t('users.kickSuccess'), type: 'success' });
+          fetchCustomerStats(); // Refresh stats
+        } catch (e) {
+          showAlert({ title: t('common.error'), message: t('users.kickError'), type: 'error' });
+        } finally {
+          setIsSubmitting(false);
         }
-      ]
-    );
+      }
+    });
   };
 
   const handleOpenRouter = () => {
     if (stats?.session?.ipAddress) {
       Linking.openURL(`http://${stats.session.ipAddress}`);
     } else {
-      Alert.alert(t('common.info'), t('users.onlineOnlyRouter'));
+      showAlert({ title: t('common.info'), message: t('users.onlineOnlyRouter'), type: 'info' });
     }
   };
 
@@ -205,47 +197,45 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
         ssid: wifiForm.ssid,
         password: wifiForm.password
       });
-      Alert.alert(t('common.success'), t('users.wifiUpdateSuccessDetail'));
+      showAlert({ title: t('common.success'), message: t('users.wifiUpdateSuccessDetail'), type: 'success' });
       setWifiModalVisible(false);
       fetchAcsDevice();
     } catch (e: any) {
-      Alert.alert(t('common.error'), t('users.wifiUpdateErrorDetail'));
+      showAlert({ title: t('common.error'), message: t('users.wifiUpdateErrorDetail'), type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteCustomer = async () => {
-    Alert.alert(
-      t('users.deleteConfirmTitle'),
-      t('users.deleteCustomerConfirm'),
-
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsSubmitting(true);
-              const response = await apiClient.delete(`/api/customers/${customer.username}`);
-              
-              if (response.data.pendingApproval) {
-                Alert.alert(t('common.info'), response.data.message || t('users.deleteCustomerPending'));
-              } else {
-                Alert.alert(t('common.success'), t('users.deleteSuccess') || 'Pelanggan berhasil dihapus');
-                navigation.goBack();
-              }
-            } catch (e: any) {
-              const errorMsg = e.response?.data?.error || t('common.deleteError');
-              Alert.alert(t('common.error'), errorMsg);
-            } finally {
-              setIsSubmitting(false);
-            }
+    showAlert({
+      title: t('users.deleteConfirmTitle'),
+      message: t('users.deleteCustomerConfirm'),
+      type: 'error',
+      confirmText: t('common.delete'),
+      onConfirm: async () => {
+        try {
+          setIsSubmitting(true);
+          const response = await apiClient.delete(`/api/customers/${customer.username}`);
+          
+          if (response.data.pendingApproval) {
+            showAlert({ title: t('common.info'), message: response.data.message || t('users.deleteCustomerPending'), type: 'info' });
+          } else {
+            showAlert({ 
+              title: t('common.success'), 
+              message: t('users.deleteSuccess') || 'Pelanggan berhasil dihapus', 
+              type: 'success',
+              onConfirm: () => navigation.goBack()
+            });
           }
+        } catch (e: any) {
+          const errorMsg = e.response?.data?.error || t('common.deleteError');
+          showAlert({ title: t('common.error'), message: errorMsg, type: 'error' });
+        } finally {
+          setIsSubmitting(false);
         }
-      ]
-    );
+      }
+    });
   };
 
 

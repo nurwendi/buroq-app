@@ -192,7 +192,9 @@ export default function FinancialReportScreen() {
                   <tr>
                     <th>Staff</th>
                     <th class="text-right">Trx</th>
-                    <th class="text-right">Profit</th>
+                    <th class="text-right">Gross</th>
+                    <th class="text-right">Comm</th>
+                    <th class="text-right">Net</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,6 +202,8 @@ export default function FinancialReportScreen() {
                     <tr>
                       <td>${s.name || s.username}</td>
                       <td class="text-right">${s.count}</td>
+                      <td class="text-right">${formatCurrency(s.revenue || 0)}</td>
+                      <td class="text-right">-${formatCurrency(s.commission || 0)}</td>
                       <td class="text-right">${formatCurrency((s.revenue || 0) - (s.commission || 0))}</td>
                     </tr>
                   `).join('')}
@@ -371,16 +375,20 @@ export default function FinancialReportScreen() {
           </View>
           <View style={styles.glassCard}>
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeadText, { flex: 2 }]}>{t('financial.staff') || 'Staff'}</Text>
-              <Text style={[styles.tableHeadText, { flex: 1, textAlign: 'center' }]}>{t('financial.count') || 'Trx'}</Text>
-              <Text style={[styles.tableHeadText, { flex: 2, textAlign: 'right' }]}>{t('financial.profit') || 'Profit'}</Text>
+              <Text style={[styles.tableHeadText, { flex: 1.8 }]}>{t('financial.staff') || 'Staff'}</Text>
+              <Text style={[styles.tableHeadText, { flex: 0.6, textAlign: 'center' }]}>Trx</Text>
+              <Text style={[styles.tableHeadText, { flex: 1.2, textAlign: 'right' }]}>{t('financial.gross') || 'Gross'}</Text>
+              <Text style={[styles.tableHeadText, { flex: 1.2, textAlign: 'right' }]}>{t('financial.commission') || 'Comm'}</Text>
+              <Text style={[styles.tableHeadText, { flex: 1.2, textAlign: 'right' }]}>Net</Text>
             </View>
             {(data?.staffBreakdown || []).map((s: any, i: number) => (
               <View key={i} style={[styles.tableRow, i === (data?.staffBreakdown?.length || 0) - 1 && { borderBottomWidth: 0 }]}>
-                <Text style={[styles.tableCellName, { flex: 2 }]} numberOfLines={1}>{s.name || s.username}</Text>
-                <Text style={[styles.tableCellText, { flex: 1, textAlign: 'center' }]}>{s.count || 0}</Text>
-                <Text style={[styles.tableCellProfit, { flex: 2, textAlign: 'right' }]}>
-                  {formatCurrency((s.revenue || 0) - (s.commission || 0))}
+                <Text style={[styles.tableCellName, { flex: 1.8, fontSize: 11 }]} numberOfLines={1}>{s.name || s.username}</Text>
+                <Text style={[styles.tableCellText, { flex: 0.6, textAlign: 'center', fontSize: 11 }]}>{s.count || 0}</Text>
+                <Text style={[styles.tableCellText, { flex: 1.2, textAlign: 'right', fontSize: 11 }]}>{((s.revenue || 0)/1000).toFixed(0)}k</Text>
+                <Text style={[styles.tableCellText, { flex: 1.2, textAlign: 'right', fontSize: 11, color: COLORS.error }]}>-{((s.commission || 0)/1000).toFixed(0)}k</Text>
+                <Text style={[styles.tableCellProfit, { flex: 1.2, textAlign: 'right', fontSize: 11 }]}>
+                  {(( (s.revenue || 0) - (s.commission || 0) )/1000).toFixed(0)}k
                 </Text>
               </View>
             ))}

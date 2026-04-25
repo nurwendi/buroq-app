@@ -93,36 +93,41 @@ export default function AdminDashboardView() {
     try {
       setLoadingStats(true);
       // Since '/api/admin/stats' frequently errors 500 on older backends due to constraint/casing bugs,
-      // we bypass it and use '/api/dashboard/stats' which safely returns totalCustomers & routers.
-      // We also fetch '/api/billing/stats' safely for financials.
-      const [dashRes, billingRes] = await Promise.all([
+      // we merge data from 4 sources: admin, dashboard, billing, and the verified financial reports.
+      const [adminRes, dashRes, billingRes, reportRes] = await Promise.all([
+        apiClient.get('/api/admin/stats').catch(() => ({ data: {} })),
         apiClient.get('/api/dashboard/stats').catch(() => ({ data: {} })),
-        apiClient.get('/api/billing/stats').catch(() => ({ data: {} }))
+        apiClient.get('/api/billing/stats').catch(() => ({ data: {} })),
+        apiClient.get(`/api/reports/financial?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`).catch(() => ({ data: {} }))
       ]);
       
+      const adminData   = adminRes.data   || {};
       const dashData    = dashRes.data    || {};
       const billingData = billingRes.data || {};
+      const reportData  = reportRes.data  || {};
 
       setStats({
         ...dashData,
-        // Override with billingData for financials & pending summary
-        grossRevenue:              billingData.grossRevenue || 0,
-        netRevenue:                billingData.netRevenue || 0,
-        staffCommission:           billingData.staffCommission || 0,
-        totalUnpaid:               billingData.totalUnpaid || 0,
-        recentTransactions:        billingData.recentTransactions || [],
+        ...adminData,
+        // Override with billingData for financials & pending summary as it's often more reliable
+        // Use reportData (from /api/reports/financial) as ultimate fallback for accuracy
+        grossRevenue:              billingData.grossRevenue || adminData.grossRevenue || reportData?.summary?.totalRevenue || 0,
+        netRevenue:                billingData.netRevenue   || adminData.netRevenue   || reportData?.summary?.netIncome || 0,
+        staffCommission:           billingData.staffCommission || adminData.staffCommission || reportData?.summary?.totalCommissions || 0,
+        totalUnpaid:               billingData.totalUnpaid  || adminData.totalUnpaid  || reportData?.summary?.totalUnpaid || 0,
+        recentTransactions:        billingData.recentTransactions || adminData.recentTransactions || [],
         
-        // Count pending from billing stats instead of admin stats
-        pendingRegistrationsCount: billingData.pendingRegistrationsCount || 0,
-        pendingPaymentsCount:      billingData.pendingCount || 0,
-        pendingCount:              billingData.pendingCount || 0,
+        // Count pending approvals
+        pendingRegistrationsCount: adminData.pendingRegistrationsCount || billingData.pendingRegistrationsCount || 0,
+        pendingPaymentsCount:      adminData.pendingPaymentsCount      || billingData.pendingCount || 0,
+        pendingCount:              adminData.pendingCount              || billingData.pendingCount || 0,
 
         // Ensure these critical fields exist for DonutChart
-        totalCustomers:            dashData.totalCustomers || billingData.totalCustomers || 0,
-        pppoeActive:               dashData.pppoeActive || billingData.pppoeActive || 0,
-        pppoeOffline:              dashData.pppoeOffline || billingData.pppoeOffline || 0,
+        totalCustomers:            adminData.totalCustomers || dashData.totalCustomers || billingData.totalCustomers || 0,
+        pppoeActive:               adminData.pppoeActive    || dashData.pppoeActive    || billingData.pppoeActive || 0,
+        pppoeOffline:              adminData.pppoeOffline   || dashData.pppoeOffline   || billingData.pppoeOffline || 0,
       });
-      setOnlineCount(dashData.pppoeActive || billingData.pppoeActive || 0);
+      setOnlineCount(adminData.pppoeActive || dashData.pppoeActive || billingData.pppoeActive || 0);
       
     } catch (e: any) {
       console.error('Failed to fetch admin stats', e);

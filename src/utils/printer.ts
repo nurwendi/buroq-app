@@ -134,7 +134,8 @@ ${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF
 
   if (!data?.isAgentView && data?.staffBreakdown?.length > 0) {
     data.staffBreakdown.forEach((s: any) => {
-      payload += `<L>${(s.name || s.username || 'Staff').substring(0, 12).padEnd(12)} : ${s.count || 0} trx\n`;
+      const net = (s.revenue || 0) - (s.commission || 0);
+      payload += `<L>${(s.name || s.username || 'Staff').substring(0, 10).padEnd(10)}: ${String(s.count || 0).padStart(2)} trx | Rp${(net/1000).toFixed(0)}k\n`;
     });
   }
 

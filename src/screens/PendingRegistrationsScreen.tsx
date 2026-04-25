@@ -37,6 +37,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import { COLORS } from '../constants/theme';
 import GradientHeader from '../components/GradientHeader';
 
@@ -95,6 +96,7 @@ interface ReviewFormData {
 export default function PendingRegistrationsScreen() {
   const { t } = useLanguage();
   const navigation = useNavigation<any>();
+  const { showAlert } = useAlert();
 
   // List state
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -123,7 +125,7 @@ export default function PendingRegistrationsScreen() {
       setRegistrations(response.data);
     } catch (e) {
       console.error('Failed to fetch registrations', e);
-      Alert.alert('Error', 'Gagal mengambil daftar pendaftaran');
+      showAlert({ title: 'Error', message: 'Gagal mengambil daftar pendaftaran', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -234,47 +236,46 @@ export default function PendingRegistrationsScreen() {
       ? selectedReg.name
       : selectedReg.targetUsername;
 
-    Alert.alert(
-      'Konfirmasi',
-      `Apakah Anda yakin ingin ${actionLabel} permintaan untuk ${targetName}?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: action === 'approve' ? 'Setujui' : 'Tolak',
-          style: action === 'approve' ? 'default' : 'destructive',
-          onPress: async () => {
-            setSubmitting(true);
-            try {
-              // PENTING: selalu kirim reg.username sebagai key — sama persis dengan web
-              const body: any = {
-                username: selectedReg.username,
-                action,
-              };
+    showAlert({
+      title: 'Konfirmasi',
+      message: `Apakah Anda yakin ingin ${actionLabel} permintaan untuk ${targetName}?`,
+      type: action === 'approve' ? 'info' : 'warning',
+      confirmText: action === 'approve' ? 'Setujui' : 'Tolak',
+      onConfirm: async () => {
+        setSubmitting(true);
+        try {
+          const body: any = {
+            username: selectedReg.username,
+            action,
+          };
 
-              // Kirim updatedData saat approve — sama persis dengan web
-              if (action === 'approve') {
-                body.updatedData = reviewForm;
-              }
+          if (action === 'approve') {
+            body.updatedData = reviewForm;
+          }
 
-              const res = await apiClient.post('/api/registrations', body);
+          const res = await apiClient.post('/api/registrations', body);
 
-              if (res.data.success) {
-                Alert.alert('Berhasil', res.data.message || 'Tindakan berhasil');
+          if (res.data.success) {
+            showAlert({ 
+              title: 'Berhasil', 
+              message: res.data.message || 'Tindakan berhasil', 
+              type: 'success',
+              onConfirm: () => {
                 setShowReviewModal(false);
                 setSelectedReg(null);
                 fetchRegistrations();
-              } else {
-                Alert.alert('Gagal', res.data.error || 'Gagal melakukan tindakan');
               }
-            } catch (err: any) {
-              Alert.alert('Error', err.response?.data?.error || 'Terjadi kesalahan sistem');
-            } finally {
-              setSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
+            });
+          } else {
+            showAlert({ title: 'Gagal', message: res.data.error || 'Gagal melakukan tindakan', type: 'error' });
+          }
+        } catch (err: any) {
+          showAlert({ title: 'Error', message: err.response?.data?.error || 'Terjadi kesalahan sistem', type: 'error' });
+        } finally {
+          setSubmitting(false);
+        }
+      }
+    });
   };
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -641,33 +642,28 @@ export default function PendingRegistrationsScreen() {
             style={[styles.btn, styles.btnCardReject]}
             onPress={() => {
               // Quick reject langsung tanpa modal (sama dengan web: Tolak dari list)
-              Alert.alert(
-                'Tolak Permintaan',
-                `Tolak permintaan untuk ${displayName || displayUser}?`,
-                [
-                  { text: 'Batal', style: 'cancel' },
-                  {
-                    text: 'Tolak',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        const res = await apiClient.post('/api/registrations', {
-                          username: item.username, // Selalu gunakan reg.username — PRIMARY KEY
-                          action: 'reject',
-                        });
-                        if (res.data.success) {
-                          Alert.alert('Berhasil', res.data.message || 'Permintaan ditolak');
-                          fetchRegistrations();
-                        } else {
-                          Alert.alert('Gagal', res.data.error || 'Gagal menolak');
-                        }
-                      } catch (err: any) {
-                        Alert.alert('Error', err.response?.data?.error || 'Terjadi kesalahan');
-                      }
-                    },
-                  },
-                ]
-              );
+              showAlert({
+                title: 'Tolak Permintaan',
+                message: `Tolak permintaan untuk ${displayName || displayUser}?`,
+                type: 'warning',
+                confirmText: 'Tolak',
+                onConfirm: async () => {
+                  try {
+                    const res = await apiClient.post('/api/registrations', {
+                      username: item.username,
+                      action: 'reject',
+                    });
+                    if (res.data.success) {
+                      showAlert({ title: 'Berhasil', message: res.data.message || 'Permintaan ditolak', type: 'success' });
+                      fetchRegistrations();
+                    } else {
+                      showAlert({ title: 'Gagal', message: res.data.error || 'Gagal menolak', type: 'error' });
+                    }
+                  } catch (err: any) {
+                    showAlert({ title: 'Error', message: err.response?.data?.error || 'Terjadi kesalahan', type: 'error' });
+                  }
+                }
+              });
             }}
           >
             <XCircle size={16} color="#dc2626" />

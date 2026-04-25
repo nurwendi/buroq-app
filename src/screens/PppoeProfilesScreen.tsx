@@ -35,11 +35,13 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 
 export default function PppoeProfilesScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [pools, setPools] = useState<any[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<any[]>([]);
@@ -89,7 +91,7 @@ export default function PppoeProfilesScreen() {
       setPools(poolsRes.data || []);
     } catch (e) {
       console.error('Failed to fetch PPPoE profiles', e);
-      Alert.alert(t('common.error'), t('pppoe.fetchError'));
+      showAlert({ title: t('common.error'), message: t('pppoe.fetchError'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -148,7 +150,7 @@ export default function PppoeProfilesScreen() {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      Alert.alert(t('common.error'), t('pppoe.nameRequired'));
+      showAlert({ title: t('common.error'), message: t('pppoe.nameRequired'), type: 'error' });
       return;
     }
 
@@ -167,45 +169,40 @@ export default function PppoeProfilesScreen() {
       if (editingProfile) {
         body.id = editingProfile['.id'];
         await apiClient.patch('/api/pppoe/profiles', body);
-        Alert.alert(t('common.success'), t('pppoe.profileUpdateSuccess'));
+        showAlert({ title: t('common.success'), message: t('pppoe.profileUpdateSuccess'), type: 'success' });
       } else {
         await apiClient.post('/api/pppoe/profiles', body);
-        Alert.alert(t('common.success'), t('pppoe.profileAddSuccess'));
+        showAlert({ title: t('common.success'), message: t('pppoe.profileAddSuccess'), type: 'success' });
       }
       setModalVisible(false);
       fetchData();
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.response?.data?.error || t('pppoe.profileSaveError'));
+      showAlert({ title: t('common.error'), message: e.response?.data?.error || t('pppoe.profileSaveError'), type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = (profile: any) => {
-    Alert.alert(
-      t('pppoe.deleteConfirmTitle'),
-      t('pppoe.deleteConfirmMsg').replace('{name}', profile.name),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { 
-          text: t('common.delete'), 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiClient.delete('/api/pppoe/profiles', { 
-                params: { 
-                  id: profile['.id'],
-                  name: profile.name 
-                } 
-              });
-              fetchData();
-            } catch (e) {
-              Alert.alert(t('common.error'), t('pppoe.deleteError'));
-            }
-          }
+    showAlert({
+      title: t('pppoe.deleteConfirmTitle'),
+      message: t('pppoe.deleteConfirmMsg').replace('{name}', profile.name),
+      type: 'error',
+      confirmText: t('common.delete'),
+      onConfirm: async () => {
+        try {
+          await apiClient.delete('/api/pppoe/profiles', { 
+            params: { 
+              id: profile['.id'],
+              name: profile.name 
+            } 
+          });
+          fetchData();
+        } catch (e) {
+          showAlert({ title: t('common.error'), message: t('pppoe.deleteError'), type: 'error' });
         }
-      ]
-    );
+      }
+    });
   };
 
   const renderItem = ({ item }: { item: any }) => (

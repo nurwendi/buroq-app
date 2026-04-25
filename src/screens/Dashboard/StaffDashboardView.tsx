@@ -82,24 +82,27 @@ export default function StaffDashboardView() {
   const fetchStats = async () => {
     try {
       setLoadingStats(true);
-      // Gunakan admin/stats sebagai sumber utama — sudah scoped per role di backend
-      // + billing/stats untuk recentTransactions (sama dengan web)
-      const [statsRes, billingRes] = await Promise.all([
-        apiClient.get('/api/admin/stats'),
-        apiClient.get('/api/billing/stats').catch(() => ({ data: {} }))
+      // Gunakan admin/stats + billing/stats + reports/financial sebagai cadangan data
+      // Gunakan .catch() untuk menghindari kegagalan total jika salah satu API 500
+      const [statsRes, billingRes, reportRes] = await Promise.all([
+        apiClient.get('/api/admin/stats').catch(() => ({ data: {} })),
+        apiClient.get('/api/billing/stats').catch(() => ({ data: {} })),
+        apiClient.get(`/api/reports/financial?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`).catch(() => ({ data: {} }))
       ]);
-
+      
       const statsData   = statsRes.data   || {};
       const billingData = billingRes.data || {};
+      const reportData  = reportRes.data  || {};
 
       setStats({
         ...statsData,
         // Override with billingData for financials since staff scope uses billing/stats
-        grossRevenue:              billingData.grossRevenue || 0,
-        netRevenue:                billingData.netRevenue || 0,
-        staffCommission:           billingData.staffCommission || 0,
-        totalUnpaid:               billingData.totalUnpaid || 0,
-        recentTransactions:        billingData.recentTransactions || [],
+        // Use reportData (from /api/reports/financial) as ultimate fallback for accuracy
+        grossRevenue:              billingData.grossRevenue || statsData.grossRevenue || reportData?.summary?.totalRevenue || 0,
+        netRevenue:                billingData.netRevenue   || statsData.netRevenue   || reportData?.summary?.netIncome || 0,
+        staffCommission:           billingData.staffCommission || statsData.staffCommission || reportData?.summary?.totalCommissions || 0,
+        totalUnpaid:               billingData.totalUnpaid  || statsData.totalUnpaid  || reportData?.summary?.totalUnpaid || 0,
+        recentTransactions:        billingData.recentTransactions || statsData.recentTransactions || [],
         pendingRegistrationsCount: statsData.pendingRegistrationsCount || 0,
         pendingPaymentsCount:      statsData.pendingPaymentsCount      || 0,
         pendingCount:              statsData.pendingCount              || 0,

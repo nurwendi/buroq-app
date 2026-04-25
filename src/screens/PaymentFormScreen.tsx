@@ -216,6 +216,11 @@ export default function PaymentFormScreen() {
     if (!lastPayment || !selectedCustomer) return;
     
     try {
+      setLoading(true);
+      // Fetch enriched payment data to get the customer's assigned agent name (even if Admin records payment)
+      const res = await apiClient.get(`/api/billing/payments?username=${selectedCustomer.username}`);
+      const enrichedPayment = Array.isArray(res.data) ? res.data.find((p: any) => p.invoiceNumber === lastPayment.invoiceNumber) : null;
+      
       await printReceipt({
         invoiceNumber: lastPayment.invoiceNumber,
         customerName: selectedCustomer.name,
@@ -225,8 +230,8 @@ export default function PaymentFormScreen() {
         date: new Date(lastPayment.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
         amount: lastPayment.amount,
         paymentMethod: lastPayment.method === 'cash' ? t('billing.cash') : t('billing.transfer'),
-        agentFullName: user?.fullName || user?.name || user?.username,
-        agentPhone: user?.phone,
+        agentFullName: enrichedPayment?.agentFullName || user?.fullName || user?.name || user?.username,
+        agentPhone: enrichedPayment?.agentFullName ? '' : user?.phone,
         period: `${months[selectedMonth]} ${selectedYear}`
       });
       showAlert({ title: t('common.success'), message: t('billing.printingReceipt'), type: 'success' });

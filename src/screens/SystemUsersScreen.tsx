@@ -35,6 +35,7 @@ import { useNavigation } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import GradientHeader from '../components/GradientHeader';
 import { resolveUrl } from '../utils/url';
 import { COLORS } from '../constants/theme';
@@ -43,6 +44,7 @@ export default function SystemUsersScreen() {
   const { user: currentUser } = useAuth();
   const navigation = useNavigation<any>();
   const { t } = useLanguage();
+  const { showAlert } = useAlert();
   const [users, setUsers] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,7 +167,7 @@ export default function SystemUsersScreen() {
 
   const handleSubmit = async () => {
     if (!formData.username || (!editingUser && !formData.password)) {
-      Alert.alert(t('common.error'), t('users.requiredFields'));
+      showAlert({ title: t('common.error'), message: t('users.requiredFields'), type: 'error' });
       return;
     }
 
@@ -180,40 +182,35 @@ export default function SystemUsersScreen() {
       if (editingUser) {
         if (!body.password) delete (body as any).password;
         await apiClient.put(`/api/admin/users/${editingUser.id}`, body);
-        Alert.alert(t('common.success'), t('users.userUpdateSuccess'));
+        showAlert({ title: t('common.success'), message: t('users.userUpdateSuccess'), type: 'success' });
       } else {
         await apiClient.post('/api/admin/users', body);
-        Alert.alert(t('common.success'), t('users.userAddSuccess'));
+        showAlert({ title: t('common.success'), message: t('users.userAddSuccess'), type: 'success' });
       }
       setModalVisible(false);
       fetchUsers();
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.response?.data?.error || t('users.userSaveError'));
+      showAlert({ title: t('common.error'), message: e.response?.data?.error || t('users.userSaveError'), type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert(
-      t('users.deleteConfirmTitle'),
-      t('users.deleteConfirmMsg'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { 
-          text: t('users.deleteBtn'), 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiClient.delete(`/api/admin/users/${id}`);
-              fetchUsers();
-            } catch (e) {
-              Alert.alert(t('common.error'), t('users.userDeleteError'));
-            }
-          }
+    showAlert({
+      title: t('users.deleteConfirmTitle'),
+      message: t('users.deleteConfirmMsg'),
+      type: 'error',
+      confirmText: t('users.deleteBtn'),
+      onConfirm: async () => {
+        try {
+          await apiClient.delete(`/api/admin/users/${id}`);
+          fetchUsers();
+        } catch (e) {
+          showAlert({ title: t('common.error'), message: t('users.userDeleteError'), type: 'error' });
         }
-      ]
-    );
+      }
+    });
   };
 
   const getRoleColor = (role: string) => {

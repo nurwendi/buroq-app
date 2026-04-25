@@ -28,6 +28,12 @@ const { width } = Dimensions.get('window');
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
 
+interface AlertButton {
+  text: string;
+  onPress: () => void;
+  style?: 'default' | 'cancel' | 'destructive';
+}
+
 interface GlassAlertProps {
   visible: boolean;
   title: string;
@@ -36,6 +42,7 @@ interface GlassAlertProps {
   onClose: () => void;
   confirmText?: string;
   onConfirm?: () => void;
+  buttons?: AlertButton[];
 }
 
 const TYPE_CONFIG = {
@@ -117,8 +124,28 @@ export default function GlassAlert({
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.message}>{message}</Text>
 
-            <View style={styles.buttonContainer}>
-              {onConfirm ? (
+            <View style={[styles.buttonContainer, buttons && buttons.length > 2 && { flexDirection: 'column' }]}>
+              {buttons ? (
+                buttons.map((btn, idx) => (
+                  <TouchableOpacity 
+                    key={idx}
+                    style={[
+                      styles.confirmButton, 
+                      { backgroundColor: btn.style === 'cancel' ? 'rgba(255, 255, 255, 0.8)' : (btn.style === 'destructive' ? '#ef4444' : config.color) },
+                      btn.style === 'cancel' && { borderWidth: 1, borderColor: COLORS.slate[200] },
+                      buttons.length > 2 && { width: '100%', marginBottom: 8 }
+                    ]} 
+                    onPress={() => {
+                      btn.onPress();
+                      onClose();
+                    }}
+                  >
+                    <Text style={[styles.confirmButtonText, btn.style === 'cancel' && { color: COLORS.slate[600] }]}>
+                      {btn.text}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : onConfirm ? (
                 <>
                   <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                     <Text style={styles.cancelButtonText}>Batal</Text>

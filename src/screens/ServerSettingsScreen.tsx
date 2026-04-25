@@ -14,11 +14,12 @@ import {
 import { ArrowLeft, Globe, Save, RefreshCw } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CONFIG } from '../api/config';
 import { updateApiBaseUrl } from '../api/client';
+import { useAlert } from '../context/AlertContext';
 
 export default function ServerSettingsScreen() {
   const navigation = useNavigation<any>();
+  const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [baseUrl, setBaseUrl] = useState('');
@@ -40,12 +41,12 @@ export default function ServerSettingsScreen() {
 
   const handleSave = async () => {
     if (!baseUrl.trim()) {
-      Alert.alert('Error', 'URL Server tidak boleh kosong');
+      showAlert({ title: 'Error', message: 'URL Server tidak boleh kosong', type: 'error' });
       return;
     }
 
     if (!baseUrl.startsWith('http')) {
-      Alert.alert('Error', 'URL harus diawali dengan http:// atau https://');
+      showAlert({ title: 'Error', message: 'URL harus diawali dengan http:// atau https://', type: 'error' });
       return;
     }
 
@@ -57,29 +58,28 @@ export default function ServerSettingsScreen() {
       // 2. Update global apiClient
       updateApiBaseUrl(baseUrl.trim());
       
-      Alert.alert('Sukses', 'Pengaturan server telah diperbarui. Aplikasi akan menggunakan URL baru untuk permintaan selanjutnya.', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showAlert({ 
+        title: 'Sukses', 
+        message: 'Pengaturan server telah diperbarui. Aplikasi akan menggunakan URL baru untuk permintaan selanjutnya.', 
+        type: 'success',
+        onConfirm: () => navigation.goBack() 
+      });
     } catch (e) {
       console.error('Failed to save server settings', e);
-      Alert.alert('Error', 'Gagal menyimpan pengaturan');
+      showAlert({ title: 'Error', message: 'Gagal menyimpan pengaturan', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = () => {
-    Alert.alert(
-      'Reset ke Default',
-      'Apakah Anda ingin mengembalikan URL server ke nilai bawaan?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Ya, Reset', 
-          onPress: () => setBaseUrl(CONFIG.API_BASE_URL) 
-        }
-      ]
-    );
+    showAlert({
+      title: 'Reset ke Default',
+      message: 'Apakah Anda ingin mengembalikan URL server ke nilai bawaan?',
+      type: 'warning',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => setBaseUrl(CONFIG.API_BASE_URL)
+    });
   };
 
   if (loading) {

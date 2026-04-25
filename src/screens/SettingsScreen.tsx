@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform } from 'react-native';
-import { LogOut, User, Shield, Info, Settings as SettingsIcon, ChevronRight, CreditCard, Database, Server, Cog, Printer } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigation } from '@react-navigation/native';
+import { useAlert } from '../context/AlertContext';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import apiClient from '../api/client';
 import { Alert, ActivityIndicator, Image } from 'react-native';
@@ -17,44 +17,42 @@ export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const navigation = useNavigation<any>();
+  const { showAlert } = useAlert();
   const [backingUp, setBackingUp] = React.useState(false);
   const [printerModalVisible, setPrinterModalVisible] = React.useState(false);
 
   const handleBackup = async () => {
-    Alert.alert(
-      t('appSettings.backupTitle'),
-      t('appSettings.backupConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { 
-          text: t('appSettings.backupConfirmBtn'), 
-          onPress: async () => {
-            setBackingUp(true);
-            try {
-              const response = await apiClient.post('/api/backup', {});
-              Alert.alert(t('common.success'), t('appSettings.backupSuccess'));
-            } catch (error) {
-              console.error('Backup failed:', error);
-              Alert.alert(t('common.error'), t('appSettings.backupError'));
-            } finally {
-              setBackingUp(false);
-            }
-          }
+    showAlert({
+      title: t('appSettings.backupTitle'),
+      message: t('appSettings.backupConfirm'),
+      type: 'info',
+      confirmText: t('appSettings.backupConfirmBtn'),
+      onConfirm: async () => {
+        setBackingUp(true);
+        try {
+          const response = await apiClient.post('/api/backup', {});
+          showAlert({ title: t('common.success'), message: t('appSettings.backupSuccess'), type: 'success' });
+        } catch (error) {
+          console.error('Backup failed:', error);
+          showAlert({ title: t('common.error'), message: t('appSettings.backupError'), type: 'error' });
+        } finally {
+          setBackingUp(false);
         }
-      ]
-    );
+      }
+    });
   };
 
   const changeLanguage = () => {
-    Alert.alert(
-      t('appSettings.selectLanguage'),
-      '',
-      [
+    showAlert({
+      title: t('appSettings.selectLanguage'),
+      message: '',
+      type: 'info',
+      buttons: [
         { text: 'Bahasa Indonesia', onPress: () => setLanguage('id') },
         { text: 'English', onPress: () => setLanguage('en') },
-        { text: t('common.cancel'), style: 'cancel' }
+        { text: t('common.cancel'), style: 'cancel', onPress: () => {} }
       ]
-    );
+    });
   };
 
   return (

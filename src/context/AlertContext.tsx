@@ -7,6 +7,7 @@ interface AlertConfig {
   type: AlertType;
   confirmText?: string;
   onConfirm?: () => void;
+  buttons?: { text: string; onPress: () => void; style?: 'default' | 'cancel' | 'destructive' }[];
 }
 
 interface AlertContextData {
@@ -51,6 +52,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         type={config.type}
         confirmText={config.confirmText}
         onConfirm={config.onConfirm}
+        buttons={config.buttons}
         onClose={hideAlert}
       />
     </AlertContext.Provider>
