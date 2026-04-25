@@ -26,7 +26,9 @@ import {
   LogOut,
   FileText,
   AlertCircle,
-  UserPlus
+  UserPlus,
+  Wifi,
+  ClipboardCheck
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DonutChart from '../../components/DonutChart';

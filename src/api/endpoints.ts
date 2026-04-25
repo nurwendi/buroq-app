@@ -22,4 +22,12 @@ export const ENDPOINTS = {
   // Billing & Payments
   PAYMENTS: '/api/billing/payments',
   PAYMENT_PAY: '/api/billing/pay',
+
+  // Dashboard
+  DASHBOARD_STATS: '/api/dashboard/stats',
+  ADMIN_STATS: '/api/admin/stats',
+  ADMIN_STATS_OWNERS: '/api/admin/stats/owners',
+  BILLING_STATS: '/api/billing/stats',
+  SYSTEM_INFO: '/api/system/info',
+  APP_SETTINGS: '/api/app-settings',
 };
