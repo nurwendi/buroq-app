@@ -92,31 +92,37 @@ export default function AdminDashboardView() {
   const fetchStats = async () => {
     try {
       setLoadingStats(true);
-      // Fetch admin/stats (pppoe, pending, financial summary)
-      // + billing/stats (recentTransactions, detailed financials) — same as web dashboard
-      const [statsRes, billingRes] = await Promise.all([
-        apiClient.get('/api/admin/stats'),
+      // Since '/api/admin/stats' frequently errors 500 on older backends due to constraint/casing bugs,
+      // we bypass it and use '/api/dashboard/stats' which safely returns totalCustomers & routers.
+      // We also fetch '/api/billing/stats' safely for financials.
+      const [dashRes, billingRes] = await Promise.all([
+        apiClient.get('/api/dashboard/stats').catch(() => ({ data: {} })),
         apiClient.get('/api/billing/stats').catch(() => ({ data: {} }))
       ]);
       
-      const statsData   = statsRes.data   || {};
+      const dashData    = dashRes.data    || {};
       const billingData = billingRes.data || {};
 
       setStats({
-        ...statsData,
-        // Override with billingData for financials
+        ...dashData,
+        // Override with billingData for financials & pending summary
         grossRevenue:              billingData.grossRevenue || 0,
         netRevenue:                billingData.netRevenue || 0,
         staffCommission:           billingData.staffCommission || 0,
         totalUnpaid:               billingData.totalUnpaid || 0,
-        // recentTransactions comes from billing/stats, not admin/stats
-        recentTransactions: billingData.recentTransactions || [],
-        // Prefer admin/stats for pending counts (more accurate per-owner scope)
-        pendingRegistrationsCount: statsData.pendingRegistrationsCount || 0,
-        pendingPaymentsCount:      statsData.pendingPaymentsCount      || 0,
-        pendingCount:              statsData.pendingCount              || 0,
+        recentTransactions:        billingData.recentTransactions || [],
+        
+        // Count pending from billing stats instead of admin stats
+        pendingRegistrationsCount: billingData.pendingRegistrationsCount || 0,
+        pendingPaymentsCount:      billingData.pendingCount || 0,
+        pendingCount:              billingData.pendingCount || 0,
+
+        // Ensure these critical fields exist for DonutChart
+        totalCustomers:            dashData.totalCustomers || billingData.totalCustomers || 0,
+        pppoeActive:               dashData.pppoeActive || billingData.pppoeActive || 0,
+        pppoeOffline:              dashData.pppoeOffline || billingData.pppoeOffline || 0,
       });
-      setOnlineCount(statsData.pppoeActive || 0);
+      setOnlineCount(dashData.pppoeActive || billingData.pppoeActive || 0);
       
     } catch (e: any) {
       console.error('Failed to fetch admin stats', e);
