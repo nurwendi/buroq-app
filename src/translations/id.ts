@@ -246,6 +246,8 @@ export const id = {
         myEarnings: 'PENDAPATAN SAYA',
         totalBilling: 'TOTAL PENAGIHAN',
         unpaid_tagihan: 'BELUM BAYAR',
+        pppoeActive: 'Online',
+        pppoeOffline: 'Offline',
         profit: 'Profit',
     },
     users: {

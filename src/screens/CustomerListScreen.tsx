@@ -23,14 +23,14 @@ import { useLanguage } from '../context/LanguageContext';
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from '../constants/theme';
 
-export default function CustomerListScreen({ navigation }: any) {
+export default function CustomerListScreen({ navigation, route }: any) {
   const { t } = useLanguage();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'online' | 'offline' | 'isolir'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'online' | 'offline' | 'isolir'>(route.params?.filter || 'all');
   const [counts, setCounts] = useState({ all: 0, online: 0, offline: 0, isolir: 0 });
   const [loginBgUrl, setLoginBgUrl] = useState('');
   const [dashboardBgUrl, setDashboardBgUrl] = useState('');
@@ -94,6 +94,12 @@ export default function CustomerListScreen({ navigation }: any) {
     fetchCustomers();
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (route.params?.filter) {
+      setFilterType(route.params.filter);
+    }
+  }, [route.params?.filter]);
 
   useEffect(() => {
     let filtered = [...customers];

@@ -240,6 +240,8 @@ export const en = {
         myEarnings: 'MY EARNINGS',
         totalBilling: 'TOTAL BILLING',
         unpaid_tagihan: 'BILLING (PENDING)',
+        pppoeActive: 'Online',
+        pppoeOffline: 'Offline',
         profit: 'Profit',
     },
     users: {

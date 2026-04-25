@@ -311,7 +311,7 @@ export default function SuperadminDashboardView() {
           {/* Section: Customer Status — Donut Chart */}
           <TouchableOpacity 
             activeOpacity={0.9} 
-            onPress={() => navigation.navigate('CustomerList')}
+            onPress={() => navigation.navigate('CustomerList', { filter: 'all' })}
             style={styles.section}
           >
             <LinearGradient
