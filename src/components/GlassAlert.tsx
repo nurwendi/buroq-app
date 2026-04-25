@@ -76,6 +76,7 @@ export default function GlassAlert({
   onClose,
   confirmText,
   onConfirm,
+  buttons,
 }: GlassAlertProps) {
   if (!visible) return null;
 
@@ -83,10 +84,10 @@ export default function GlassAlert({
   const Icon = config.icon;
 
   const handleConfirm = () => {
+    onClose();
     if (onConfirm) {
       onConfirm();
     }
-    onClose();
   };
 
   return (
@@ -136,8 +137,8 @@ export default function GlassAlert({
                       buttons.length > 2 && { width: '100%', marginBottom: 8 }
                     ]} 
                     onPress={() => {
-                      btn.onPress();
                       onClose();
+                      btn.onPress();
                     }}
                   >
                     <Text style={[styles.confirmButtonText, btn.style === 'cancel' && { color: COLORS.slate[600] }]}>
