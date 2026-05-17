@@ -94,24 +94,33 @@ export default function StaffDashboardView() {
       const billingData = billingRes.data || {};
       const reportData  = reportRes.data  || {};
 
+      // Use null-coalescing (??) for numeric fields so that a real 0 is not
+      // skipped in favour of the next fallback (|| treats 0 as falsy).
+      const totalCustomers = statsData.totalCustomers ?? billingData.totalCustomers ?? 0;
+      const pppoeActive    = statsData.pppoeActive    ?? 0;
+      const pppoeOffline   = statsData.pppoeOffline   ?? Math.max(0, totalCustomers - pppoeActive);
+
       setStats({
         ...statsData,
-        // Override with billingData for financials since staff scope uses billing/stats
-        // Use reportData (from /api/reports/financial) as ultimate fallback for accuracy
-        grossRevenue:              billingData.grossRevenue || statsData.grossRevenue || reportData?.summary?.totalRevenue || 0,
-        netRevenue:                billingData.netRevenue   || statsData.netRevenue   || reportData?.summary?.netIncome || 0,
-        staffCommission:           billingData.staffCommission || statsData.staffCommission || reportData?.summary?.totalCommissions || 0,
-        totalUnpaid:               billingData.totalUnpaid  || statsData.totalUnpaid  || reportData?.summary?.totalUnpaid || 0,
-        recentTransactions:        billingData.recentTransactions || statsData.recentTransactions || [],
-        pendingRegistrationsCount: statsData.pendingRegistrationsCount || 0,
-        pendingPaymentsCount:      statsData.pendingPaymentsCount      || 0,
-        pendingCount:              statsData.pendingCount              || 0,
-        totalCustomers:            statsData.totalCustomers            || 0,
-        pppoeActive:               statsData.pppoeActive              || 0,
-        pppoeOffline:              statsData.pppoeOffline             || 0,
+        // Financials — billing/stats is most reliable (scoped per role)
+        grossRevenue:    billingData.grossRevenue    ?? statsData.grossRevenue    ?? reportData?.summary?.totalRevenue     ?? 0,
+        netRevenue:      billingData.netRevenue      ?? statsData.netRevenue      ?? reportData?.summary?.netIncome        ?? 0,
+        staffCommission: billingData.staffCommission ?? statsData.staffCommission ?? reportData?.summary?.totalCommissions ?? 0,
+        totalUnpaid:     billingData.totalUnpaid     ?? statsData.totalUnpaid     ?? reportData?.summary?.totalUnpaid      ?? 0,
+        recentTransactions: billingData.recentTransactions || statsData.recentTransactions || [],
+
+        // Pending approvals
+        pendingRegistrationsCount: statsData.pendingRegistrationsCount ?? 0,
+        pendingPaymentsCount:      statsData.pendingPaymentsCount      ?? 0,
+        pendingCount:              statsData.pendingCount              ?? 0,
+
+        // Customer status (DonutChart)
+        totalCustomers,
+        pppoeActive,
+        pppoeOffline,
       });
 
-      setOnlineCount(statsData.pppoeActive || 0);
+      setOnlineCount(pppoeActive);
     } catch (e: any) {
       console.error('Failed to fetch staff stats', e);
       showAlert({
@@ -376,7 +385,12 @@ export default function StaffDashboardView() {
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={styles.transactionCustomerName} numberOfLines={1}>{item.customerName}</Text>
-                      {item.invoiceNumber && <Text style={styles.txInvoiceNumber}>{item.invoiceNumber}</Text>}
+                      {item.invoiceNumber && (
+                        <Text style={styles.txInvoiceNumber}>
+                          {item.invoiceNumber}
+                          {item.notes ? ` • ${item.notes}` : ''}
+                        </Text>
+                      )}
                       <View style={styles.txMethodRow}>
                         <ArrowUpRight size={10} color="#10b981" />
                         <Text style={styles.txMethodText}>{(item.method || 'CASH').toUpperCase()}</Text>

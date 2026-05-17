@@ -106,28 +106,37 @@ export default function AdminDashboardView() {
       const billingData = billingRes.data || {};
       const reportData  = reportRes.data  || {};
 
+      // Use null-coalescing (??) for numeric fields so that a real value of 0
+      // is NOT skipped in favour of the next fallback (|| treats 0 as falsy).
+      const totalCustomers = adminData.totalCustomers ?? dashData.totalCustomers ?? billingData.totalCustomers ?? 0;
+
+      // pppoeActive from /api/billing/stats is always 0 (hardcoded, no Mikrotik query).
+      // Prefer adminData / dashData which actually queries Mikrotik.
+      // Fall back to billingData only as last resort (will show 0 online, N offline).
+      const pppoeActive  = adminData.pppoeActive  ?? dashData.pppoeActive  ?? 0;
+      const pppoeOffline = adminData.pppoeOffline ?? dashData.pppoeOffline ?? Math.max(0, totalCustomers - pppoeActive);
+
       setStats({
         ...dashData,
         ...adminData,
-        // Override with billingData for financials & pending summary as it's often more reliable
-        // Use reportData (from /api/reports/financial) as ultimate fallback for accuracy
-        grossRevenue:              billingData.grossRevenue || adminData.grossRevenue || reportData?.summary?.totalRevenue || 0,
-        netRevenue:                billingData.netRevenue   || adminData.netRevenue   || reportData?.summary?.netIncome || 0,
-        staffCommission:           billingData.staffCommission || adminData.staffCommission || reportData?.summary?.totalCommissions || 0,
-        totalUnpaid:               billingData.totalUnpaid  || adminData.totalUnpaid  || reportData?.summary?.totalUnpaid || 0,
-        recentTransactions:        billingData.recentTransactions || adminData.recentTransactions || [],
-        
-        // Count pending approvals
-        pendingRegistrationsCount: adminData.pendingRegistrationsCount || billingData.pendingRegistrationsCount || 0,
-        pendingPaymentsCount:      adminData.pendingPaymentsCount      || billingData.pendingCount || 0,
-        pendingCount:              adminData.pendingCount              || billingData.pendingCount || 0,
+        // Financials — billing/stats is most reliable (scoped per role, no Mikrotik dependency)
+        grossRevenue:    billingData.grossRevenue    ?? adminData.grossRevenue    ?? reportData?.summary?.totalRevenue      ?? 0,
+        netRevenue:      billingData.netRevenue      ?? adminData.netRevenue      ?? reportData?.summary?.netIncome         ?? 0,
+        staffCommission: billingData.staffCommission ?? adminData.staffCommission ?? reportData?.summary?.totalCommissions  ?? 0,
+        totalUnpaid:     billingData.totalUnpaid     ?? adminData.totalUnpaid     ?? reportData?.summary?.totalUnpaid       ?? 0,
+        recentTransactions: billingData.recentTransactions || adminData.recentTransactions || [],
 
-        // Ensure these critical fields exist for DonutChart
-        totalCustomers:            adminData.totalCustomers || dashData.totalCustomers || billingData.totalCustomers || 0,
-        pppoeActive:               adminData.pppoeActive    || dashData.pppoeActive    || billingData.pppoeActive || 0,
-        pppoeOffline:              adminData.pppoeOffline   || dashData.pppoeOffline   || billingData.pppoeOffline || 0,
+        // Pending approvals
+        pendingRegistrationsCount: adminData.pendingRegistrationsCount ?? 0,
+        pendingPaymentsCount:      adminData.pendingPaymentsCount      ?? billingData.pendingCount ?? 0,
+        pendingCount:              adminData.pendingCount              ?? billingData.pendingCount ?? 0,
+
+        // Customer status (DonutChart)
+        totalCustomers,
+        pppoeActive,
+        pppoeOffline,
       });
-      setOnlineCount(adminData.pppoeActive || dashData.pppoeActive || billingData.pppoeActive || 0);
+      setOnlineCount(pppoeActive);
       
     } catch (e: any) {
       console.error('Failed to fetch admin stats', e);
@@ -490,7 +499,10 @@ export default function AdminDashboardView() {
                      <View style={{ flex: 1, minWidth: 0 }}>
                        <Text style={styles.transactionCustomerName} numberOfLines={1}>{item.customerName}</Text>
                        {item.invoiceNumber && (
-                         <Text style={styles.txInvoiceNumber}>{item.invoiceNumber}</Text>
+                         <Text style={styles.txInvoiceNumber}>
+                           {item.invoiceNumber}
+                           {item.notes ? ` • ${item.notes}` : ''}
+                         </Text>
                        )}
                        <View style={styles.txMethodRow}>
                          <ArrowUpRight size={10} color="#10b981" />
