@@ -249,6 +249,10 @@ export const id = {
         pppoeActive: 'Online',
         pppoeOffline: 'Offline',
         profit: 'Profit',
+        pendingPayments: 'Tagihan Pending',
+        invoicesWaiting: 'Menunggu Pembayaran',
+        awaitingValidation: 'Menunggu Validasi',
+        latestPaid: 'Transaksi terbayar terakhir',
     },
     users: {
         title: 'Pelanggan PPPoE',

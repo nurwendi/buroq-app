@@ -243,6 +243,10 @@ export const en = {
         pppoeActive: 'Online',
         pppoeOffline: 'Offline',
         profit: 'Profit',
+        pendingPayments: 'Pending Payments',
+        invoicesWaiting: 'Awaiting Payment',
+        awaitingValidation: 'Awaiting Validation',
+        latestPaid: 'Latest paid transaction',
     },
     users: {
         title: 'PPPoE Users',
