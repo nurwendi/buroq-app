@@ -216,7 +216,10 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
       onConfirm: async () => {
         try {
           setIsSubmitting(true);
-          const response = await apiClient.delete(`/api/customers/${customer.username}`);
+          // Use explicit 20s timeout — backend does Mikrotik cleanup (max 4s) before DB delete
+          const response = await apiClient.delete(`/api/customers/${customer.username}`, {
+            timeout: 20000
+          });
           
           if (response.data.pendingApproval) {
             showAlert({ title: t('common.info'), message: response.data.message || t('users.deleteCustomerPending'), type: 'info' });
@@ -229,7 +232,8 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
             });
           }
         } catch (e: any) {
-          const errorMsg = e.response?.data?.error || t('common.deleteError');
+          const errorMsg = e.response?.data?.error || e.message || t('common.deleteError');
+          console.error('[Delete] Error:', e.response?.status, errorMsg);
           showAlert({ title: t('common.error'), message: errorMsg, type: 'error' });
         } finally {
           setIsSubmitting(false);
@@ -237,6 +241,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
       }
     });
   };
+
 
 
   // Using shared formatBytes utility from ../utils/format
