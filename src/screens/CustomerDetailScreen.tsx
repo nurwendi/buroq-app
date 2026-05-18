@@ -217,7 +217,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
         try {
           setIsSubmitting(true);
           // Use explicit 20s timeout — backend does Mikrotik cleanup (max 4s) before DB delete
-          const response = await apiClient.delete(`/api/customers/${customer.username}`, {
+          // encodeURIComponent handles special chars in usernames (e.g. *, /, #, ?)
+          const encodedUsername = encodeURIComponent(customer.username);
+          const response = await apiClient.delete(`/api/customers/${encodedUsername}`, {
             timeout: 20000
           });
           
