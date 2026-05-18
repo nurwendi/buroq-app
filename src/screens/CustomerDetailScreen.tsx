@@ -235,7 +235,12 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           }
         } catch (e: any) {
           const errorMsg = e.response?.data?.error || e.message || t('common.deleteError');
-          console.error('[Delete] Error:', e.response?.status, errorMsg);
+          // Detailed log for diagnosis
+          console.error('[Delete] code:', e.code);
+          console.error('[Delete] message:', e.message);
+          console.error('[Delete] status:', e.response?.status);
+          console.error('[Delete] url:', e.config?.url);
+          console.error('[Delete] data:', JSON.stringify(e.response?.data));
           showAlert({ title: t('common.error'), message: errorMsg, type: 'error' });
         } finally {
           setIsSubmitting(false);

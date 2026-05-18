@@ -4,7 +4,7 @@ import { CONFIG } from './config';
 
 const apiClient = axios.create({
   baseURL: CONFIG.API_BASE_URL,
-  timeout: 15000,
+  timeout: 30000, // 30s global timeout (DELETE needs more time for Mikrotik cleanup)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,6 +25,10 @@ apiClient.interceptors.request.use(
     const token = await AsyncStorage.getItem(CONFIG.TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // DELETE requests (e.g. customer delete) involve Mikrotik cleanup — give them 30s
+    if (config.method === 'delete' && !config.timeout) {
+      config.timeout = 30000;
     }
     return config;
   },
