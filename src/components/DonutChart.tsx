@@ -132,10 +132,12 @@ export default function DonutChart({
   const textColor     = darkBackground ? '#ffffff' : COLORS.slate[900];
   const subTextColor  = darkBackground ? 'rgba(255,255,255,0.65)' : COLORS.slate[500];
 
+  const Container = onPress ? TouchableOpacity : View;
+
   return (
-    <TouchableOpacity
+    <Container
       onPress={onPress}
-      activeOpacity={onPress ? 0.8 : 1}
+      activeOpacity={onPress ? 0.8 : undefined}
       style={styles.container}
     >
       {/* Donut SVG */}
