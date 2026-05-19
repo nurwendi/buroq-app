@@ -198,7 +198,7 @@ export default function DonutChart({
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Container>
   );
 }
 

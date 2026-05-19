@@ -7,7 +7,7 @@ import { useAlert } from '../context/AlertContext';
 import PrinterSettingsModal from '../components/PrinterSettingsModal';
 import apiClient from '../api/client';
 import { Alert, ActivityIndicator, Image } from 'react-native';
-import { Languages } from 'lucide-react-native';
+import { Languages, User, Shield, Settings as SettingsIcon, Info, Printer, Cog, Server, CreditCard, Database, LogOut, ChevronRight } from 'lucide-react-native';
 import { resolveUrl } from '../utils/url';
 import GradientHeader from '../components/GradientHeader';
 import { StatusBar } from 'react-native';

@@ -177,11 +177,6 @@ export default function FinancialReportScreen() {
                 <div class="card">
                   <div class="card-label">KOMISI AGEN</div>
                   <div class="card-value">${formatCurrency(data?.summary?.totalCommissions)}</div>
-                </div>
-                <div class="card">
-                  <div class="card-label">PENGELUARAN</div>
-                  <div class="card-value">${formatCurrency(data?.summary?.totalExpenses)}</div>
-                </div>
               `}
             </div>
 
@@ -318,18 +313,10 @@ export default function FinancialReportScreen() {
         )}
         {!data?.isAgentView && (
           <>
-            <View style={{ width: '48%', marginTop: 12 }}>
+            <View style={{ width: '100%', marginTop: 12 }}>
                <SummaryCard 
-                  title={t('financial.expenses') || 'KOMISI AGEN'} 
+                  title={t('financial.expenses') || 'PENGELUARAN (KOMISI)'} 
                   amount={data?.summary?.totalCommissions} 
-                  color={COLORS.error} 
-                  icon={ArrowDownRight}
-               />
-            </View>
-            <View style={{ width: '48%', marginTop: 12 }}>
-               <SummaryCard 
-                  title={'PENGELUARAN'} 
-                  amount={data?.summary?.totalExpenses} 
                   color={COLORS.error} 
                   icon={ArrowDownRight}
                />

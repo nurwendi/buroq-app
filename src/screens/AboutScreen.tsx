@@ -42,7 +42,8 @@ export default function AboutScreen() {
           <Text style={styles.sectionTitle}>Misi Kami</Text>
           <View style={styles.card}>
             <Text style={styles.description}>
-              Buroq Manager hadir untuk mempermudah manajemen operasional ISP dan RT/RW Net di Indonesia. 
+              PT. Buroq Sarana Informatika adalah perusahaan penyedia layanan internet (ISP).
+              Aplikasi Buroq Manager hadir untuk mempermudah manajemen operasional ISP di Indonesia. 
               Fokus kami adalah pada Kecepatan, Keandalan, dan Kemudahan Penggunaan dalam mengelola infrastruktur 
               dan penagihan pelanggan secara real-time.
             </Text>
@@ -87,7 +88,7 @@ export default function AboutScreen() {
              <Heart size={14} color="#ef4444" fill="#ef4444" />
              <Text style={styles.madeWithText}> di Indonesia</Text>
           </View>
-          <Text style={styles.copyright}>© 2026 Buroq Dev Team. All Rights Reserved.</Text>
+          <Text style={styles.copyright}>© 2026 PT. Buroq Sarana Informatika. All Rights Reserved.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
