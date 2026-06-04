@@ -439,7 +439,7 @@ export default function AdminDashboardView() {
                 </TouchableOpacity>
 
                 {/* Tagihan */}
-                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('UnpaidBills')}>
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('BillingTab')}>
                   <View style={[styles.gridIconBox, { backgroundColor: '#f59e0b' }]}>
                     <CreditCard size={26} color="#ffffff" />
                   </View>
@@ -452,14 +452,6 @@ export default function AdminDashboardView() {
                     <Megaphone size={26} color="#ffffff" />
                   </View>
                   <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.broadcast')}</Text>
-                </TouchableOpacity>
-
-                {/* Laporan */}
-                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('FinancialReport')}>
-                  <View style={[styles.gridIconBox, { backgroundColor: '#8b5cf6' }]}>
-                    <FileText size={26} color="#ffffff" />
-                  </View>
-                  <Text style={styles.gridLabel} numberOfLines={2}>{t('financial.title') || 'Laporan'}</Text>
                 </TouchableOpacity>
 
                 {/* System Users */}

@@ -542,18 +542,6 @@ export default function SuperadminDashboardView() {
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
-
-               {/* Report */}
-               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#8b5cf6' }]} onPress={() => navigation.navigate('FinancialReport')}>
-                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#8b5cf615' }]}>
-                     <FileText size={22} color="#8b5cf6" />
-                  </View>
-                  <View style={styles.menuListTextWrapper}>
-                     <Text style={styles.menuListTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
-                     <Text style={styles.menuListSubtitle}>{t('dashboard.viewEarningsPerformance')}</Text>
-                  </View>
-                  <ChevronRight size={20} color="#cbd5e1" />
-               </TouchableOpacity>
                
             </View>
           </View>

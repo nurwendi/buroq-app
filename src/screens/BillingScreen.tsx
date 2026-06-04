@@ -15,32 +15,35 @@ export default function BillingScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.grid}>
+          {/* Laporan Keuangan */}
           <TouchableOpacity 
             style={styles.card}
-            onPress={() => navigation.navigate('PaymentForm')}
+            onPress={() => navigation.navigate('FinancialReport')}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#f3e8ff' }]}>
+              <FileText size={32} color="#a855f7" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{t('financial.title') || 'Laporan Keuangan'}</Text>
+              <Text style={styles.cardDesc}>{t('financial.desc') || 'Ringkasan performa dan pendapatan'}</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Tagihan Lunas */}
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate('PaymentHistory', { name: 'Tagihan Lunas' })}
           >
             <View style={[styles.iconContainer, { backgroundColor: '#dcfce7' }]}>
               <CreditCard size={32} color="#16a34a" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>{t('billing.payBill')}</Text>
-              <Text style={styles.cardDesc}>{t('billing.payBillDesc')}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => navigation.navigate('PaymentHistory', { name: t('billing.history') })}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: '#e0f2fe' }]}>
-              <FileText size={32} color="#0284c7" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>{t('billing.history')}</Text>
+              <Text style={styles.cardTitle}>{t('financial.paid') || 'Tagihan Lunas'}</Text>
               <Text style={styles.cardDesc}>{t('billing.historyDesc')}</Text>
             </View>
           </TouchableOpacity>
 
+          {/* Tagihan Pending */}
           <TouchableOpacity 
             style={styles.card}
             onPress={() => navigation.navigate('UnpaidBills')}

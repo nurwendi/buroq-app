@@ -127,7 +127,7 @@ export const printReport = async (monthName: string, year: number, data: any) =>
 <L>${data?.isAgentView ? 'Nama Agen' : 'Nama Owner'} : ${data?.ownerName || '-'}
 <L>Billing/Rev : Rp ${(summary.totalRevenue || 0).toLocaleString()}
 <L>Belum Bayar : Rp ${(summary.totalUnpaid || 0).toLocaleString()}
-${data?.isAgentView ? `<L>Pend. Owner : Rp ${(summary.ownerIncome || 0).toLocaleString()}\n` : ''}${data?.isAgentView ? '' : `<L>Komisi Agen : Rp ${(summary.totalCommissions || 0).toLocaleString()}\n`}${(!data?.isAgentView && summary.totalExpenses > 0) ? `<L>Pengeluaran : Rp ${(summary.totalExpenses || 0).toLocaleString()}\n` : ''}<C>--------------------------------
+${data?.isAgentView ? `<L>Pend. Admin : Rp ${((summary.totalRevenue || 0) - (summary.totalCommissions || 0)).toLocaleString()}\n` : ''}${data?.isAgentView ? '' : `<L>Komisi Agen : Rp ${(summary.totalCommissions || 0).toLocaleString()}\n`}${(!data?.isAgentView && summary.totalExpenses > 0) ? `<L>Pengeluaran : Rp ${(summary.totalExpenses || 0).toLocaleString()}\n` : ''}<C>--------------------------------
 <L>${data?.isAgentView ? 'KOMISI SAYA' : 'NET OWNER'}  : Rp ${(summary.netIncome || 0).toLocaleString()}
 <C>--------------------------------
 ${!data?.isAgentView && data?.staffBreakdown?.length > 0 ? '<C><B>PERFORMA STAFF</B>\n' : ''}`;

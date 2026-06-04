@@ -71,6 +71,7 @@ export const en = {
         historyDesc: 'View all payment records',
         unpaidBills: 'Unpaid Bills',
         unpaidBillsDesc: 'List of customers with outstanding bills',
+        unpaidAmount: 'Unpaid Amount',
         searchInvoice: 'Search Invoice No / Username...',
         noBills: 'No Unpaid Bills',
         noBillsDesc: 'All bills are paid or no bills registered yet.',

@@ -74,6 +74,7 @@ export const id = {
         historyDesc: 'Lihat semua catatan pembayaran',
         unpaidBills: 'Tagihan Pending',
         unpaidBillsDesc: 'Daftar pelanggan yang belum bayar',
+        unpaidAmount: 'Sisa Tagihan',
         searchInvoice: 'Cari No Invoice / Username...',
         noBills: 'Tidak Ada Tagihan',
         noBillsDesc: 'Semua tagihan telah lunas atau belum ada tagihan terdaftar.',

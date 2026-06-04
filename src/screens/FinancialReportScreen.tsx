@@ -170,8 +170,8 @@ export default function FinancialReportScreen() {
               </div>
               ${data?.isAgentView ? `
                 <div class="card">
-                  <div class="card-label">PENDAPATAN OWNER</div>
-                  <div class="card-value">${formatCurrency(data?.summary?.ownerIncome)}</div>
+                  <div class="card-label">PENDAPATAN ADMIN</div>
+                  <div class="card-value">${formatCurrency((data?.summary?.totalRevenue || 0) - (data?.summary?.totalCommissions || 0))}</div>
                 </div>
               ` : `
                 <div class="card">
@@ -304,8 +304,8 @@ export default function FinancialReportScreen() {
         {data?.isAgentView && (
           <View style={{ width: '100%', marginTop: 12 }}>
              <SummaryCard 
-                title={'PENDAPATAN OWNER'} 
-                amount={data?.summary?.ownerIncome} 
+                title={'PENDAPATAN ADMIN'} 
+                amount={(data?.summary?.totalRevenue || 0) - (data?.summary?.totalCommissions || 0)} 
                 color={COLORS.primary} 
                 icon={DollarSign}
              />
