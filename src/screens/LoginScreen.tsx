@@ -23,7 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reanimated, { SlideInDown } from 'react-native-reanimated';
 import { CONFIG } from '../api/config';
 import { updateApiBaseUrl } from '../api/client';
-import { COLORS } from '../constants/theme';
+import { COLORS, BORDER_RADIUS } from '../constants/theme';
 import { resolveUrl } from '../utils/url';
 
 const { width, height } = Dimensions.get('window');
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
     padding: 32,
-    borderRadius: 40,
+    borderRadius: BORDER_RADIUS.md,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     overflow: 'hidden',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 24,
+    borderRadius: BORDER_RADIUS.sm,
     height: 64,
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: BORDER_RADIUS.sm,
     backgroundColor: COLORS.primary + '26', // Primary blue tint (approx 0.15)
     justifyContent: 'center',
     alignItems: 'center',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   errorBox: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
     padding: 14,
-    borderRadius: 16,
+    borderRadius: BORDER_RADIUS.sm,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
     marginBottom: 20,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     height: 64,
-    borderRadius: 32,
+    borderRadius: BORDER_RADIUS.sm,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
@@ -385,13 +385,13 @@ const styles = StyleSheet.create({
   serverBox: {
     marginTop: 20,
     backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.sm,
     padding: 4,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   serverInput: {
-    borderRadius: 16,
+    borderRadius: BORDER_RADIUS.sm,
     paddingHorizontal: 16,
     height: 52,
     fontSize: 14,

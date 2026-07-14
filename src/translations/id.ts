@@ -317,6 +317,7 @@ export const id = {
         whatsappNotAvailable: 'Nomor WhatsApp tidak tersedia',
         openRouter: 'Buka Router',
         onlineOnlyRouter: 'Router hanya dapat diakses saat pelanggan sedang ONLINE.',
+        identityNumber: 'Nomor KTP / NIK',
         addTitle: 'Tambah Pelanggan',
         editTitle: 'Edit Pelanggan',
         pppoeCredentials: 'Kredensial PPPoE',

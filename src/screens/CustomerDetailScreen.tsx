@@ -454,6 +454,16 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           <View style={styles.divider} />
           <View style={styles.infoRow}>
              <View style={styles.iconContainer}>
+               <CreditCard size={18} color="#64748b" />
+             </View>
+             <View style={styles.infoContent}>
+               <Text style={styles.infoLabel}>{t('users.identityNumber')}</Text>
+               <Text style={styles.infoValue}>{customer.identityNumber || stats?.customer?.identityNumber || '-'}</Text>
+             </View>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+             <View style={styles.iconContainer}>
                <Users size={18} color="#64748b" />
              </View>
              <View style={styles.infoContent}>
@@ -471,35 +481,76 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                <Text style={styles.infoValue}>{stats?.technician?.fullName || stats?.technician?.username || '-'}</Text>
              </View>
           </View>
-          {customer.coordinates && (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.infoRow}>
-                <View style={styles.iconContainer}>
-                  <MapPin size={18} color="#64748b" />
+          {(() => {
+            const coordinates = customer.coordinates || stats?.customer?.coordinates || stats?.coordinates;
+            if (!coordinates) return null;
+            return (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <View style={styles.iconContainer}>
+                    <MapPin size={18} color="#64748b" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>{t('users.gpsCoordinates')}</Text>
+                    <Text style={styles.infoValue}>{coordinates}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.mapButton}
+                    onPress={() => {
+                      const coords = coordinates.replace(/\s/g, '');
+                      const label = customer.name || customer.username;
+                      const url = Platform.select({
+                        ios: `maps:0,0?q=${label}@${coords}`,
+                        android: `geo:0,0?q=${coords}(${label})`
+                      });
+                      if (url) Linking.openURL(url);
+                    }}
+                  >
+                    <Globe size={18} color="#2563eb" />
+                    <Text style={styles.mapButtonText}>{t('users.open')}</Text>
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>{t('users.gpsCoordinates')}</Text>
-                  <Text style={styles.infoValue}>{customer.coordinates}</Text>
+                <View style={{ marginTop: 12 }}>
+                  {(() => {
+                    const parts = coordinates.split(',');
+                    if (parts.length === 2) {
+                      const lat = parts[0].trim();
+                      const lng = parts[1].trim();
+                      if (lat && lng) {
+                        const mapUri = `https://static-maps.yandex.ru/1.x/?ll=${lng},${lat}&z=15&size=450,150&l=map&pt=${lng},${lat},pm2rdm`;
+                        return (
+                          <TouchableOpacity
+                            style={styles.staticMapContainer}
+                            onPress={() => {
+                              const coords = `${lat},${lng}`;
+                              const label = customer.name || customer.username;
+                              const url = Platform.select({
+                                ios: `maps:0,0?q=${label}@${coords}`,
+                                android: `geo:0,0?q=${coords}(${label})`
+                              });
+                              if (url) Linking.openURL(url);
+                            }}
+                          >
+                            <Image 
+                              source={{ uri: mapUri }} 
+                              style={styles.staticMapImage} 
+                              resizeMode="cover"
+                            />
+                            <View style={styles.mapOverlayLabel}>
+                              <MapPin size={14} color="#fff" />
+                              <Text style={styles.mapOverlayText}>Open Navigation Maps</Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
                 </View>
-                <TouchableOpacity 
-                  style={styles.mapButton}
-                  onPress={() => {
-                    const coords = customer.coordinates.replace(/\s/g, '');
-                    const label = customer.name || customer.username;
-                    const url = Platform.select({
-                      ios: `maps:0,0?q=${label}@${coords}`,
-                      android: `geo:0,0?q=${coords}(${label})`
-                    });
-                    if (url) Linking.openURL(url);
-                  }}
-                >
-                  <Globe size={18} color="#2563eb" />
-                  <Text style={styles.mapButtonText}>{t('users.open')}</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
+              </>
+            );
+          })()}
         </View>
 
         <TouchableOpacity
@@ -690,7 +741,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 6,
     backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -703,7 +754,7 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 32,
+    borderRadius: 12,
     padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
@@ -725,7 +776,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 8,
     backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -785,7 +836,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
     width: 52,
     height: 52,
-    borderRadius: 18,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#10b981',
@@ -802,7 +853,7 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1,
     height: 90,
-    borderRadius: 24,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
@@ -864,7 +915,7 @@ const styles = StyleSheet.create({
   },
   statusBox: {
     backgroundColor: '#ffffff',
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 24,
     borderWidth: 1.2,
     borderColor: '#f1f5f9',
@@ -892,7 +943,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 4,
     gap: 6,
   },
   badgeOnline: {
@@ -938,7 +989,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff1f2',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 4,
     gap: 6,
     borderWidth: 1,
     borderColor: '#ffe4e6',
@@ -954,7 +1005,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 4,
     gap: 6,
     borderWidth: 1,
     borderColor: '#dbeafe',
@@ -1001,7 +1052,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563eb',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 14,
+    borderRadius: 6,
     gap: 8,
   },
   payNowText: {
@@ -1011,7 +1062,7 @@ const styles = StyleSheet.create({
   },
   billingDetails: {
     backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    borderRadius: 6,
     padding: 16,
     gap: 12,
   },
@@ -1033,7 +1084,7 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     backgroundColor: '#ffffff',
-    borderRadius: 32,
+    borderRadius: 12,
     padding: 24,
     marginBottom: 24,
     borderWidth: 1,
@@ -1047,7 +1098,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 6,
     backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1081,7 +1132,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 6,
     gap: 8,
     borderWidth: 1,
     borderColor: '#dbeafe',
@@ -1096,7 +1147,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 10,
     padding: 20,
     marginBottom: 32,
     borderWidth: 1.2,
@@ -1121,7 +1172,7 @@ const styles = StyleSheet.create({
   menuIcon: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1132,7 +1183,7 @@ const styles = StyleSheet.create({
   },
   acsContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 20,
     borderWidth: 1.2,
     borderColor: '#f1f5f9',
@@ -1157,7 +1208,7 @@ const styles = StyleSheet.create({
   acsMetrics: {
     flexDirection: 'row',
     backgroundColor: '#f8fafc',
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 16,
     marginBottom: 20,
     gap: 12,
@@ -1193,7 +1244,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 48,
     backgroundColor: '#eff6ff',
-    borderRadius: 14,
+    borderRadius: 6,
     gap: 8,
     borderWidth: 1,
     borderColor: '#dbeafe',
@@ -1212,7 +1263,7 @@ const styles = StyleSheet.create({
   },
   emptyAcs: {
     backgroundColor: '#f8fafc',
-    borderRadius: 24,
+    borderRadius: 8,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
@@ -1239,7 +1290,7 @@ const styles = StyleSheet.create({
   },
   usageBox: {
     backgroundColor: '#0f172a',
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 24,
     marginTop: 8,
     marginBottom: 20,
@@ -1283,8 +1334,8 @@ const styles = StyleSheet.create({
   },
   modalContentFixed: {
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     maxHeight: '80%',
@@ -1365,7 +1416,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 60,
-    borderRadius: 20,
+    borderRadius: 8,
     gap: 12,
     shadowColor: '#2563eb',
     shadowOffset: { width: 0, height: 8 },
@@ -1378,5 +1429,35 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.5,
-  }
+  },
+  staticMapContainer: {
+    height: 150,
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1.2,
+    borderColor: '#e2e8f0',
+  },
+  staticMapImage: {
+    width: '100%',
+    height: '100%',
+  },
+  mapOverlayLabel: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 4,
+    gap: 6,
+  },
+  mapOverlayText: {
+    fontSize: 10,
+    color: '#ffffff',
+    fontWeight: '800',
+  },
 });

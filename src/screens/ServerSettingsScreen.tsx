@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateApiBaseUrl } from '../api/client';
 import { useAlert } from '../context/AlertContext';
+import { CONFIG } from '../api/config';
 
 export default function ServerSettingsScreen() {
   const navigation = useNavigation<any>();

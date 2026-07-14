@@ -11,11 +11,16 @@ interface StatCardProps {
   color: string;
   subtitle?: string;
   isPrimary?: boolean;
+  isCurrency?: boolean;
 }
 
 const { width } = Dimensions.get('window');
 
-export default function StatCard({ title, value, icon: Icon, color, subtitle, isPrimary }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, color, subtitle, isPrimary, isCurrency }: StatCardProps) {
+  const displayValue = isCurrency && typeof value === 'number'
+    ? `Rp ${value.toLocaleString()}`
+    : value;
+
   const CardContent = (
     <View style={[styles.cardInner, isPrimary && { backgroundColor: COLORS.primary }]}>
       <View style={styles.header}>
@@ -28,7 +33,7 @@ export default function StatCard({ title, value, icon: Icon, color, subtitle, is
         </View>
         <Text style={[styles.title, isPrimary && { color: 'rgba(255,255,255,0.8)' }]} numberOfLines={1}>{title}</Text>
       </View>
-      <Text style={[styles.value, isPrimary && { color: '#ffffff' }]}>{value}</Text>
+      <Text style={[styles.value, isPrimary && { color: '#ffffff' }]}>{displayValue}</Text>
       {subtitle && <Text style={[styles.subtitle, isPrimary && { color: 'rgba(255,255,255,0.7)' }]}>{subtitle}</Text>}
     </View>
   );

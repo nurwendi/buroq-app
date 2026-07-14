@@ -2,5 +2,16 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true
-  }
+  },
+  "include": [
+    "src/**/*",
+    "App.tsx",
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "../billing",
+    "temp_dashboard.tsx",
+    "build"
+  ]
 }

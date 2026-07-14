@@ -71,7 +71,9 @@ export default function StaffDashboardView() {
     recentTransactions: [] as any[],
     pppoeActive: 0,
     pppoeOffline: 0,
-    totalCustomers: 0
+    totalCustomers: 0,
+    pendingRegistrationsCount: 0,
+    pendingPaymentsCount: 0
   });
   const [onlineCount, setOnlineCount] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -377,7 +379,7 @@ export default function StaffDashboardView() {
                       </Text>
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.transactionCustomerName} numberOfLines={1}>{item.customerName}</Text>
+                      <Text style={styles.customerName} numberOfLines={1}>{item.customerName}</Text>
                       {item.invoiceNumber && (
                         <Text style={styles.txInvoiceNumber}>
                           {item.invoiceNumber}

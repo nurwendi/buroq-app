@@ -99,6 +99,7 @@ export default function CustomerFormScreen() {
     name: customer?.name || '',
     phone: customer?.phone || '',
     email: customer?.email || '',
+    identityNumber: customer?.identityNumber || '',
     address: customer?.address || '',
     password: '',
     profile: customer?.profile?.name || customer?.profileId || '',
@@ -205,6 +206,7 @@ export default function CustomerFormScreen() {
           customerAddress: formData.address,
           customerPhone: formData.phone,
           customerEmail: formData.email,
+          identityNumber: formData.identityNumber,
           agentId: formData.agentId,
           technicianId: formData.technicianId
         };
@@ -226,6 +228,7 @@ export default function CustomerFormScreen() {
                 address: formData.address,
                 phone: formData.phone,
                 email: formData.email,
+                identityNumber: formData.identityNumber,
                 coordinates: formData.coordinates,
                 comment: formData.comment,
                 agentId: formData.agentId || user.id,
@@ -265,6 +268,7 @@ export default function CustomerFormScreen() {
                     address: formData.address,
                     phone: formData.phone,
                     email: formData.email,
+                    identityNumber: formData.identityNumber,
                     coordinates: formData.coordinates,
                     comment: formData.comment,
                     agentId: formData.agentId,
@@ -465,6 +469,15 @@ export default function CustomerFormScreen() {
               placeholder={t('users.fullNamePlaceholder') || "Contoh: Adi Hudi"}
               rightIcon={BookUser}
               onRightIconPress={pickContact}
+            />
+
+            <InputField 
+              label={t('users.identityNumber')} 
+              icon={User} 
+              value={formData.identityNumber}
+              onChangeText={(text: string) => setFormData({ ...formData, identityNumber: text })}
+              placeholder="Contoh: 3171xxxxxxxxxxxx"
+              keyboardType="numeric"
             />
 
             <View style={styles.divider} />
@@ -695,7 +708,7 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 32,
+    borderRadius: 12,
     padding: 24,
     borderWidth: 1.5,
     borderColor: COLORS.slate[100],
@@ -756,7 +769,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.slate[50],
     borderWidth: 1.5,
     borderColor: COLORS.slate[100],
-    borderRadius: 16,
+    borderRadius: 6,
     height: 56,
   },
   inputWrapperMultiline: {

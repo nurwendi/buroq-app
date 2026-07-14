@@ -97,7 +97,7 @@ export default function CustomerDashboardView() {
       if (response.data && response.data.length > 0) {
         const dev = response.data[0];
         setDevice(dev);
-        setSsid(dev.wifi_ssid || '');
+        setSsid(dev.ssid || '');
       }
     } catch (e) {
       console.error('Failed to fetch device info', e);
