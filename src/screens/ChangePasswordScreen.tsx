@@ -70,12 +70,14 @@ export default function ChangePasswordScreen() {
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
       >
         <ScrollView 
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.infoCard}>
             <View style={styles.iconCircle}>

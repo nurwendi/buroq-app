@@ -12,7 +12,9 @@ import {
   Platform,
   Alert,
   Modal,
-  ScrollView
+  ScrollView,
+  KeyboardAvoidingView,
+  Keyboard
 } from 'react-native';
 import { 
   Users, 
@@ -322,20 +324,23 @@ export default function AllUsersScreen() {
         />
       )}
 
-      {/* Add/Edit Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => { Keyboard.dismiss(); setModalVisible(false); }} />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingUser ? t('users.editUserModal') : t('users.addUserModal')}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity onPress={() => { Keyboard.dismiss(); setModalVisible(false); }}>
                 <CloseIcon size={24} color="#64748b" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.label}>{t('users.username')}</Text>
               <TextInput
                 style={styles.modalInput}
@@ -457,7 +462,7 @@ export default function AllUsersScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

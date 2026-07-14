@@ -12,7 +12,9 @@ import {
   Modal,
   TextInput,
   Image,
-  RefreshControl
+  RefreshControl,
+  KeyboardAvoidingView,
+  Keyboard
 } from 'react-native';
 import {
   ArrowLeft,
@@ -672,15 +674,19 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
       </ScrollView>
 
       {/* WiFi Edit Modal */}
-      <Modal visible={wifiModalVisible} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
+      <Modal visible={wifiModalVisible} animationType="slide" transparent>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => { Keyboard.dismiss(); setWifiModalVisible(false); }} />
           <View style={styles.modalContentFixed}>
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>{t('genieacs.editWifiTitle')}</Text>
                 <Text style={styles.modalSubtitle}>{t('genieacs.router')}: {acsDevice?.model}</Text>
               </View>
-              <TouchableOpacity onPress={() => setWifiModalVisible(false)} style={styles.modalCloseBtn}>
+              <TouchableOpacity onPress={() => { Keyboard.dismiss(); setWifiModalVisible(false); }} style={styles.modalCloseBtn}>
                 <CloseIcon size={24} color="#64748b" />
               </TouchableOpacity>
             </View>
@@ -699,6 +705,8 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 value={wifiForm.ssid}
                 onChangeText={(text) => setWifiForm({...wifiForm, ssid: text})}
                 placeholder={t('genieacs.ssidPlaceholder') || 'Masukkan SSID'}
+                returnKeyType="next"
+                placeholderTextColor="#94a3b8"
               />
 
               <Text style={styles.inputLabel}>{t('genieacs.newPassword')} ({t('dashboard.wifiMin8')})</Text>
@@ -708,6 +716,7 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
                 onChangeText={(text) => setWifiForm({...wifiForm, password: text})}
                 placeholder={t('genieacs.leaveEmpty') || 'Biarkan kosong jika tidak diubah'}
                 secureTextEntry={false}
+                placeholderTextColor="#94a3b8"
               />
             </View>
 
@@ -728,8 +737,9 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>    </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
   );
 }
 
