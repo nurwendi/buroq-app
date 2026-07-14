@@ -14,7 +14,9 @@ import {
   Platform,
   Image,
   StatusBar,
-  ImageBackground
+  ImageBackground,
+  KeyboardAvoidingView,
+  Keyboard
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -565,16 +567,20 @@ export default function CustomerDashboardView() {
         visible={wifiModalVisible}
         onRequestClose={() => setWifiModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => { Keyboard.dismiss(); setWifiModalVisible(false); }} />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('genieacs.editWifiTitle')}</Text>
-              <TouchableOpacity onPress={() => setWifiModalVisible(false)}>
+              <TouchableOpacity onPress={() => { Keyboard.dismiss(); setWifiModalVisible(false); }}>
                 <Text style={styles.cancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalBody}>
+            <ScrollView contentContainerStyle={styles.modalBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                <View style={styles.modalInputGroup}>
                   <Text style={styles.modalLabel}>{t('dashboard.wifiName')}</Text>
                   <TextInput 
@@ -615,9 +621,9 @@ export default function CustomerDashboardView() {
                     <Text style={styles.saveButtonText}>{t('common.save')}</Text>
                  )}
                </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
