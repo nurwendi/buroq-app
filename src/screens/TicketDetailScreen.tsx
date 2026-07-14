@@ -30,9 +30,20 @@ import { COLORS } from '../constants/theme';
 export default function TicketDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { ticketId } = route.params;
+  const ticketId = route.params?.ticketId;
   const { t } = useLanguage();
   const { user } = useAuth();
+
+  const formatTime = (dateString: string) => {
+    try {
+      if (!dateString) return '';
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '';
+    }
+  };
 
   const [ticket, setTicket] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -46,7 +57,7 @@ export default function TicketDetailScreen() {
   const fetchTicketDetails = async () => {
     try {
       const ticketRes = await apiClient.get(`/api/tickets`);
-      if (Array.isArray(ticketRes.data)) {
+      if (ticketId && Array.isArray(ticketRes.data)) {
         const found = ticketRes.data.find((t: any) => t.id === ticketId);
         if (found) setTicket(found);
       }
@@ -172,7 +183,7 @@ export default function TicketDetailScreen() {
               <Text style={styles.ticketDesc}><Text style={{ fontWeight: '700' }}>Deskripsi:</Text> {ticket.description}</Text>
               
               {/* Close Ticket Button (For Customer when status is active) */}
-              {user.role === 'customer' && ticket.status !== 'closed' && ticket.status !== 'resolved' && (
+              {user?.role === 'customer' && ticket.status !== 'closed' && ticket.status !== 'resolved' && (
                 <TouchableOpacity
                   style={styles.closeTicketBtn}
                   onPress={handleCloseTicket}
@@ -191,8 +202,8 @@ export default function TicketDetailScreen() {
             contentContainerStyle={styles.messagesList}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             renderItem={({ item }) => {
-              const isMe = item.senderType === 'customer' && user.role === 'customer' || 
-                           item.senderType !== 'customer' && user.role !== 'customer';
+              const isMe = item.senderType === 'customer' && user?.role === 'customer' || 
+                           item.senderType !== 'customer' && user?.role !== 'customer';
               const isSystem = item.senderType === 'system';
 
               if (isSystem) {
@@ -212,7 +223,7 @@ export default function TicketDetailScreen() {
                     </Text>
                   </View>
                   <Text style={styles.messageTime}>
-                    {new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    {formatTime(item.createdAt)}
                   </Text>
                 </View>
               );

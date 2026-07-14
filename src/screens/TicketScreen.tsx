@@ -79,8 +79,19 @@ export default function TicketScreen() {
     fetchTickets();
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      if (!dateString) return '-';
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return '-';
+      return d.toLocaleDateString('id-ID');
+    } catch (e) {
+      return '-';
+    }
+  };
+
   useEffect(() => {
-    let result = [...tickets];
+    let result = Array.isArray(tickets) ? [...tickets] : [];
     
     if (searchTerm.trim() !== '') {
       const query = searchTerm.toLowerCase();
@@ -229,10 +240,10 @@ export default function TicketScreen() {
                       {getCategoryLabel(item.category)} • Priority: {item.priority}
                     </Text>
                     <Text style={styles.ticketDate}>
-                      {new Date(item.createdAt).toLocaleDateString('id-ID')}
+                      {formatDate(item.createdAt)}
                     </Text>
                   </View>
-                  {item.customer && user.role !== 'customer' && (
+                  {item.customer && user?.role !== 'customer' && (
                     <Text style={styles.customerName}>
                       Pelanggan: {item.customer.name || item.customer.username}
                     </Text>
@@ -245,7 +256,7 @@ export default function TicketScreen() {
       </View>
 
       {/* FAB to create ticket (for Customer only) */}
-      {user.role === 'customer' && (
+      {user?.role === 'customer' && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setCreateModalVisible(true)}
