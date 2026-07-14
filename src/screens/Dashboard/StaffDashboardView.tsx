@@ -34,7 +34,8 @@ import {
   AlertCircle,
   Wallet,
   BadgeDollarSign,
-  Wifi
+  Wifi,
+  HelpCircle
 } from 'lucide-react-native';
 import DonutChart from '../../components/DonutChart';
 import FinancialWidget from '../../components/FinancialWidget';
@@ -351,6 +352,14 @@ export default function StaffDashboardView() {
                   <CreditCard size={26} color="#ffffff" />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.billing')}</Text>
+              </TouchableOpacity>
+
+              {/* Tiket Komplain */}
+              <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('Ticket')}>
+                <View style={[styles.gridIconBox, { backgroundColor: '#db2777' }]}>
+                  <HelpCircle size={26} color="#ffffff" />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>Tiket Komplain</Text>
               </TouchableOpacity>
             </View>
           </View>

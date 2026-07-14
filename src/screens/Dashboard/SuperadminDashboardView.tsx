@@ -28,7 +28,8 @@ import {
   AlertCircle,
   UserPlus,
   Wifi,
-  ClipboardCheck
+  ClipboardCheck,
+  HelpCircle
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DonutChart from '../../components/DonutChart';
@@ -539,6 +540,18 @@ export default function SuperadminDashboardView() {
                   <View style={styles.menuListTextWrapper}>
                      <Text style={styles.menuListTitle}>{t('sidebar.approvals') || 'Persetujuan User'}</Text>
                      <Text style={styles.menuListSubtitle}>{t('dashboard.awaitingValidation')}</Text>
+                  </View>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </TouchableOpacity>
+               
+               {/* Tiket Komplain */}
+               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#db2777' }]} onPress={() => navigation.navigate('Ticket')}>
+                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#db277715' }]}>
+                     <HelpCircle size={22} color="#db2777" />
+                  </View>
+                  <View style={styles.menuListTextWrapper}>
+                     <Text style={styles.menuListTitle}>Tiket Komplain</Text>
+                     <Text style={styles.menuListSubtitle}>Lihat & balas tiket komplain pelanggan</Text>
                   </View>
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>

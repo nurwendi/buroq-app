@@ -521,6 +521,16 @@ export default function CustomerDashboardView() {
 
                <TouchableOpacity
                   style={styles.supportCard}
+                  onPress={() => navigation.navigate('Ticket')}
+               >
+                  <View style={[styles.supportIcon, { backgroundColor: '#eff6ff' }]}>
+                     <HelpCircle size={22} color="#2563eb" />
+                  </View>
+                  <Text style={styles.supportLabel}>Tiket Komplain</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity
+                  style={styles.supportCard}
                   onPress={() => Linking.openURL('https://wa.me/628123456789')}
                >
                   <View style={[styles.supportIcon, { backgroundColor: '#ecfdf5' }]}>

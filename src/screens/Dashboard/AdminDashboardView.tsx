@@ -37,7 +37,8 @@ import {
   ArrowUpRight,
   Banknote,
   Trash2,
-  Edit3
+  Edit3,
+  HelpCircle
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DonutChart from '../../components/DonutChart';
@@ -460,6 +461,14 @@ export default function AdminDashboardView() {
                     <Shield size={26} color="#ffffff" />
                   </View>
                   <Text style={styles.gridLabel} numberOfLines={2}>{t('appSettings.systemUsers')}</Text>
+                </TouchableOpacity>
+
+                {/* Tiket Komplain */}
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('Ticket')}>
+                  <View style={[styles.gridIconBox, { backgroundColor: '#db2777' }]}>
+                    <HelpCircle size={26} color="#ffffff" />
+                  </View>
+                  <Text style={styles.gridLabel} numberOfLines={2}>Tiket Komplain</Text>
                 </TouchableOpacity>
               </View>
            </View>
