@@ -1,31 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  FlatList, 
-  TextInput, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  KeyboardAvoidingView, 
-  Platform, 
-  SafeAreaView, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
   StatusBar,
-  Alert
+  Alert,
+  Keyboard,
+  Animated,
+  Dimensions,
 } from 'react-native';
-import { 
-  ArrowLeft, 
-  Send, 
-  User, 
-  Clock, 
-  X 
-} from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import apiClient from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function TicketDetailScreen() {
   const navigation = useNavigation<any>();
@@ -33,6 +31,18 @@ export default function TicketDetailScreen() {
   const ticketId = route.params?.ticketId;
   const { t } = useLanguage();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+
+  const [ticket, setTicket] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const flatListRef = useRef<FlatList>(null);
+  const pollingRef = useRef<any>(null);
+  const inputRef = useRef<TextInput>(null);
 
   const formatTime = (dateString: string) => {
     try {
@@ -45,14 +55,22 @@ export default function TicketDetailScreen() {
     }
   };
 
-  const [ticket, setTicket] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [replyText, setReplyText] = useState('');
-  const [sending, setSending] = useState(false);
-
-  const flatListRef = useRef<FlatList>(null);
-  const pollingRef = useRef<any>(null);
+  // Track keyboard height using Keyboard API
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const fetchTicketDetails = async () => {
     try {
@@ -83,12 +101,9 @@ export default function TicketDetailScreen() {
   useEffect(() => {
     fetchTicketDetails();
     fetchMessages();
-
-    // Start polling every 5s for chat live feel
     pollingRef.current = setInterval(() => {
       fetchMessages(true);
     }, 5000);
-
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
@@ -96,11 +111,10 @@ export default function TicketDetailScreen() {
 
   const handleSendMessage = async () => {
     if (!replyText.trim()) return;
-
     setSending(true);
     try {
       await apiClient.post(`/api/tickets/${ticketId}/messages`, {
-        message: replyText
+        message: replyText,
       });
       setReplyText('');
       await fetchMessages(true);
@@ -117,25 +131,23 @@ export default function TicketDetailScreen() {
   const handleCloseTicket = async () => {
     Alert.alert(
       'Konfirmasi',
-      'Apakah Anda yakin ingin menyelesaikan/menutup tiket komplain ini?',
+      'Apakah Anda yakin ingin menutup tiket komplain ini?',
       [
         { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Ya, Tutup', 
+        {
+          text: 'Ya, Tutup',
           style: 'destructive',
           onPress: async () => {
             try {
-              await apiClient.patch(`/api/tickets/${ticketId}`, {
-                status: 'closed'
-              });
+              await apiClient.patch(`/api/tickets/${ticketId}`, { status: 'closed' });
               Alert.alert('Sukses', 'Tiket berhasil ditutup.');
               fetchTicketDetails();
               fetchMessages(true);
             } catch (e: any) {
               Alert.alert('Error', e.response?.data?.error || 'Gagal menutup tiket.');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -150,12 +162,15 @@ export default function TicketDetailScreen() {
     }
   };
 
+  // Footer height: 64px bar + bottom inset
+  const FOOTER_HEIGHT = 64 + insets.bottom;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
-      <GradientHeader 
-        title={ticket ? ticket.ticketId : 'Memuat...'} 
+
+      <GradientHeader
+        title={ticket ? ticket.ticketId : 'Memuat...'}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -164,12 +179,8 @@ export default function TicketDetailScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <KeyboardAvoidingView 
-          style={{ flex: 1 }} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 110}
-        >
-          {/* Ticket Header Card */}
+        <View style={{ flex: 1 }}>
+          {/* Ticket Info Card */}
           {ticket && (
             <View style={styles.ticketInfoCard}>
               <View style={styles.ticketHeaderRow}>
@@ -180,30 +191,35 @@ export default function TicketDetailScreen() {
                   </Text>
                 </View>
               </View>
-              <Text style={styles.ticketDesc}><Text style={{ fontWeight: '700' }}>Deskripsi:</Text> {ticket.description}</Text>
-              
-              {/* Close Ticket Button (For Customer when status is active) */}
+              <Text style={styles.ticketDesc}>
+                <Text style={{ fontWeight: '700' }}>Deskripsi: </Text>
+                {ticket.description}
+              </Text>
+
               {user?.role === 'customer' && ticket.status !== 'closed' && ticket.status !== 'resolved' && (
-                <TouchableOpacity
-                  style={styles.closeTicketBtn}
-                  onPress={handleCloseTicket}
-                >
+                <TouchableOpacity style={styles.closeTicketBtn} onPress={handleCloseTicket}>
                   <Text style={styles.closeTicketText}>Selesaikan & Tutup Tiket</Text>
                 </TouchableOpacity>
               )}
             </View>
           )}
 
-          {/* Messages Area */}
+          {/* Messages FlatList — padded bottom to not be hidden under input */}
           <FlatList
             ref={flatListRef}
             data={messages}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            contentContainerStyle={[
+              styles.messagesList,
+              { paddingBottom: FOOTER_HEIGHT + keyboardHeight + 8 },
+            ]}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => {
-              const isMe = item.senderType === 'customer' && user?.role === 'customer' || 
-                           item.senderType !== 'customer' && user?.role !== 'customer';
+              const isMe =
+                (item.senderType === 'customer' && user?.role === 'customer') ||
+                (item.senderType !== 'customer' && user?.role !== 'customer');
               const isSystem = item.senderType === 'system';
 
               if (isSystem) {
@@ -222,26 +238,37 @@ export default function TicketDetailScreen() {
                       {item.message}
                     </Text>
                   </View>
-                  <Text style={styles.messageTime}>
-                    {formatTime(item.createdAt)}
-                  </Text>
+                  <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
                 </View>
               );
             }}
           />
 
-          {/* Footer Input */}
+          {/* Floating Input Bar — positioned above keyboard */}
           {ticket && ticket.status !== 'closed' && ticket.status !== 'resolved' ? (
-            <View style={styles.footerInputRow}>
+            <View
+              style={[
+                styles.footerInputRow,
+                {
+                  bottom: keyboardHeight + insets.bottom,
+                },
+              ]}
+            >
               <TextInput
+                ref={inputRef}
                 style={styles.textInput}
                 placeholder="Tulis balasan..."
                 value={replyText}
                 onChangeText={setReplyText}
                 placeholderTextColor="#94a3b8"
+                multiline
+                maxLength={1000}
+                returnKeyType="send"
+                onSubmitEditing={handleSendMessage}
+                blurOnSubmit={false}
               />
               <TouchableOpacity
-                style={styles.sendBtn}
+                style={[styles.sendBtn, (!replyText.trim() || sending) && { opacity: 0.5 }]}
                 onPress={handleSendMessage}
                 disabled={sending || !replyText.trim()}
               >
@@ -253,59 +280,59 @@ export default function TicketDetailScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.closedBanner}>
+            <View style={[styles.closedBanner, { bottom: insets.bottom }]}>
               <Text style={styles.closedBannerText}>Percakapan ditutup.</Text>
             </View>
           )}
-        </KeyboardAvoidingView>
+        </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc'
+    backgroundColor: '#f8fafc',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   ticketInfoCard: {
     backgroundColor: '#ffffff',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0'
+    borderBottomColor: '#e2e8f0',
   },
   ticketHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 8,
   },
   ticketTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: '#1e293b',
     flex: 1,
-    marginRight: 8
+    marginRight: 8,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6
+    borderRadius: 6,
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '800'
+    fontWeight: '800',
   },
   ticketDesc: {
     fontSize: 13,
     color: '#475569',
     lineHeight: 18,
-    marginBottom: 10
+    marginBottom: 10,
   },
   closeTicketBtn: {
     backgroundColor: '#fef2f2',
@@ -315,64 +342,63 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4
+    marginTop: 4,
   },
   closeTicketText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ef4444'
+    color: '#ef4444',
   },
   messagesList: {
     padding: 16,
-    paddingBottom: 24
   },
   messageWrapper: {
     marginBottom: 16,
-    maxWidth: '80%'
+    maxWidth: '80%',
   },
   messageMe: {
     alignSelf: 'flex-end',
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   messageOther: {
     alignSelf: 'flex-start',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
   },
   senderName: {
     fontSize: 10,
     fontWeight: '700',
     color: '#94a3b8',
-    marginBottom: 4
+    marginBottom: 4,
   },
   messageBubble: {
     borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   bubbleMe: {
     backgroundColor: COLORS.primary,
-    borderTopRightRadius: 0
+    borderTopRightRadius: 0,
   },
   bubbleOther: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderTopLeftRadius: 0
+    borderTopLeftRadius: 0,
   },
   messageText: {
     fontSize: 13,
-    lineHeight: 18
+    lineHeight: 18,
   },
   textMe: {
-    color: '#ffffff'
+    color: '#ffffff',
   },
   textOther: {
-    color: '#1e293b'
+    color: '#1e293b',
   },
   messageTime: {
     fontSize: 9,
     color: '#cbd5e1',
-    marginTop: 4
+    marginTop: 4,
   },
   systemMessageContainer: {
     backgroundColor: '#f1f5f9',
@@ -381,23 +407,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignSelf: 'center',
     marginVertical: 12,
-    maxWidth: '90%'
+    maxWidth: '90%',
   },
   systemMessageText: {
     fontSize: 11,
     color: '#64748b',
     textAlign: 'center',
     lineHeight: 16,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   footerInputRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
     alignItems: 'center',
-    gap: 8
+    gap: 8,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+    }),
   },
   textInput: {
     flex: 1,
@@ -406,9 +445,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#cbd5e1',
     paddingHorizontal: 16,
-    height: 40,
+    paddingVertical: 10,
     fontSize: 13,
-    color: '#1e293b'
+    color: '#1e293b',
+    maxHeight: 100,
   },
   sendBtn: {
     width: 40,
@@ -416,19 +456,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   closedBanner: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     height: 52,
     backgroundColor: '#f1f5f9',
     justifyContent: 'center',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0'
+    borderTopColor: '#e2e8f0',
   },
   closedBannerText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#64748b'
-  }
+    color: '#64748b',
+  },
 });
