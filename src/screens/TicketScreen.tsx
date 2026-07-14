@@ -12,7 +12,8 @@ import {
   Platform,
   Modal,
   ScrollView,
-  Alert
+  Alert,
+  StatusBar
 } from 'react-native';
 import { 
   ArrowLeft, 
