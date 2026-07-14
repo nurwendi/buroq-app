@@ -13,7 +13,9 @@ import {
   Modal,
   ScrollView,
   Alert,
-  StatusBar
+  StatusBar,
+  Keyboard,
+  KeyboardAvoidingView
 } from 'react-native';
 import { 
   ArrowLeft, 
@@ -266,23 +268,40 @@ export default function TicketScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Create Ticket Modal */}
       <Modal
         visible={createModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setCreateModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => {
+              Keyboard.dismiss();
+              setCreateModalVisible(false);
+            }}
+          />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Buat Tiket Baru</Text>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
+              <TouchableOpacity onPress={() => {
+                Keyboard.dismiss();
+                setCreateModalVisible(false);
+              }}>
                 <X size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody}>
+            <ScrollView
+              style={styles.modalBody}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={styles.fieldLabel}>Kategori</Text>
               <View style={styles.categoryRow}>
                 {[
@@ -308,6 +327,8 @@ export default function TicketScreen() {
                 placeholder="Contoh: WiFi Lambat / Internet Putus"
                 value={newTicket.title}
                 onChangeText={text => setNewTicket({ ...newTicket, title: text })}
+                placeholderTextColor="#94a3b8"
+                returnKeyType="next"
               />
 
               <Text style={styles.fieldLabel}>Deskripsi Masalah</Text>
@@ -318,6 +339,8 @@ export default function TicketScreen() {
                 onChangeText={text => setNewTicket({ ...newTicket, description: text })}
                 multiline
                 numberOfLines={4}
+                placeholderTextColor="#94a3b8"
+                textAlignVertical="top"
               />
 
               <TouchableOpacity
@@ -333,7 +356,7 @@ export default function TicketScreen() {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -515,7 +538,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '80%'
+    maxHeight: '90%'
   },
   modalHeader: {
     flexDirection: 'row',
