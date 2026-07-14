@@ -349,7 +349,14 @@ export default function CustomerFormScreen() {
   };
 
   const handleGetLocation = async () => {
-    let { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+    let { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
+    
+    if (status !== 'granted') {
+      const requestRes = await Location.requestForegroundPermissionsAsync();
+      status = requestRes.status;
+      canAskAgain = requestRes.canAskAgain;
+    }
+
     if (status !== 'granted') {
       const message = canAskAgain 
         ? t('users.locationPermissionMsg') 
@@ -366,7 +373,9 @@ export default function CustomerFormScreen() {
 
     setLoading(true);
     try {
-      const location = await Location.getCurrentPositionAsync({});
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
       const coords = `${location.coords.latitude}, ${location.coords.longitude}`;
       setFormData(prev => ({ ...prev, coordinates: coords }));
     } catch (e) {
