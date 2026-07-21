@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     height: 52,
   },
   searchInput: {
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   logItem: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1.2,

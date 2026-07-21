@@ -29,7 +29,8 @@ import {
   UserPlus,
   Wifi,
   ClipboardCheck,
-  HelpCircle
+  HelpCircle,
+  Map
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DonutChart from '../../components/DonutChart';
@@ -508,6 +509,19 @@ export default function SuperadminDashboardView() {
                   <ChevronRight size={20} color="#cbd5e1" />
                </TouchableOpacity>
 
+               {/* Peta Pelanggan */}
+               <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#3b82f6' }]} onPress={() => navigation.navigate('MapScreen')}>
+                  <View style={[styles.menuListIconWrapper, { backgroundColor: '#3b82f615' }]}>
+                     <Map size={22} color="#3b82f6" />
+                  </View>
+                  <View style={styles.menuListTextWrapper}>
+                     <Text style={styles.menuListTitle}>{t('dashboard.customerMap') || 'Peta Pelanggan'}</Text>
+                     <Text style={styles.menuListSubtitle}>{t('dashboard.customerMapSubtitle') || 'Lihat sebaran lokasi pelanggan'}</Text>
+                  </View>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </TouchableOpacity>
+
+
                {/* All Users */}
                <TouchableOpacity style={[styles.menuListItem, { borderLeftColor: '#10b981' }]} onPress={() => navigation.navigate('AllUsers')}>
                   <View style={[styles.menuListIconWrapper, { backgroundColor: '#10b98115' }]}>
@@ -739,7 +753,7 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -759,7 +773,7 @@ const styles = StyleSheet.create({
   },
   glassCardSmall: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     width: 220,
     alignItems: 'center',
@@ -916,7 +930,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     borderLeftWidth: 5,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -954,7 +968,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   chartCard: {
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 24,
     alignItems: 'center',
     overflow: 'hidden',
@@ -1047,7 +1061,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 12,
   },
   routerBadgeText: {
     fontSize: 9,

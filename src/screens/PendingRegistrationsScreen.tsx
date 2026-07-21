@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   // Card
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 18,
     marginBottom: 14,
     borderWidth: 1,

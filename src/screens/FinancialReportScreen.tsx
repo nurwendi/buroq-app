@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     maxHeight: '80%',
     shadowColor: '#000',
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     padding: 14,
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1.5,
     borderColor: 'rgba(0,0,0,0.03)',
     ...Platform.select({
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: 16,
-    borderRadius: 24,
+    borderRadius: 12,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.6)',
     ...Platform.select({
@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 16,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.6)',
@@ -866,7 +866,7 @@ const styles = StyleSheet.create({
   },
   paymentCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,

@@ -149,6 +149,8 @@ export const en = {
     },
     dashboard: {
         title: 'Dashboard',
+        customerMap: 'Customer Map',
+        customerMapSubtitle: 'View customer locations',
         recentInvoices: 'Recent Invoices',
         totalUsers: 'Total Customers',
         activeUsers: 'Active Customers',

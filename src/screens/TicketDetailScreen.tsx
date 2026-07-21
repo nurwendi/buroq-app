@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     backgroundColor: '#f8fafc',
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#cbd5e1',
     paddingHorizontal: 16,
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   sendBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',

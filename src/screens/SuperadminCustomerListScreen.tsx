@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 60,
     height: 60,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',

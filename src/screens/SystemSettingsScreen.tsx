@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   saveBtnFull: {
     backgroundColor: COLORS.primary,
     height: 64,
-    borderRadius: 20,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: COLORS.primary,

@@ -6,6 +6,7 @@ export const ENDPOINTS = {
 
   // Customers
   CUSTOMERS: '/api/customers',
+  CUSTOMERS_MAP: '/api/customers/map',
   CUSTOMER_DETAIL: (username: string) => `/api/customers/${username}`,
 
   // PPPoE

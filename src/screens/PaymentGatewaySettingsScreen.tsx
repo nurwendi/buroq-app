@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#fffbeb',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#fef3c7',
     marginBottom: 24,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#f1f5f9',
     overflow: 'hidden',
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#2563eb',
     height: 56,
-    borderRadius: 20,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

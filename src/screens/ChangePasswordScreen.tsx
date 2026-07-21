@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: '#eff6ff',
     padding: 20,
-    borderRadius: 28,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 32,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 56,
     height: 56,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#2563eb',
     height: 64,
-    borderRadius: 20,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#2563eb',

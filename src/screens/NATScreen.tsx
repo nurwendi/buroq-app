@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.slate[100],
     padding: 6,
-    borderRadius: 20,
+    borderRadius: 12,
     gap: 4,
   },
   tab: {
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 20 },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1.2,
@@ -753,7 +753,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     paddingVertical: 18, 
-    borderRadius: 24, 
+    borderRadius: 12, 
     gap: 12, 
     marginBottom: 24, 
     elevation: 6,
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     paddingVertical: 18, 
-    borderRadius: 24, 
+    borderRadius: 12, 
     gap: 12, 
     marginTop: 32,
     elevation: 4,
@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
   scriptPreviewContainer: {
-    backgroundColor: '#0f172a', borderRadius: 24, marginTop: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293b'
+    backgroundColor: '#0f172a', borderRadius: 12, marginTop: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293b'
   },
   scriptHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

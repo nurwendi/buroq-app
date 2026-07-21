@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   addButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   },
   userCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#2563eb',
     height: 60,
-    borderRadius: 20,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

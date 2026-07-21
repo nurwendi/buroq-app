@@ -104,7 +104,7 @@ export default function PppoePieChart({ active, offline, total, loading = false,
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 24,
     marginVertical: 8,
     borderWidth: 1,

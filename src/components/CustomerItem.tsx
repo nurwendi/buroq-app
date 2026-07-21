@@ -118,7 +118,7 @@ export default function CustomerItem({ customer, onPress }: CustomerItemProps) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     marginHorizontal: 16,
     marginBottom: 12,
     borderWidth: 1,

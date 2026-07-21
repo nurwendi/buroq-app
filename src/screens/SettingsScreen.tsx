@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 12,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   settingGroup: {
     backgroundColor: COLORS.white,
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 10,
     marginBottom: 32,
     borderWidth: 1,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    borderRadius: 20,
+    borderRadius: 12,
   },
   settingIcon: {
     width: 44,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.white,
     height: 64,
-    borderRadius: 24,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#fee2e2',
     marginTop: 8,

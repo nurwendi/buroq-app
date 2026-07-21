@@ -8,6 +8,15 @@ export const customerService = {
    * @param lite If true, fetches a lightweight version of the customer objects.
    * @returns Dictionary/Map of customers by username or an Array depending on API.
    */
+    getMapCustomers: async () => {
+    try {
+      const response = await apiClient.get(ENDPOINTS.CUSTOMERS_MAP);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.warn('Error fetching map customers:', error);
+      return [];
+    }
+  },
   getCustomers: async (lite: boolean = true) => {
     try {
       const response = await apiClient.get(`${ENDPOINTS.CUSTOMERS}?lite=${lite}`);

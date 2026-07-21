@@ -152,6 +152,8 @@ export const id = {
     },
     dashboard: {
         title: 'Dashboard',
+        customerMap: 'Peta Pelanggan',
+        customerMapSubtitle: 'Lihat sebaran lokasi pelanggan',
         recentInvoices: 'Invoice Terbaru',
         wifiUpdateError: 'Gagal Memperbarui WiFi',
         totalUsers: 'Total Pelanggan',
@@ -651,6 +653,9 @@ export const id = {
     messages: {
         editRequestSubmitted: 'Permintaan edit telah terkirim untuk disetujui.',
         validationError: 'Mohon lengkapi data berikut:{fields}',
+    },
+    routers: {
+        title: 'Status Router',
     },
 };
 

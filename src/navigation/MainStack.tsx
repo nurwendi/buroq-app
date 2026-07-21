@@ -30,6 +30,7 @@ import SuperadminCustomerListScreen from '../screens/SuperadminCustomerListScree
 import PendingRegistrationsScreen from '../screens/PendingRegistrationsScreen';
 import TicketScreen from '../screens/TicketScreen';
 import TicketDetailScreen from '../screens/TicketDetailScreen';
+import MapScreen from '../screens/MapScreen';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,7 @@ export default function MainStack() {
       <Stack.Screen name="FinancialReport" component={FinancialReportScreen} />
       <Stack.Screen name="PaymentGatewaySettings" component={PaymentGatewaySettingsScreen} />
       <Stack.Screen name="UnpaidBills" component={UnpaidBillsScreen} />
+      <Stack.Screen name="MapScreen" component={MapScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="SystemSettings" component={SystemSettingsScreen} />
       <Stack.Screen name="NasManagement" component={NasManagementScreen} />

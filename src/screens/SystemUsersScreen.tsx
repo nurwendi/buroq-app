@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.slate[50],
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     height: 52,
     borderWidth: 1.5,
     borderColor: COLORS.slate[100],
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   },
   userCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1.2,
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: COLORS.primary,
     height: 60,
-    borderRadius: 24,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
   roleSelectionBox: {
     width: '100%',
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 24,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 10 },

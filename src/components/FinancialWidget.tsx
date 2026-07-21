@@ -102,7 +102,7 @@ export default function FinancialWidget({
 
 const styles = StyleSheet.create({
   wrapper: {
-    borderRadius: 28,
+    borderRadius: 12,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     padding: 24,
-    borderRadius: 28,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
   },

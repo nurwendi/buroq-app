@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: '#eff6ff',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 32,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',

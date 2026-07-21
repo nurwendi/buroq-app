@@ -38,7 +38,8 @@ import {
   Banknote,
   Trash2,
   Edit3,
-  HelpCircle
+  HelpCircle,
+  Map
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DonutChart from '../../components/DonutChart';
@@ -431,6 +432,15 @@ export default function AdminDashboardView() {
                   <Text style={styles.gridLabel} numberOfLines={2}>{t('sidebar.users')}</Text>
                 </TouchableOpacity>
 
+                {/* Peta Pelanggan */}
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MapScreen')}>
+                  <View style={[styles.gridIconBox, { backgroundColor: '#3b82f6' }]}>
+                    <Map size={26} color="#ffffff" />
+                  </View>
+                  <Text style={styles.gridLabel} numberOfLines={2}>{t('dashboard.customerMap') || 'Peta Pelanggan'}</Text>
+                </TouchableOpacity>
+
+
                 {/* Persetujuan */}
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('PendingRegistrations')}>
                   <View style={[styles.gridIconBox, { backgroundColor: '#f59e0b' }]}>
@@ -628,7 +638,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -701,7 +711,7 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -777,7 +787,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 12,
     borderLeftWidth: 5,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -821,7 +831,7 @@ const styles = StyleSheet.create({
   },
   pendingListLight: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(241, 245, 249, 0.8)',
@@ -872,7 +882,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   chartCard: {
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 24,
     alignItems: 'center',
     overflow: 'hidden',
@@ -990,7 +1000,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 12,
   },
   routerBadgeText: {
     fontSize: 9,
@@ -1036,7 +1046,7 @@ const styles = StyleSheet.create({
   txAvatarCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',

@@ -102,7 +102,7 @@ export default function CustomerFormScreen() {
     identityNumber: customer?.identityNumber || '',
     address: customer?.address || '',
     password: '',
-    profile: customer?.profile?.name || customer?.profileId || '',
+    profile: customer?.profileName || customer?.profile?.name || customer?.profileId || '',
     agentId: customer?.agentId || '',
     technicianId: customer?.technicianId || '',
     coordinates: customer?.coordinates || '',
@@ -115,7 +115,7 @@ export default function CustomerFormScreen() {
   const [originalCustomer] = useState({
     username: customer?.username || '',
     password: customer?.password || '',
-    profile: customer?.profile?.name || customer?.profileId || '',
+    profile: customer?.profileName || customer?.profile?.name || customer?.profileId || '',
     service: 'pppoe',
   });
 
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: COLORS.primary,
     height: 64,
-    borderRadius: 20,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 32,

@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.slate[200],
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
   },
   selectedCustomerCard: {
     backgroundColor: COLORS.primaryLight,
-    borderRadius: 20,
+    borderRadius: 12,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     padding: 24,
     borderWidth: 1,
     borderColor: COLORS.slate[200],
@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     width: '100%',
     padding: 24,
-    borderRadius: 20,
+    borderRadius: 12,
     marginBottom: 32,
     alignItems: 'center',
     borderWidth: 1,
@@ -950,7 +950,7 @@ const styles = StyleSheet.create({
   selectionModal: {
     width: '100%',
     backgroundColor: COLORS.white,
-    borderRadius: 24,
+    borderRadius: 12,
     maxHeight: '70%',
     overflow: 'hidden',
     shadowColor: COLORS.black,

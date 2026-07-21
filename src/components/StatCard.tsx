@@ -56,7 +56,7 @@ export default function StatCard({ title, value, icon: Icon, color, subtitle, is
 const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
-    borderRadius: 24,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.border,

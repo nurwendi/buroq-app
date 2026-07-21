@@ -443,6 +443,82 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           </View>
         </View>
 
+         <View style={styles.section}>
+           <Text style={styles.sectionTitle}>{t('users.deviceInfoAcs')}</Text>
+           {loadingAcs ? (
+            <View style={styles.statusBox}>
+              <ActivityIndicator color="#2563eb" />
+            </View>
+          ) : acsDevice ? (
+            <View style={styles.acsContainer}>
+              <View style={styles.acsHeader}>
+                <View style={styles.acsModelRow}>
+                  <Router size={20} color="#f97316" />
+                  <Text style={styles.acsModel}>{acsDevice.model || 'Unknown Device'}</Text>
+                </View>
+                <View style={[styles.badge, (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? styles.badgeOnline : styles.badgeOffline]}>
+                  <Text style={[styles.badgeText, { color: (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? '#065f46' : '#991b1b' }]}>
+                    {(Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? t('genieacs.acsOk') : t('genieacs.acsMissed')}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.acsMetrics}>
+                <View style={styles.acsMetricItem}>
+                  <View style={styles.acsMetricHeader}>
+                    <Wifi size={14} color="#2563eb" />
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.ssid')}</Text>
+                  </View>
+                  <Text style={styles.acsMetricValue} numberOfLines={1}>{acsDevice.ssid || '-'}</Text>
+                </View>
+
+                <View style={styles.acsMetricItem}>
+                  <View style={styles.acsMetricHeader}>
+                    <Activity size={14} color={parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981'} />
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.signal')}</Text>
+                  </View>
+                  <Text style={[styles.acsMetricValue, { color: parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981' }]}>
+                    {acsDevice.rx_power !== '-' ? `${acsDevice.rx_power} dBm` : '-'}
+                  </Text>
+                </View>
+
+                <View style={styles.acsMetricItem}>
+                  <View style={styles.acsMetricHeader}>
+                    <Cpu size={14} color="#64748b" />
+                    <Text style={styles.acsMetricLabel}>{t('genieacs.temp')}</Text>
+                  </View>
+                  <Text style={styles.acsMetricValue}>{acsDevice.temp !== '-' ? `${acsDevice.temp}°C` : '-'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.acsActions}>
+                <TouchableOpacity 
+                   style={styles.acsActionBtn}
+                   onPress={() => setWifiModalVisible(true)}
+                >
+                  <Edit size={16} color="#2563eb" />
+                  <Text style={styles.acsActionText}>{t('users.wifiSettingsShort')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                   style={[styles.acsActionBtn, styles.acsRebootBtn]}
+                   onPress={handleReboot}
+                >
+                  <Power size={16} color="#ef4444" />
+                  <Text style={[styles.acsActionText, styles.acsRebootText]}>{t('users.rebootShort')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+             <View style={styles.emptyAcs}>
+               <Info size={20} color="#94a3b8" />
+               <Text style={styles.emptyAcsText}>{t('users.noAcsDevice')}</Text>
+               <TouchableOpacity onPress={fetchAcsDevice} style={styles.refreshAcs}>
+                 <RefreshCw size={14} color="#2563eb" />
+                 <Text style={styles.refreshAcsText}>{t('common.refresh')}</Text>
+               </TouchableOpacity>
+             </View>
+          )}
+        </View>
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
              <View style={styles.iconContainer}>
@@ -568,82 +644,6 @@ export default function CustomerDetailScreen({ route, navigation }: any) {
           <ChevronRight size={20} color="#cbd5e1" />
         </TouchableOpacity>
 
-         <View style={styles.section}>
-           <Text style={styles.sectionTitle}>{t('users.deviceInfoAcs')}</Text>
-           {loadingAcs ? (
-            <View style={styles.statusBox}>
-              <ActivityIndicator color="#2563eb" />
-            </View>
-          ) : acsDevice ? (
-            <View style={styles.acsContainer}>
-              <View style={styles.acsHeader}>
-                <View style={styles.acsModelRow}>
-                  <Router size={20} color="#f97316" />
-                  <Text style={styles.acsModel}>{acsDevice.model || 'Unknown Device'}</Text>
-                </View>
-                <View style={[styles.badge, (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? styles.badgeOnline : styles.badgeOffline]}>
-                  <Text style={[styles.badgeText, { color: (Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? '#065f46' : '#991b1b' }]}>
-                    {(Date.now() - new Date(acsDevice.lastInform).getTime()) < 300000 ? t('genieacs.acsOk') : t('genieacs.acsMissed')}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.acsMetrics}>
-                <View style={styles.acsMetricItem}>
-                  <View style={styles.acsMetricHeader}>
-                    <Wifi size={14} color="#2563eb" />
-                    <Text style={styles.acsMetricLabel}>{t('genieacs.ssid')}</Text>
-                  </View>
-                  <Text style={styles.acsMetricValue} numberOfLines={1}>{acsDevice.ssid || '-'}</Text>
-                </View>
-
-                <View style={styles.acsMetricItem}>
-                  <View style={styles.acsMetricHeader}>
-                    <Activity size={14} color={parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981'} />
-                    <Text style={styles.acsMetricLabel}>{t('genieacs.signal')}</Text>
-                  </View>
-                  <Text style={[styles.acsMetricValue, { color: parseFloat(acsDevice.rx_power) < -25 ? '#ef4444' : '#10b981' }]}>
-                    {acsDevice.rx_power !== '-' ? `${acsDevice.rx_power} dBm` : '-'}
-                  </Text>
-                </View>
-
-                <View style={styles.acsMetricItem}>
-                  <View style={styles.acsMetricHeader}>
-                    <Cpu size={14} color="#64748b" />
-                    <Text style={styles.acsMetricLabel}>{t('genieacs.temp')}</Text>
-                  </View>
-                  <Text style={styles.acsMetricValue}>{acsDevice.temp !== '-' ? `${acsDevice.temp}°C` : '-'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.acsActions}>
-                <TouchableOpacity 
-                   style={styles.acsActionBtn}
-                   onPress={() => setWifiModalVisible(true)}
-                >
-                  <Edit size={16} color="#2563eb" />
-                  <Text style={styles.acsActionText}>{t('users.wifiSettingsShort')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                   style={[styles.acsActionBtn, styles.acsRebootBtn]}
-                   onPress={handleReboot}
-                >
-                  <Power size={16} color="#ef4444" />
-                  <Text style={[styles.acsActionText, styles.acsRebootText]}>{t('users.rebootShort')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-             <View style={styles.emptyAcs}>
-               <Info size={20} color="#94a3b8" />
-               <Text style={styles.emptyAcsText}>{t('users.noAcsDevice')}</Text>
-               <TouchableOpacity onPress={fetchAcsDevice} style={styles.refreshAcs}>
-                 <RefreshCw size={14} color="#2563eb" />
-                 <Text style={styles.refreshAcsText}>{t('common.refresh')}</Text>
-               </TouchableOpacity>
-             </View>
-          )}
-        </View>
 
          <View style={styles.usageBox}>
             <Text style={styles.usageTitle}>{t('users.usageThisMonth')}</Text>
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
   actionIconCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
