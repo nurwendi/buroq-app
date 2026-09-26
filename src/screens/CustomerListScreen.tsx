@@ -243,6 +243,10 @@ export default function CustomerListScreen({ navigation, route }: any) {
             styles.listContent,
             filteredCustomers.length === 0 && { flex: 1 }
           ]}
+          initialNumToRender={15}
+          maxToRenderPerBatch={20}
+          windowSize={5}
+          removeClippedSubviews={true}
         />
       )}
 

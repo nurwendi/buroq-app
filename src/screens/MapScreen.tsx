@@ -115,9 +115,9 @@ export default function MapScreen({ navigation }: any) {
                     iconAnchor: [20, 40],
                     popupAnchor: [0, -40]
                   });
-                  L.marker([${lat}, ${lng}], {icon: customIcon})
-                   .bindPopup(\`${popupHtml}\`)
-                   .addTo(map);
+                  var marker = L.marker([${lat}, ${lng}], {icon: customIcon})
+                   .bindPopup(\`${popupHtml}\`);
+                  markersGroup.addLayer(marker);
                 `);
 
                 // Update center to last valid point
@@ -136,7 +136,10 @@ export default function MapScreen({ navigation }: any) {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
             body { padding: 0; margin: 0; }
@@ -212,12 +215,18 @@ export default function MapScreen({ navigation }: any) {
 
             L.control.layers(baseMaps).addTo(map);
             
+            var markersGroup = L.markerClusterGroup({
+              chunkedLoading: true,
+              maxClusterRadius: 50
+            });
+
             ${markers.join('\n')}
             
+            map.addLayer(markersGroup);
+
             // Auto fit bounds if multiple markers exist
-            var group = new L.featureGroup(Object.values(map._layers).filter(l => l instanceof L.Marker));
-            if(group.getBounds().isValid() && Object.keys(group._layers).length > 0) {
-                map.fitBounds(group.getBounds(), {padding: [30, 30]});
+            if(markersGroup.getBounds().isValid()) {
+                map.fitBounds(markersGroup.getBounds(), {padding: [30, 30]});
             }
           </script>
         </body>

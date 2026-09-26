@@ -321,6 +321,10 @@ export default function AllUsersScreen() {
               <Text style={styles.emptyText}>{t('users.noUsersFound')}</Text>
             </View>
           }
+          initialNumToRender={15}
+          maxToRenderPerBatch={20}
+          windowSize={5}
+          removeClippedSubviews={true}
         />
       )}
 
